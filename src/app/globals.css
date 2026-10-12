@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Placeholder values from the brief (milk background, black,
+ * brick red, warm orange, muted green) until the brand book arrives; swap
+ * them here and the whole site follows.
+ */
+@theme {
+  --color-milk: #fbf6ee;
+  --color-paper: #ffffff;
+  --color-ink: #1c1a17;
+  --color-ink-soft: #57524b;
+  --color-line: #e7dfd2;
+  --color-brick: #b5442e;
+  --color-brick-dark: #8f3322;
+  --color-orange: #e58a3a;
+  --color-sage: #6e8b5e;
+  --color-sage-soft: #e8efe2;
+  --color-brick-soft: #f6e4df;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+
+  --radius-card: 1.25rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-milk);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+.prose-text p + p {
+  margin-top: 0.75em;
+}

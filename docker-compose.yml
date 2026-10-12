@@ -1,0 +1,102 @@
+# Production and staging run the same file as two separate compose projects:
+#   docker compose --env-file .env.production -p whiskers up -d --build
+#   docker compose --env-file .env.staging    -p whiskers-staging up -d --build
+# Each project gets its own database, uploads volume, backups and tunnel.
+
+x-db-url: &db-url postgresql://whiskers:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@db:5432/whiskers
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: whiskers
+      POSTGRES_DB: whiskers
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U whiskers -d whiskers"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # One-shot: applies migrations and the idempotent seed, then exits.
+  migrate:
+    build: { context: ., target: builder }
+    command: sh -c "npx prisma migrate deploy && npm run db:seed"
+    environment:
+      DATABASE_URL: *db-url
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_NAME: ${ADMIN_NAME:-}
+    depends_on:
+      db: { condition: service_healthy }
+    restart: "no"
+
+  app:
+    build: { context: ., target: runner }
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: *db-url
+      APP_URL: ${APP_URL:?set APP_URL}
+      ALLOW_INDEXING: ${ALLOW_INDEXING:-false}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      # Wave 2 (AI); Ollama runs natively on the Mac, outside Docker.
+      AI_ENABLED: ${AI_ENABLED:-false}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+    volumes:
+      - uploads:/data/uploads
+    ports:
+      # Local access only; the public reaches the site through the tunnel.
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+  # Cloudflare Tunnel: no open ports on the office router. The public hostname
+  # (whiskers.guitarcustom.shop -> http://app:3000) is set in the Cloudflare dashboard.
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      app: { condition: service_healthy }
+
+  backup:
+    build: ./docker/backup
+    restart: unless-stopped
+    environment: &backup-env
+      DATABASE_URL: *db-url
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:?set RESTIC_REPOSITORY}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:?set RESTIC_PASSWORD}
+      AWS_ACCESS_KEY_ID: ${BACKUP_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${BACKUP_SECRET_ACCESS_KEY:-}
+      BACKUP_HOUR: ${BACKUP_HOUR:-3}
+      DISK_WARN_PERCENT: ${DISK_WARN_PERCENT:-85}
+      TZ: Europe/Belgrade
+    volumes:
+      - uploads:/data/uploads:ro
+    depends_on:
+      db: { condition: service_healthy }
+
+  # Manual only: docker compose ... --profile restore run --rm restore [snapshot]
+  restore:
+    profiles: ["restore"]
+    build: ./docker/backup
+    entrypoint: ["/usr/local/bin/restore.sh"]
+    environment: *backup-env
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  uploads:

@@ -1,0 +1,622 @@
+// Whiskers Club data model.
+//
+// Conventions:
+// - ids are UUIDs;
+// - money is stored as whole Serbian dinars (Int, RSD); admins convert other
+//   currencies by hand when they record a donation (decision 1.8);
+// - translatable text is a JSON object {"en": "...", "ru": "...", "sr": "..."}
+//   (see src/lib/i18n/localized.ts), one value per language, edited
+//   independently;
+// - nothing published is hard-deleted from the admin UI: entities move to
+//   HIDDEN / ARCHIVED, and every change is written to AuditEvent.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPERADMIN
+  EDITOR
+  FINANCE
+}
+
+enum PublicationState {
+  DRAFT
+  PUBLISHED
+  HIDDEN
+  ARCHIVED
+}
+
+// ---------------------------------------------------------------------------
+// Users and access
+
+model User {
+  id               String    @id @default(uuid()) @db.Uuid
+  email            String    @unique
+  passwordHash     String
+  name             String
+  roles            Role[]
+  isActive         Boolean   @default(true)
+  // Public contact buttons shown on the pages of cats this user curates.
+  contactTelegram  String?
+  contactPhone     String?
+  contactWhatsapp  String?
+  contactViber     String?
+  contactInstagram String?
+  // Telegram chat that receives admin notifications (set up later).
+  telegramChatId   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  lastLoginAt      DateTime?
+
+  sessions        Session[]
+  passwordResets  PasswordReset[]
+  invitationsSent Invitation[]    @relation("InvitedBy")
+  curatedCats     CatCurator[]
+  auditEvents     AuditEvent[]
+  assignedApps    Application[]   @relation("AssignedTo")
+}
+
+model Invitation {
+  id          String    @id @default(uuid()) @db.Uuid
+  email       String
+  name        String
+  roles       Role[]
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  createdById String    @db.Uuid
+  createdBy   User      @relation("InvitedBy", fields: [createdById], references: [id])
+}
+
+model Session {
+  id         String   @id @default(uuid()) @db.Uuid
+  tokenHash  String   @unique
+  userId     String   @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  ip         String?
+  userAgent  String?
+
+  @@index([userId])
+}
+
+model PasswordReset {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model LoginAttempt {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String
+  ip        String?
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+  @@index([ip, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Managed dictionaries (superadmin can edit them without code changes)
+
+enum StatusGroup {
+  ACTIVE // still in our care: shown under "All"
+  ADOPTED // happy endings
+  ARCHIVE // memorial, released after TNR, archive
+}
+
+model CatStatus {
+  id        String      @id @default(uuid()) @db.Uuid
+  key       String      @unique
+  label     Json
+  color     String      @default("#888888")
+  icon      String?
+  sortOrder Int         @default(0)
+  isPublic  Boolean     @default(true)
+  group     StatusGroup @default(ACTIVE)
+  // Lower = shown earlier in the automatic catalog order (TZ 5.2).
+  priority  Int         @default(50)
+  cats      Cat[]
+}
+
+model CatFlag {
+  id        String         @id @default(uuid()) @db.Uuid
+  key       String         @unique
+  label     Json
+  sortOrder Int            @default(0)
+  isPublic  Boolean        @default(true)
+  cats      CatFlagOnCat[]
+}
+
+// A public catalog filter. A cat matches when its status group is in
+// statusGroups AND (statusKeys is empty or contains its status) AND (flagKeys
+// is empty or it has one of them) AND (it has an active campaign, if
+// requireActiveCampaign).
+model CatalogFilter {
+  id                    String        @id @default(uuid()) @db.Uuid
+  key                   String        @unique
+  label                 Json
+  sortOrder             Int           @default(0)
+  isEnabled             Boolean       @default(true)
+  statusGroups          StatusGroup[] @default([ACTIVE])
+  statusKeys            String[]      @default([])
+  flagKeys              String[]      @default([])
+  requireActiveCampaign Boolean       @default(false)
+}
+
+model ExpenseCategory {
+  id        String     @id @default(uuid()) @db.Uuid
+  key       String     @unique
+  label     Json
+  sortOrder Int        @default(0)
+  isActive  Boolean    @default(true)
+  expenses  Expense[]
+  campaigns Campaign[]
+}
+
+// ---------------------------------------------------------------------------
+// Cats
+
+enum Sex {
+  FEMALE
+  MALE
+  UNKNOWN
+}
+
+enum TriState {
+  YES
+  NO
+  UNKNOWN
+}
+
+enum TestResult {
+  NEGATIVE
+  POSITIVE
+  PENDING
+  NOT_TESTED
+}
+
+model Cat {
+  id             String @id @default(uuid()) @db.Uuid
+  slug           String @unique
+  // Localized texts.
+  name           Json
+  summary        Json   @default("{}")
+  story          Json   @default("{}")
+  character      Json   @default("{}")
+  health         Json   @default("{}")
+  adoptionTerms  Json   @default("{}")
+  specialNeeds   Json   @default("{}")
+  originalLocale String @default("ru")
+
+  sex             Sex        @default(UNKNOWN)
+  // Approximate birth date; public age is computed from it.
+  birthDate       DateTime?  @db.Date
+  color           String?
+  sterilized      TriState   @default(UNKNOWN)
+  vaccinated      TriState   @default(UNKNOWN)
+  chipped         TriState   @default(UNKNOWN)
+  fiv             TestResult @default(NOT_TESTED)
+  felv            TestResult @default(NOT_TESTED)
+  goodWithCats    TriState   @default(UNKNOWN)
+  goodWithDogs    TriState   @default(UNKNOWN)
+  goodWithKids    TriState   @default(UNKNOWN)
+  hasSpecialNeeds Boolean    @default(false)
+
+  statusId       String           @db.Uuid
+  status         CatStatus        @relation(fields: [statusId], references: [id])
+  state          PublicationState @default(DRAFT)
+  isPinned       Boolean          @default(false)
+  // Manual nudge on top of the automatic order; higher = earlier.
+  manualPriority Int              @default(0)
+  // Hidden records still count toward the home page counters (e.g. TNR).
+  countInStats   Boolean          @default(true)
+
+  intakeDate  DateTime  @default(now()) @db.Date
+  adoptedAt   DateTime? @db.Date
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  coverId String?     @unique @db.Uuid
+  cover   MediaAsset? @relation("CatCover", fields: [coverId], references: [id])
+
+  media        MediaAsset[]      @relation("CatMedia")
+  flags        CatFlagOnCat[]
+  curators     CatCurator[]
+  updates      CatUpdate[]
+  campaigns    CampaignCat[]
+  donations    Donation[]
+  expenses     ExpenseCat[]
+  applications Application[]
+  documents    MedicalDocument[]
+  // Cats that should be adopted together.
+  bondedWith   Cat[]             @relation("Bonded")
+  bondedOf     Cat[]             @relation("Bonded")
+
+  @@index([state, statusId])
+}
+
+model CatFlagOnCat {
+  catId  String  @db.Uuid
+  flagId String  @db.Uuid
+  cat    Cat     @relation(fields: [catId], references: [id], onDelete: Cascade)
+  flag   CatFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+
+  @@id([catId, flagId])
+}
+
+model CatCurator {
+  catId     String @db.Uuid
+  userId    String @db.Uuid
+  sortOrder Int    @default(0)
+  cat       Cat    @relation(fields: [catId], references: [id], onDelete: Cascade)
+  user      User   @relation(fields: [userId], references: [id])
+
+  @@id([catId, userId])
+}
+
+enum MediaKind {
+  PHOTO
+  INSTAGRAM // link to an Instagram post or reel; videos are never uploaded
+}
+
+model MediaAsset {
+  id          String    @id @default(uuid()) @db.Uuid
+  kind        MediaKind @default(PHOTO)
+  catId       String?   @db.Uuid
+  cat         Cat?      @relation("CatMedia", fields: [catId], references: [id])
+  coverOf     Cat?      @relation("CatCover")
+  // For PHOTO: storage key of the original; resized variants live next to it.
+  storageKey  String?
+  mime        String?
+  width       Int?
+  height      Int?
+  sizeBytes   Int?
+  url         String?
+  alt         Json      @default("{}")
+  sortOrder   Int       @default(0)
+  isHidden    Boolean   @default(false)
+  createdById String?   @db.Uuid
+  createdAt   DateTime  @default(now())
+
+  @@index([catId, sortOrder])
+}
+
+model CatUpdate {
+  id          String           @id @default(uuid()) @db.Uuid
+  catId       String           @db.Uuid
+  cat         Cat              @relation(fields: [catId], references: [id], onDelete: Cascade)
+  date        DateTime         @default(now())
+  text        Json
+  state       PublicationState @default(PUBLISHED)
+  createdById String?          @db.Uuid
+  createdAt   DateTime         @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Medical documents
+
+enum DocumentCategory {
+  TESTS
+  CONCLUSION
+  PRESCRIPTION
+  CLINIC_INVOICE
+  VET_PASSPORT
+  CONTRACT
+  PHOTO
+  OTHER
+}
+
+model MedicalDocument {
+  id             String           @id @default(uuid()) @db.Uuid
+  catId          String           @db.Uuid
+  cat            Cat              @relation(fields: [catId], references: [id])
+  category       DocumentCategory @default(OTHER)
+  title          Json             @default("{}")
+  summary        Json             @default("{}")
+  documentDate   DateTime?        @db.Date
+  originalLocale String?
+  // Private original; never overwritten.
+  fileId         String           @db.Uuid
+  file           StoredFile       @relation("DocOriginal", fields: [fileId], references: [id])
+  // Public copy with personal data painted over by hand.
+  redactedFileId String?          @db.Uuid
+  redactedFile   StoredFile?      @relation("DocRedacted", fields: [redactedFileId], references: [id])
+  state          PublicationState @default(DRAFT)
+  createdById    String?          @db.Uuid
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+}
+
+// Any uploaded file other than gallery photos (receipts, documents, contracts).
+model StoredFile {
+  id           String   @id @default(uuid()) @db.Uuid
+  storageKey   String   @unique
+  originalName String
+  mime         String
+  sizeBytes    Int
+  sha256       String
+  createdById  String?  @db.Uuid
+  createdAt    DateTime @default(now())
+
+  docOriginals  MedicalDocument[] @relation("DocOriginal")
+  docRedacted   MedicalDocument[] @relation("DocRedacted")
+  expenseFiles  ExpenseFile[]
+  donationFiles DonationFile[]
+}
+
+// ---------------------------------------------------------------------------
+// Applications (adoption, volunteer, foster, partnership)
+
+enum ApplicationType {
+  ADOPTION
+  VOLUNTEER
+  FOSTER
+  PARTNERSHIP
+}
+
+enum ApplicationStatus {
+  NEW
+  CONTACTED
+  INTERVIEW
+  MEETING
+  APPROVED
+  REJECTED
+  COMPLETED
+  WITHDRAWN
+}
+
+model Application {
+  id            String            @id @default(uuid()) @db.Uuid
+  type          ApplicationType
+  status        ApplicationStatus @default(NEW)
+  catId         String?           @db.Uuid
+  cat           Cat?              @relation(fields: [catId], references: [id])
+  name          String
+  contactMethod String
+  contact       String
+  city          String?
+  // Remaining form answers, keyed by field name.
+  answers       Json              @default("{}")
+  locale        String
+  consentAt     DateTime
+  // Never shown publicly.
+  internalNotes String?
+  rejectReason  String?
+  assignedToId  String?           @db.Uuid
+  assignedTo    User?             @relation("AssignedTo", fields: [assignedToId], references: [id])
+  anonymizedAt  DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@index([type, status])
+}
+
+// ---------------------------------------------------------------------------
+// Money. Everything is in whole RSD.
+
+model PaymentMethod {
+  id           String   @id @default(uuid()) @db.Uuid
+  title        Json
+  // Value people copy (account number, IBAN, PayPal address, wallet).
+  value        String?
+  url          String?
+  // Currency hint shown to donors, e.g. "EUR / USD", "RSD", "RUB".
+  currencyNote String?
+  instructions Json     @default("{}")
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum CampaignStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Campaign {
+  id          String           @id @default(uuid()) @db.Uuid
+  title       Json
+  description Json             @default("{}")
+  categoryId  String?          @db.Uuid
+  category    ExpenseCategory? @relation(fields: [categoryId], references: [id])
+  targetRsd   Int
+  startDate   DateTime         @db.Date
+  endDate     DateTime?        @db.Date
+  status      CampaignStatus   @default(ACTIVE)
+  state       PublicationState @default(DRAFT)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  cats         CampaignCat[]
+  donations    Donation[]
+  expenses     Expense[]
+  transfersOut FundTransfer[] @relation("TransferFrom")
+  transfersIn  FundTransfer[] @relation("TransferTo")
+}
+
+model CampaignCat {
+  campaignId String   @db.Uuid
+  catId      String   @db.Uuid
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  cat        Cat      @relation(fields: [catId], references: [id])
+
+  @@id([campaignId, catId])
+}
+
+model Donation {
+  id              String           @id @default(uuid()) @db.Uuid
+  date            DateTime         @db.Date
+  amountRsd       Int
+  // Private: visible to admins only.
+  donorName       String?
+  // Public name, shown only when showName is true; otherwise "Anonymous".
+  publicName      String?
+  showName        Boolean          @default(false)
+  method          String?
+  // Public comment, e.g. "Компенсация корма".
+  comment         String?
+  internalComment String?
+  campaignId      String?          @db.Uuid
+  campaign        Campaign?        @relation(fields: [campaignId], references: [id])
+  catId           String?          @db.Uuid
+  cat             Cat?             @relation(fields: [catId], references: [id])
+  state           PublicationState @default(DRAFT)
+  importKey       String?          @unique
+  createdById     String?          @db.Uuid
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  files           DonationFile[]
+
+  @@index([state, date])
+}
+
+model DonationFile {
+  donationId String     @db.Uuid
+  fileId     String     @db.Uuid
+  donation   Donation   @relation(fields: [donationId], references: [id], onDelete: Cascade)
+  file       StoredFile @relation(fields: [fileId], references: [id])
+
+  @@id([donationId, fileId])
+}
+
+enum ProofLevel {
+  FISCAL_VERIFIED // "Fiscal receipt verified" (wave 2: QR check)
+  DOCUMENT // "Supporting document attached"
+  NONE // "Expense without fiscal receipt"
+}
+
+model Expense {
+  id              String           @id @default(uuid()) @db.Uuid
+  date            DateTime         @db.Date
+  vendor          String?
+  amountRsd       Int
+  categoryId      String           @db.Uuid
+  category        ExpenseCategory  @relation(fields: [categoryId], references: [id])
+  // Text as written by the admin, in the original language.
+  description     String
+  // Optional translated public summary.
+  publicSummary   Json             @default("{}")
+  paymentMethod   String?
+  proof           ProofLevel       @default(DOCUMENT)
+  noReceiptReason String?
+  fiscalId        String?
+  // Private: who paid. Reference only (decision 5.4).
+  payer           String?
+  internalComment String?
+  campaignId      String?          @db.Uuid
+  campaign        Campaign?        @relation(fields: [campaignId], references: [id])
+  state           PublicationState @default(DRAFT)
+  importKey       String?          @unique
+  createdById     String?          @db.Uuid
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  cats  ExpenseCat[]
+  files ExpenseFile[]
+
+  @@index([state, date])
+}
+
+// One expense may be linked to several cats. It is still counted once in the
+// totals; on a cat page it is shown as a shared expense.
+model ExpenseCat {
+  expenseId String  @db.Uuid
+  catId     String  @db.Uuid
+  expense   Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  cat       Cat     @relation(fields: [catId], references: [id])
+
+  @@id([expenseId, catId])
+}
+
+model ExpenseFile {
+  expenseId String     @db.Uuid
+  fileId    String     @db.Uuid
+  isPublic  Boolean    @default(false)
+  expense   Expense    @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  file      StoredFile @relation(fields: [fileId], references: [id])
+
+  @@id([expenseId, fileId])
+}
+
+// Moves money between a campaign and the general fund (null side), e.g. the
+// remainder of a finished campaign (decision 5.6). Not income, not expense.
+model FundTransfer {
+  id             String           @id @default(uuid()) @db.Uuid
+  date           DateTime         @db.Date
+  amountRsd      Int
+  fromCampaignId String?          @db.Uuid
+  fromCampaign   Campaign?        @relation("TransferFrom", fields: [fromCampaignId], references: [id])
+  toCampaignId   String?          @db.Uuid
+  toCampaign     Campaign?        @relation("TransferTo", fields: [toCampaignId], references: [id])
+  note           Json             @default("{}")
+  state          PublicationState @default(DRAFT)
+  createdById    String?          @db.Uuid
+  createdAt      DateTime         @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Site
+
+model Partner {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  url         String?
+  logoKey     String?
+  description Json     @default("{}")
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model AuditEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  at         DateTime @default(now())
+  actorId    String?  @db.Uuid
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String
+  entityType String?
+  entityId   String?
+  before     Json?
+  after      Json?
+  ip         String?
+
+  @@index([entityType, entityId])
+  @@index([at])
+}
+
+// Feed of operational events on the superadmin dashboard (decision 2.5).
+model SystemEvent {
+  id      String    @id @default(uuid()) @db.Uuid
+  at      DateTime  @default(now())
+  level   String // info | warning | error
+  kind    String // backup | disk | health | ...
+  message String
+  seenAt  DateTime?
+
+  @@index([at])
+}
