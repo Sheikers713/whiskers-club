@@ -201,7 +201,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
           ))}
 
           <section>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-soft">{dict.cat.health}</h2>
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-soft">{dict.cat.medical}</h2>
             <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-[15px]">
               <dt className="text-ink-soft">{dict.cat.sterilized}</dt>
               <dd>{tri(cat.sterilized, dict)}</dd>
