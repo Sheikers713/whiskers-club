@@ -38,7 +38,11 @@ export function Field({ label, hint, children }: { label: string; hint?: string;
 const langNames = { ru: "Русский", en: "English", sr: "Srpski" } as const;
 const order = ["ru", "en", "sr"] as const;
 
-/** Three inputs for one translatable field; an empty language falls back on the site. */
+/**
+ * Inputs for one translatable field; an empty language falls back on the site.
+ * `locales` limits which languages are shown (e.g. Russian only), and `auto`
+ * lists machine-translated values (`<name>.<locale>`) to mark as drafts.
+ */
 export function LocalizedField({
   name,
   label,
@@ -46,6 +50,8 @@ export function LocalizedField({
   multiline,
   rows = 4,
   required,
+  locales = order,
+  auto,
 }: {
   name: string;
   label: string;
@@ -53,15 +59,22 @@ export function LocalizedField({
   multiline?: boolean;
   rows?: number;
   required?: boolean;
+  locales?: readonly (typeof order)[number][];
+  auto?: string[];
 }) {
   const v = asLocalized(value);
   return (
     <fieldset className="space-y-2">
       <legend className="text-sm font-medium">{label}</legend>
-      {order.map((l) => (
+      {locales.map((l) => (
         <label key={l} className="flex items-start gap-2">
           <span className={`mt-3 w-7 shrink-0 text-xs font-bold uppercase ${v[l] ? "text-ink-soft" : "text-brick"}`} title={langNames[l]}>
             {l}
+            {auto?.includes(`${name}.${l}`) && (
+              <span className="block text-[10px] font-semibold normal-case text-sage" title="Машинный перевод, проверьте">
+                авто
+              </span>
+            )}
           </span>
           {multiline ? (
             <textarea name={`${name}.${l}`} defaultValue={v[l] ?? ""} rows={rows} className={inputCls + " mt-0"} lang={l} />
@@ -75,6 +88,12 @@ export function LocalizedField({
 }
 
 export function Flash({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+  if (searchParams.notice)
+    return (
+      <p role="status" className="mb-4 rounded-lg bg-line px-4 py-3 font-medium">
+        {String(searchParams.notice)}
+      </p>
+    );
   if (searchParams.saved) return <p role="status" className="mb-4 rounded-lg bg-sage-soft px-4 py-3 font-medium">Сохранено.</p>;
   if (searchParams.error)
     return (

@@ -203,6 +203,8 @@ model Cat {
   adoptionTerms  Json   @default("{}")
   specialNeeds   Json   @default("{}")
   originalLocale String @default("ru")
+  // Translated values still holding the untouched machine draft, e.g. "story.en".
+  autoTranslated String[] @default([])
 
   sex             Sex        @default(UNKNOWN)
   // Approximate birth date; public age is computed from it.
