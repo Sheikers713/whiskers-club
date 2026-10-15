@@ -59,6 +59,33 @@ services:
       db: { condition: service_healthy }
       migrate: { condition: service_completed_successfully }
 
+  # Telegram bot for admins (src/bot): free-form updates -> confirmed changes.
+  # Idle until TELEGRAM_BOT_TOKEN is set; only TELEGRAM_ADMIN_IDS may use it.
+  bot:
+    build: { context: ., target: builder }
+    command: node --conditions=react-server --import tsx src/bot/main.ts
+    restart: unless-stopped
+    # Same owner as the app, so both can write into the shared uploads folders.
+    user: node
+    environment:
+      DATABASE_URL: *db-url
+      APP_URL: ${APP_URL:?set APP_URL}
+      STORAGE_DIR: /data/uploads
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_ADMIN_IDS: ${TELEGRAM_ADMIN_IDS:-}
+      # RSD per unit for donations/expenses written in other currencies.
+      BOT_RATES: ${BOT_RATES:-EUR=117.2}
+      AI_ENABLED: ${AI_ENABLED:-false}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:26b}
+    volumes:
+      - uploads:/data/uploads
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
   # Cloudflare Tunnel: no open ports on the office router. The public hostname
   # (whiskers.guitarcustom.shop -> http://app:3000) is set in the Cloudflare dashboard.
   tunnel:
