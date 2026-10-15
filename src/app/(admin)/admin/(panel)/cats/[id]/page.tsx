@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { t } from "@/lib/i18n/localized";
 import { toDateInput } from "@/lib/admin/form";
 import { photoUrl } from "@/lib/media-url";
+import { aiEnabled } from "@/lib/ai/translate";
 import { addInstagramLink, saveCat, saveCatUpdate, updatePhoto, uploadPhotos } from "@/lib/actions/cats";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { BackLink, Card, Field, Flash, LocalizedField, PageTitle, StateBadge, StateSelect, btnCls, btnSecondaryCls, inputCls } from "@/components/admin/ui";
@@ -62,6 +63,10 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
   const flagIds = new Set(cat?.flags.map((f) => f.flagId));
   const curatorIds = new Set(cat?.curators.map((c) => c.userId));
   const bondedIds = new Set(cat?.bondedWith.map((b) => b.id));
+  // New cats are written in Russian only; English and Serbian are machine drafts.
+  const textLocales = isNew ? (["ru"] as const) : undefined;
+  const auto = cat?.autoTranslated;
+  const ai = aiEnabled();
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -82,7 +87,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
       <ActionForm action={saveCat} className="space-y-6">
         {cat && <input type="hidden" name="id" value={cat.id} />}
         <Card title="Основное">
-          <LocalizedField name="name" label="Имя" value={cat?.name} required />
+          <LocalizedField name="name" label="Имя" value={cat?.name} required locales={textLocales} auto={auto} />
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Статус">
               <select name="statusId" defaultValue={cat?.statusId ?? statuses.find((s) => s.key === "ready")?.id} className={inputCls} required>
@@ -109,7 +114,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
               ))}
             </div>
           </fieldset>
-          <LocalizedField name="summary" label="Коротко (для карточки в каталоге)" value={cat?.summary} multiline rows={2} />
+          <LocalizedField name="summary" label="Коротко (для карточки в каталоге)" value={cat?.summary} multiline rows={2} locales={textLocales} auto={auto} />
         </Card>
 
         <Card title="Данные">
@@ -160,14 +165,23 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
         </Card>
 
         <Card title="Тексты">
-          <Field label="Язык, на котором пишете оригинал">
-            <Select name="originalLocale" value={cat?.originalLocale ?? "ru"} options={[["ru", "Русский"], ["en", "English"], ["sr", "Srpski"]]} />
-          </Field>
-          <LocalizedField name="story" label="История" value={cat?.story} multiline rows={6} />
-          <LocalizedField name="character" label="Характер и привычки" value={cat?.character} multiline />
-          <LocalizedField name="health" label="Здоровье" value={cat?.health} multiline />
-          <LocalizedField name="specialNeeds" label="Особые потребности (если отмечены)" value={cat?.specialNeeds} multiline rows={2} />
-          <LocalizedField name="adoptionTerms" label="Условия пристройства" value={cat?.adoptionTerms} multiline rows={3} />
+          <p className="rounded-lg bg-milk px-3 py-2 text-sm text-ink-soft">
+            {!ai
+              ? "Пишите по-русски. Автоперевод выключен (AI_ENABLED), поэтому на английской и сербской версиях сайта пока будет русский текст."
+              : isNew
+                ? "Пишите только по-русски. Английский и сербский переводы появятся после сохранения, их можно будет поправить."
+                : "Пустые EN и SR переводятся с русского при сохранении. Пометка «авто» значит машинный перевод: если поменять русский текст, он обновится сам, а исправленный вручную перевод останется как есть."}
+          </p>
+          <LocalizedField name="story" label="История" value={cat?.story} multiline rows={6} locales={textLocales} auto={auto} />
+          <LocalizedField name="character" label="Характер и привычки" value={cat?.character} multiline locales={textLocales} auto={auto} />
+          <LocalizedField name="health" label="Здоровье" value={cat?.health} multiline locales={textLocales} auto={auto} />
+          <LocalizedField name="specialNeeds" label="Особые потребности (если отмечены)" value={cat?.specialNeeds} multiline rows={2} locales={textLocales} auto={auto} />
+          <LocalizedField name="adoptionTerms" label="Условия пристройства" value={cat?.adoptionTerms} multiline rows={3} locales={textLocales} auto={auto} />
+          {!isNew && ai && (
+            <label className="flex items-center gap-2">
+              <input type="checkbox" name="retranslate" /> Перевести EN и SR заново с русского (заменит и ручные правки)
+            </label>
+          )}
         </Card>
 
         <Card title="Кураторы и связи">
@@ -216,6 +230,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
 
         <div className="sticky bottom-0 -mx-4 border-t border-line bg-milk/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
           <button className={btnCls}>{isNew ? "Создать" : "Сохранить"}</button>
+          {ai && <span className="ml-3 text-sm text-ink-soft">С переводом сохранение занимает до минуты.</span>}
         </div>
       </ActionForm>
 

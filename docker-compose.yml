@@ -44,9 +44,10 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      # Wave 2 (AI); Ollama runs natively on the Mac, outside Docker.
+      # Machine translation of cat texts (RU -> EN, SR); Ollama runs natively on the Mac.
       AI_ENABLED: ${AI_ENABLED:-false}
       OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:26b}
     volumes:
       - uploads:/data/uploads
     ports:

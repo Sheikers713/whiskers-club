@@ -9,11 +9,16 @@ import { requireUser } from "../auth/session";
 import { bool, date, ids, int, localized, optStr, str } from "../admin/form";
 import { slugify } from "../slug";
 import { storePhoto } from "../storage";
+import { translateFromRussian } from "../ai/translate";
+import { planTranslations, type AutoKey } from "../ai/translation-plan";
+import { asLocalized, type LocalizedText } from "../i18n/localized";
 
 const states: PublicationState[] = ["DRAFT", "PUBLISHED", "HIDDEN", "ARCHIVED"];
 const tri: TriState[] = ["YES", "NO", "UNKNOWN"];
 const tests: TestResult[] = ["NEGATIVE", "POSITIVE", "PENDING", "NOT_TESTED"];
 const sexes: Sex[] = ["FEMALE", "MALE", "UNKNOWN"];
+
+const textFields = ["name", "summary", "story", "character", "health", "specialNeeds", "adoptionTerms"] as const;
 
 function pick<T extends string>(value: string, allowed: T[], fallback: T): T {
   return (allowed as string[]).includes(value) ? (value as T) : fallback;
@@ -32,9 +37,16 @@ async function uniqueSlug(base: string, exceptId?: string): Promise<string> {
 export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
   const user = await requireUser(["EDITOR"]);
   const id = optStr(fd, "id");
-  const name = localized(fd, "name", 80);
-  const firstName = name.ru ?? name.en ?? name.sr;
-  if (!firstName) return { error: "Укажите имя кота." };
+  const texts: Record<string, LocalizedText> = {
+    name: localized(fd, "name", 80),
+    summary: localized(fd, "summary", 400),
+    story: localized(fd, "story"),
+    character: localized(fd, "character"),
+    health: localized(fd, "health"),
+    adoptionTerms: localized(fd, "adoptionTerms"),
+    specialNeeds: localized(fd, "specialNeeds"),
+  };
+  if (!texts.name.ru) return { error: "Укажите имя кота по-русски." };
 
   const status = await db.catStatus.findUnique({ where: { id: str(fd, "statusId") } });
   if (!status) return { error: "Выберите статус." };
@@ -48,19 +60,46 @@ export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
   const flagIds = ids(fd, "flags");
   const curatorIds = ids(fd, "curators");
   const bondedIds = ids(fd, "bonded").filter((b) => b !== id);
+
+  // Admins write in Russian; English and Serbian are machine drafts they can edit later.
+  const plan = planTranslations({
+    submitted: texts,
+    before: before ? Object.fromEntries(textFields.map((f) => [f, asLocalized(before[f])])) : null,
+    beforeAuto: before?.autoTranslated,
+    force: bool(fd, "retranslate"),
+  });
+  const autoTranslated = new Set<string>(plan.keepAuto);
+  let translationNote: string | null = null;
+  if (Object.keys(plan.sources).length) {
+    const result = await translateFromRussian(plan.sources);
+    if (result.ok) {
+      for (const [field, locales] of Object.entries(plan.targets)) {
+        for (const l of locales) {
+          const v = result.values[l][field];
+          if (!v) continue;
+          texts[field] = { ...texts[field], [l]: v };
+          autoTranslated.add(`${field}.${l}` satisfies AutoKey);
+        }
+      }
+    } else {
+      translationNote = `Сохранено без перевода: ${result.reason}. На сайте пока будет русский текст.`;
+    }
+  }
+
   const requestedSlug = str(fd, "slug", 60);
-  const slug = await uniqueSlug(requestedSlug || name.en || firstName!, id ?? undefined);
+  const slug = await uniqueSlug(requestedSlug || texts.name.en || texts.name.ru, id ?? undefined);
 
   const data = {
     slug,
-    name,
-    summary: localized(fd, "summary", 400),
-    story: localized(fd, "story"),
-    character: localized(fd, "character"),
-    health: localized(fd, "health"),
-    adoptionTerms: localized(fd, "adoptionTerms"),
-    specialNeeds: localized(fd, "specialNeeds"),
-    originalLocale: pick(str(fd, "originalLocale"), ["ru", "en", "sr"], "ru"),
+    name: texts.name,
+    summary: texts.summary,
+    story: texts.story,
+    character: texts.character,
+    health: texts.health,
+    adoptionTerms: texts.adoptionTerms,
+    specialNeeds: texts.specialNeeds,
+    originalLocale: "ru",
+    autoTranslated: [...autoTranslated],
     sex: pick(str(fd, "sex"), sexes, "UNKNOWN"),
     birthDate: date(fd, "birthDate"),
     color: optStr(fd, "color", 80),
@@ -109,7 +148,7 @@ export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
     after: { ...data, flagIds, curatorIds, bondedIds },
   });
   revalidatePath("/", "layout");
-  redirect(`/admin/cats/${cat.id}?saved=1`);
+  redirect(`/admin/cats/${cat.id}?${translationNote ? `notice=${encodeURIComponent(translationNote)}` : "saved=1"}`);
 }
 
 export async function uploadPhotos(fd: FormData) {
