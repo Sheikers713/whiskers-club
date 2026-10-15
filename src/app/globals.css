@@ -1,27 +1,36 @@
 @import "tailwindcss";
+/* Manrope, self-hosted: Cyrillic + Latin Extended (č ć š ž đ), no build-time network. */
+@import "@fontsource-variable/manrope";
 
 /*
- * Design tokens. Placeholder values from the brief (milk background, black,
- * brick red, warm orange, muted green) until the brand book arrives; swap
- * them here and the whole site follows.
+ * Design tokens from the Whiskers Club brand book (15.10.2026):
+ * warm cream + editorial geometry + poster headings, Olive Dot as the
+ * signature background, Whiskers Red as the main accent.
+ * Token names are kept from the placeholder set so components did not change.
  */
 @theme {
-  --color-milk: #fbf6ee;
-  --color-paper: #ffffff;
-  --color-ink: #1c1a17;
-  --color-ink-soft: #57524b;
-  --color-line: #e7dfd2;
-  --color-brick: #b5442e;
-  --color-brick-dark: #8f3322;
-  --color-orange: #e58a3a;
-  --color-sage: #6e8b5e;
-  --color-sage-soft: #e8efe2;
-  --color-brick-soft: #f6e4df;
+  --color-milk: #f4eee4; /* Warm Paper, page background */
+  --color-paper: #f8f3eb; /* Milk, cards and inputs */
+  --color-cream-deep: #e9dfd0; /* secondary sections */
+  --color-ink: #242322; /* Whiskers Ink */
+  --color-ink-soft: #5d5852;
+  --color-line: #ddd3c4;
+  --color-brick: #c82424; /* Whiskers Red, main accent */
+  --color-brick-dark: #9e1b1b;
+  --color-brick-soft: #f5dcd5;
+  --color-orange: #cf6437; /* Terracotta, warm accent and focus */
+  --color-sage: #5f6e5b; /* Sage, darkened for AA text on cream */
+  --color-sage-soft: #dfe5da;
+  --color-olive: #aebcaa; /* Olive Dot base */
+  --color-sun: #efc766; /* Sunshine */
+  --color-cocoa: #51443e;
+  --color-ginger: #e39a46;
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: Georgia, "Times New Roman", serif;
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
 
-  --radius-card: 1.25rem;
+  --radius-card: 10px;
+  --radius-control: 7px;
 }
 
 html {
@@ -34,6 +43,13 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Poster headings: dense heavy Manrope with tight tracking. */
+.font-display {
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
 :focus-visible {
   outline: 3px solid var(--color-orange);
   outline-offset: 2px;
@@ -41,4 +57,28 @@ body {
 
 .prose-text p + p {
   margin-top: 0.75em;
+}
+
+/* Olive Dot: the signature background, olive with a 6px dot grid. */
+.olive-dot {
+  background-color: var(--color-olive);
+  background-image: radial-gradient(rgb(36 35 34 / 0.13) 0.8px, transparent 0.9px);
+  background-size: 6px 6px;
+}
+
+/* Small uppercase label above section headings. */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.eyebrow::before {
+  content: "";
+  width: 1.75rem;
+  height: 1px;
+  background: currentColor;
 }

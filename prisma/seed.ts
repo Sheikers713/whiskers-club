@@ -18,13 +18,13 @@ const statuses: Array<{
   priority: number;
   isPublic?: boolean;
 }> = [
-  { key: "urgent", label: { en: "Urgent help", ru: "Срочная помощь", sr: "Hitna pomoć" }, color: "#b3261e", group: "ACTIVE", priority: 10 },
-  { key: "ready", label: { en: "Ready for adoption", ru: "Готов к пристройству", sr: "Spreman za udomljavanje" }, color: "#2e7d32", group: "ACTIVE", priority: 20 },
-  { key: "reserved", label: { en: "Reserved", ru: "Забронирован", sr: "Rezervisan" }, color: "#6d4c41", group: "ACTIVE", priority: 25 },
-  { key: "treatment", label: { en: "In treatment", ru: "На лечении", sr: "Na lečenju" }, color: "#c75b12", group: "ACTIVE", priority: 30 },
-  { key: "quarantine", label: { en: "Quarantine", ru: "Карантин", sr: "Karantin" }, color: "#8d6e63", group: "ACTIVE", priority: 40 },
-  { key: "foster", label: { en: "Foster care", ru: "На передержке", sr: "Privremeni dom" }, color: "#5b7d54", group: "ACTIVE", priority: 50 },
-  { key: "adopted", label: { en: "Adopted", ru: "Нашёл дом", sr: "Udomljen" }, color: "#e07a2e", group: "ADOPTED", priority: 90 },
+  { key: "urgent", label: { en: "Urgent help", ru: "Срочная помощь", sr: "Hitna pomoć" }, color: "#c82424", group: "ACTIVE", priority: 10 },
+  { key: "ready", label: { en: "Ready for adoption", ru: "Готов к пристройству", sr: "Spreman za udomljavanje" }, color: "#5f6e5b", group: "ACTIVE", priority: 20 },
+  { key: "reserved", label: { en: "Reserved", ru: "Забронирован", sr: "Rezervisan" }, color: "#51443e", group: "ACTIVE", priority: 25 },
+  { key: "treatment", label: { en: "In treatment", ru: "На лечении", sr: "Na lečenju" }, color: "#cf6437", group: "ACTIVE", priority: 30 },
+  { key: "quarantine", label: { en: "Quarantine", ru: "Карантин", sr: "Karantin" }, color: "#8d98a0", group: "ACTIVE", priority: 40 },
+  { key: "foster", label: { en: "Foster care", ru: "На передержке", sr: "Privremeni dom" }, color: "#71816d", group: "ACTIVE", priority: 50 },
+  { key: "adopted", label: { en: "Adopted", ru: "Нашёл дом", sr: "Udomljen" }, color: "#e39a46", group: "ADOPTED", priority: 90 },
   { key: "tnr", label: { en: "Released after TNR", ru: "Выпущен после TNR", sr: "Pušten posle TNR" }, color: "#616161", group: "ARCHIVE", priority: 95, isPublic: false },
   { key: "memorial", label: { en: "Memorial", ru: "Память", sr: "Sećanje" }, color: "#424242", group: "ARCHIVE", priority: 97 },
   { key: "archive", label: { en: "Archive", ru: "Архив", sr: "Arhiva" }, color: "#9e9e9e", group: "ARCHIVE", priority: 99, isPublic: false },

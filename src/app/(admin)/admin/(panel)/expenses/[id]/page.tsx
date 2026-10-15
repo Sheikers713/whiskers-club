@@ -66,7 +66,7 @@ export default async function ExpensePage({ params, searchParams }: PageProps<"/
             <legend className="text-sm font-medium">Коты (если расход на нескольких, он всё равно учитывается один раз)</legend>
             <div className="mt-2 flex max-h-56 flex-wrap gap-2 overflow-y-auto">
               {cats.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 rounded-full bg-milk px-3 py-1.5">
+                <label key={c.id} className="flex items-center gap-2 rounded-md bg-milk px-3 py-1.5">
                   <input type="checkbox" name="cats" value={c.id} defaultChecked={linked.has(c.id)} />
                   {t(c.name, "ru")}
                 </label>

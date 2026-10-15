@@ -4,8 +4,8 @@ import { asLocalized } from "@/lib/i18n/localized";
 
 export const inputCls =
   "mt-1 block w-full rounded-lg border border-line bg-paper px-3 py-2.5 text-base focus:border-ink focus:outline-none";
-export const btnCls = "inline-flex items-center justify-center rounded-full bg-ink px-5 py-2.5 font-semibold text-milk hover:bg-brick disabled:opacity-50";
-export const btnSecondaryCls = "inline-flex items-center justify-center rounded-full border border-ink/20 bg-paper px-5 py-2.5 font-semibold hover:bg-milk";
+export const btnCls = "inline-flex items-center justify-center rounded-[var(--radius-control)] bg-ink px-5 py-2.5 font-semibold text-milk hover:bg-brick disabled:opacity-50";
+export const btnSecondaryCls = "inline-flex items-center justify-center rounded-[var(--radius-control)] border border-ink/20 bg-paper px-5 py-2.5 font-semibold hover:bg-milk";
 
 export function PageTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
@@ -18,7 +18,7 @@ export function PageTitle({ children, action }: { children: ReactNode; action?: 
 
 export function Card({ title, children }: { title?: string; children: ReactNode }) {
   return (
-    <section className="rounded-2xl bg-paper p-4 ring-1 ring-line md:p-6">
+    <section className="rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line md:p-6">
       {title && <h2 className="mb-4 text-lg font-bold">{title}</h2>}
       <div className="space-y-4">{children}</div>
     </section>
@@ -93,7 +93,7 @@ export function StateBadge({ state }: { state: string }) {
     ARCHIVED: ["Архив", "bg-milk text-ink-soft"],
   };
   const [label, cls] = map[state] ?? [state, "bg-line"];
-  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>{label}</span>;
+  return <span className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${cls}`}>{label}</span>;
 }
 
 export function StateSelect({ value, name = "state" }: { value?: string; name?: string }) {

@@ -50,18 +50,22 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   return (
     <div className="md:flex">
       <aside className="hidden w-60 shrink-0 border-r border-line bg-paper p-4 md:block md:min-h-screen">
-        <Link href="/admin" className="mb-4 block px-3 font-display text-xl font-bold">
+        <Link href="/admin" className="mb-4 flex items-center gap-2.5 px-3 font-display text-xl">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/cat-mark.png" alt="" width={36} height={36} className="h-9 w-9" />
           Whiskers Club
         </Link>
         <nav aria-label="Разделы">{links}</nav>
       </aside>
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-paper px-4 py-3 md:hidden">
-        <Link href="/admin" className="font-display text-lg font-bold">
+        <Link href="/admin" className="flex items-center gap-2 font-display text-lg">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/cat-mark.png" alt="" width={32} height={32} className="h-8 w-8" />
           Whiskers Club
         </Link>
         <details className="relative">
-          <summary className="cursor-pointer list-none rounded-full border border-ink/15 px-4 py-2 text-sm font-semibold">Меню</summary>
-          <nav aria-label="Разделы" className="absolute right-0 mt-2 w-64 rounded-2xl bg-paper p-3 shadow-lg ring-1 ring-line">
+          <summary className="cursor-pointer list-none rounded-[var(--radius-control)] border border-ink/15 px-4 py-2 text-sm font-semibold">Меню</summary>
+          <nav aria-label="Разделы" className="absolute right-0 mt-2 w-64 rounded-[var(--radius-card)] bg-paper p-3 shadow-lg ring-1 ring-line">
             {links}
           </nav>
         </details>

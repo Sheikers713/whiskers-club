@@ -27,7 +27,7 @@ export function CuratorCard({ curator }: { curator: Contacts }) {
     ig && { href: `https://instagram.com/${ig}`, label: "Instagram", short: "IG" },
   ].filter(Boolean) as Array<{ href: string; label: string; short: string }>;
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-paper p-4 ring-1 ring-line">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line">
       <div className="flex items-center gap-3">
         <span aria-hidden className="grid h-11 w-11 place-items-center rounded-full bg-orange text-lg font-bold text-white">
           {curator.name.slice(0, 1)}
@@ -46,7 +46,7 @@ export function CuratorCard({ curator }: { curator: Contacts }) {
               rel="noopener"
               title={l.label}
               aria-label={l.label}
-              className="grid h-10 min-w-10 place-items-center rounded-full bg-ink px-3 text-sm font-bold text-milk hover:bg-brick"
+              className="grid h-10 min-w-10 place-items-center rounded-[var(--radius-control)] bg-ink px-3 text-sm font-bold text-milk hover:bg-brick"
             >
               {l.short}
             </a>

@@ -10,7 +10,7 @@ const groupLabels = { ACTIVE: "Активные (в «Все»)", ADOPTED: "На
 
 function Item({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
-    <details className="rounded-xl bg-milk p-3">
+    <details className="rounded-[var(--radius-card)] bg-milk p-3">
       <summary className="cursor-pointer font-medium">{title}</summary>
       <div className="mt-3">{children}</div>
     </details>

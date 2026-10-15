@@ -43,7 +43,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/admin">) {
       )}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {tiles.map((tile) => (
-          <Link key={tile.href} href={tile.href} className="rounded-2xl bg-paper p-4 ring-1 ring-line hover:ring-ink">
+          <Link key={tile.href} href={tile.href} className="rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line hover:ring-ink">
             <p className="text-sm text-ink-soft">{tile.label}</p>
             <p className="text-3xl font-bold">{tile.value}</p>
           </Link>
@@ -64,7 +64,7 @@ export default async function Dashboard({ searchParams }: PageProps<"/admin">) {
           <ul className="flex flex-wrap gap-2">
             {myCats.map((c) => (
               <li key={c.catId}>
-                <Link href={`/admin/cats/${c.catId}`} className="rounded-full bg-milk px-3 py-1.5 font-medium hover:bg-line">
+                <Link href={`/admin/cats/${c.catId}`} className="rounded-md bg-milk px-3 py-1.5 font-medium hover:bg-line">
                   {t(c.cat.name, "ru")} · {t(c.cat.status.label, "ru")}
                 </Link>
               </li>

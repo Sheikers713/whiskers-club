@@ -31,25 +31,25 @@ export default async function Applications({ searchParams }: PageProps<"/admin/a
       <PageTitle>Заявки</PageTitle>
       <div className="mb-4 space-y-2 text-sm">
         <nav className="flex flex-wrap gap-2">
-          <Link href={link("type")} className={`rounded-full px-3 py-1.5 ${!type ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>Все типы</Link>
+          <Link href={link("type")} className={`rounded-md px-3 py-1.5 ${!type ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>Все типы</Link>
           {Object.entries(typeLabels).map(([k, l]) => (
-            <Link key={k} href={link("type", k)} className={`rounded-full px-3 py-1.5 ${type === k ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>{l}</Link>
+            <Link key={k} href={link("type", k)} className={`rounded-md px-3 py-1.5 ${type === k ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>{l}</Link>
           ))}
         </nav>
         <nav className="flex flex-wrap gap-2">
-          <Link href={link("status")} className={`rounded-full px-3 py-1.5 ${!status ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>Все статусы</Link>
+          <Link href={link("status")} className={`rounded-md px-3 py-1.5 ${!status ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>Все статусы</Link>
           {Object.entries(statusLabels).map(([k, l]) => (
-            <Link key={k} href={link("status", k)} className={`rounded-full px-3 py-1.5 ${status === k ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>{l}</Link>
+            <Link key={k} href={link("status", k)} className={`rounded-md px-3 py-1.5 ${status === k ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>{l}</Link>
           ))}
         </nav>
       </div>
-      <ul className="divide-y divide-line rounded-2xl bg-paper ring-1 ring-line">
+      <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
         {rows.map((a) => (
           <li key={a.id}>
             <Link href={`/admin/applications/${a.id}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-milk">
               <span className="min-w-0">
                 <span className="block font-medium">
-                  {a.name} {a.status === "NEW" && <span className="ml-1 rounded-full bg-brick px-2 py-0.5 text-xs text-white">новая</span>}
+                  {a.name} {a.status === "NEW" && <span className="ml-1 rounded-[var(--radius-control)] bg-brick px-2 py-0.5 text-xs text-white">новая</span>}
                 </span>
                 <span className="block truncate text-sm text-ink-soft">
                   {typeLabels[a.type]}

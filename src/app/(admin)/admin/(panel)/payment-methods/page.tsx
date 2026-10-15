@@ -46,7 +46,7 @@ export default async function PaymentMethods({ searchParams }: PageProps<"/admin
       <PageTitle>Реквизиты для пожертвований</PageTitle>
       <Flash searchParams={sp} />
       {methods.map((m) => (
-        <details key={m.id} className="rounded-2xl bg-paper p-4 ring-1 ring-line">
+        <details key={m.id} className="rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line">
           <summary className="cursor-pointer font-semibold">
             {t(m.title, "ru")} {!m.isActive && <span className="text-sm text-ink-soft">(скрыт)</span>}
           </summary>

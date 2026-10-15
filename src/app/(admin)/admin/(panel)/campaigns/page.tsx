@@ -20,7 +20,7 @@ export default async function Campaigns() {
   return (
     <div className="max-w-5xl">
       <PageTitle action={<Link href="/admin/campaigns/new" className={btnCls}>+ Новый сбор</Link>}>Сборы</PageTitle>
-      <ul className="divide-y divide-line rounded-2xl bg-paper ring-1 ring-line">
+      <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
         {rows.map((c) => (
           <li key={c.id}>
             <Link href={`/admin/campaigns/${c.id}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-milk">

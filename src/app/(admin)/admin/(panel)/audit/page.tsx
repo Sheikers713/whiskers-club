@@ -24,9 +24,9 @@ export default async function Audit({ searchParams }: PageProps<"/admin/audit">)
       <PageTitle>Журнал действий</PageTitle>
       <form className="mb-4 flex gap-2">
         <input name="action" defaultValue={action} placeholder="Например: auth, expense, cat" className="rounded-lg border border-line bg-paper px-3 py-2" />
-        <button className="rounded-full bg-ink px-4 py-2 text-milk">Найти</button>
+        <button className="rounded-[var(--radius-control)] bg-ink px-4 py-2 text-milk">Найти</button>
       </form>
-      <ul className="divide-y divide-line rounded-2xl bg-paper text-sm ring-1 ring-line">
+      <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-paper text-sm ring-1 ring-line">
         {events.slice(0, PAGE).map((e) => (
           <li key={e.id} className="px-4 py-2">
             <details>

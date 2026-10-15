@@ -7,14 +7,19 @@ import { t } from "@/lib/i18n/localized";
 export function SiteFooter({ locale, dict, settings }: { locale: Locale; dict: Dictionary; settings: SiteSettings }) {
   const contactText = t(settings.contactText, locale);
   return (
-    <footer className="mt-16 border-t border-line bg-paper">
+    <footer className="mt-16 border-t border-line bg-cream-deep">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 md:grid-cols-3">
         <div>
-          <p className="font-display text-lg font-bold">Whiskers Club</p>
-          <p className="mt-2 text-sm text-ink-soft">{dict.meta.tagline}</p>
+          <Link href={`/${locale}`} className="flex items-center gap-3" aria-label="Whiskers Club">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/cat-mark.png" alt="" width={56} height={56} className="h-14 w-14" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/brand/wordmark.webp" alt="" width={120} height={60} className="h-14 w-auto" />
+          </Link>
+          <p className="mt-3 max-w-xs text-sm text-ink-soft">{dict.meta.tagline}</p>
         </div>
         <div>
-          <p className="font-semibold">{dict.footer.contacts}</p>
+          <p className="eyebrow">{dict.footer.contacts}</p>
           <ul className="mt-2 space-y-1 text-sm">
             {settings.instagramUrl && (
               <li>

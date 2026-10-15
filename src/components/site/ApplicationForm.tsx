@@ -23,7 +23,7 @@ export type FormLabels = {
 };
 
 const input =
-  "mt-1 block w-full rounded-xl border border-line bg-paper px-4 py-3 text-base focus:border-ink focus:outline-none";
+  "mt-1 block w-full rounded-[var(--radius-card)] border border-line bg-paper px-4 py-3 text-base focus:border-ink focus:outline-none";
 
 export function ApplicationForm({
   type,
@@ -71,7 +71,7 @@ export function ApplicationForm({
       </div>
 
       {(state.status === "error" || state.status === "rate") && (
-        <p role="alert" className="rounded-xl bg-brick-soft px-4 py-3 font-medium text-brick-dark">
+        <p role="alert" className="rounded-[var(--radius-card)] bg-brick-soft px-4 py-3 font-medium text-brick-dark">
           {state.status === "rate" ? labels.tooMany : labels.error}
         </p>
       )}
@@ -122,7 +122,7 @@ export function ApplicationForm({
         </span>
       </label>
 
-      <button type="submit" disabled={pending} className="w-full rounded-full bg-brick px-6 py-3.5 text-lg font-semibold text-white hover:bg-brick-dark disabled:opacity-60 sm:w-auto">
+      <button type="submit" disabled={pending} className="w-full rounded-[var(--radius-control)] bg-brick px-6 py-3.5 text-lg font-semibold text-white hover:bg-brick-dark disabled:opacity-60 sm:w-auto">
         {pending ? labels.sending : labels.submit}
       </button>
     </form>

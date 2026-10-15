@@ -13,10 +13,10 @@ export async function PaymentMethods({ locale, dict }: { locale: Locale; dict: D
       {methods.map((m) => {
         const instructions = t(m.instructions, locale);
         return (
-          <li key={m.id} className="rounded-2xl bg-paper p-5 ring-1 ring-line">
+          <li key={m.id} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line">
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-lg font-bold">{t(m.title, locale)}</h3>
-              {m.currencyNote && <span className="rounded-full bg-milk px-3 py-1 text-xs font-semibold">{m.currencyNote}</span>}
+              {m.currencyNote && <span className="rounded-md bg-milk px-3 py-1 text-xs font-semibold">{m.currencyNote}</span>}
             </div>
             {m.value && (
               <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -25,7 +25,7 @@ export async function PaymentMethods({ locale, dict }: { locale: Locale; dict: D
               </div>
             )}
             {m.url && (
-              <a href={m.url} target="_blank" rel="noopener" className="mt-3 inline-block rounded-full bg-brick px-4 py-2 text-sm font-semibold text-white hover:bg-brick-dark">
+              <a href={m.url} target="_blank" rel="noopener" className="mt-3 inline-block rounded-[var(--radius-control)] bg-brick px-4 py-2 text-sm font-semibold text-white hover:bg-brick-dark">
                 {dict.help.open} →
               </a>
             )}

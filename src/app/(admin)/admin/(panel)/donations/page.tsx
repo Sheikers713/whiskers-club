@@ -23,7 +23,7 @@ export default async function Donations({ searchParams }: PageProps<"/admin/dona
     <div className="max-w-5xl">
       <PageTitle action={<Link href="/admin/donations/new" className={btnCls}>+ Внести поступление</Link>}>Поступления</PageTitle>
       <p className="mb-4 text-sm text-ink-soft">Опубликовано в списке: {formatRsd(total, "ru")}. Все суммы в динарах.</p>
-      <ul className="divide-y divide-line rounded-2xl bg-paper ring-1 ring-line">
+      <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
         {rows.map((d) => (
           <li key={d.id}>
             <Link href={`/admin/donations/${d.id}`} className="grid grid-cols-[5.5rem_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-milk">

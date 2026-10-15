@@ -62,12 +62,12 @@ export default async function Settings({ searchParams }: PageProps<"/admin/setti
       <section id="partners" className="scroll-mt-20">
         <Card title="Партнёры">
           {partners.map((p) => (
-            <details key={p.id} className="rounded-xl bg-milk p-3">
+            <details key={p.id} className="rounded-[var(--radius-card)] bg-milk p-3">
               <summary className="cursor-pointer font-medium">{p.name} {!p.isActive && "(скрыт)"} {t(p.description, "ru") && <span className="text-sm text-ink-soft">· {t(p.description, "ru").slice(0, 60)}</span>}</summary>
               <div className="mt-3">{partnerForm(p)}</div>
             </details>
           ))}
-          <details className="rounded-xl bg-milk p-3">
+          <details className="rounded-[var(--radius-card)] bg-milk p-3">
             <summary className="cursor-pointer font-medium">+ Новый партнёр</summary>
             <div className="mt-3">{partnerForm()}</div>
           </details>

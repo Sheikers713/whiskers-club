@@ -23,7 +23,7 @@ export function ShareButton({ title, label, copiedLabel }: { title: string; labe
           setTimeout(() => setCopied(false), 2000);
         } catch {}
       }}
-      className="inline-flex items-center gap-2 rounded-full border border-ink/15 bg-paper px-4 py-2 text-sm font-medium hover:bg-milk"
+      className="inline-flex items-center gap-2 rounded-[var(--radius-control)] border border-ink/15 bg-paper px-4 py-2 text-sm font-medium hover:bg-milk"
       aria-live="polite"
     >
       <span aria-hidden>↗</span> {copied ? copiedLabel : label}

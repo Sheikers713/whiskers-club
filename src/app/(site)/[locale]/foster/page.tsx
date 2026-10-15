@@ -17,7 +17,7 @@ export default async function Page({ params }: PageProps<"/[locale]/foster">) {
   const dict = getDictionary(locale);
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="font-display text-4xl font-bold">{dict.help.fosterTitle}</h1>
+      <h1 className="font-display text-4xl uppercase md:text-6xl">{dict.help.fosterTitle}</h1>
       <p className="mt-3 text-lg text-ink-soft">{dict.help.fosterText}</p>
       <div className="mt-8">
         <ApplicationForm type="FOSTER" locale={locale} fields={formFields("FOSTER", dict)} labels={formLabels(dict)} />

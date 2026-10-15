@@ -52,7 +52,7 @@ export function Gallery({ photos, name }: { photos: Photo[]; name: string }) {
                 onClick={() => setIndex(i)}
                 aria-label={`${i + 1}`}
                 aria-current={i === index ? "true" : undefined}
-                className={`block overflow-hidden rounded-xl ring-2 ${i === index ? "ring-brick" : "ring-transparent"}`}
+                className={`block overflow-hidden rounded-[var(--radius-card)] ring-2 ${i === index ? "ring-brick" : "ring-transparent"}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={p.src.replace(".w1200.", ".w480.")} alt="" className="h-16 w-20 object-cover" loading="lazy" />

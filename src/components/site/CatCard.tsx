@@ -14,8 +14,8 @@ export function CatCard({ cat, locale, dict }: { cat: CatCardData; locale: Local
   const sex = cat.sex === "FEMALE" ? dict.cats.female : cat.sex === "MALE" ? dict.cats.male : null;
   const camp = cat.activeCampaign;
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-paper shadow-sm ring-1 ring-line transition hover:shadow-md">
-      <div className="relative aspect-[4/3] bg-line">
+    <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-paper ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-ink">
+      <div className="olive-dot relative aspect-[4/3]">
         {cat.cover?.storageKey ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -26,16 +26,20 @@ export function CatCard({ cat, locale, dict }: { cat: CatCardData; locale: Local
             loading="lazy"
             className="h-full w-full object-cover"
           />
-        ) : null}
+        ) : (
+          // No photo yet: the brand cat on Olive Dot instead of an empty box.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src="/brand/cat-black.webp" alt="" aria-hidden loading="lazy" className="absolute inset-x-0 bottom-0 mx-auto w-[92%] opacity-90" />
+        )}
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           <StatusBadge status={cat.status} locale={locale} />
           {cat.hasSpecialNeeds && (
-            <span className="rounded-full bg-paper/95 px-3 py-1 text-xs font-semibold text-brick">
+            <span className="rounded-md bg-paper/95 px-3 py-1 text-xs font-semibold text-brick">
               {dict.cats.specialNeeds}
             </span>
           )}
         </div>
-        <h3 className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-10 text-2xl font-bold text-white">
+        <h3 className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-12 font-display text-3xl text-white">
           <Link href={`/${locale}/cats/${cat.slug}`} className="after:absolute after:inset-0">
             {name}
           </Link>

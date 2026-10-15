@@ -16,7 +16,7 @@ export function CopyButton({ value, label, copiedLabel }: { value: string; label
           // Clipboard blocked: the value is visible and selectable anyway.
         }
       }}
-      className="rounded-full border border-ink/15 px-3 py-1.5 text-sm font-medium hover:bg-milk"
+      className="rounded-[var(--radius-control)] border border-ink/15 px-3 py-1.5 text-sm font-medium hover:bg-milk"
       aria-live="polite"
     >
       {copied ? `✓ ${copiedLabel}` : label}

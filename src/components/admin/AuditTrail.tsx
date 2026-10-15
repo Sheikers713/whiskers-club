@@ -10,7 +10,7 @@ export async function AuditTrail({ entityType, entityId }: { entityType: string;
   });
   if (!events.length) return null;
   return (
-    <details className="rounded-2xl bg-paper p-4 ring-1 ring-line">
+    <details className="rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line">
       <summary className="cursor-pointer font-semibold">История изменений ({events.length})</summary>
       <ul className="mt-3 space-y-2 text-sm">
         {events.map((e) => (

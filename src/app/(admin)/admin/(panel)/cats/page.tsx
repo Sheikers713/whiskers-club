@@ -22,7 +22,7 @@ export default async function AdminCats({ searchParams }: PageProps<"/admin/cats
       <PageTitle action={<Link href="/admin/cats/new" className={btnCls}>+ Добавить кота</Link>}>Коты</PageTitle>
       <nav className="mb-4 flex flex-wrap gap-2 text-sm">
         {[["", "Все"], ["DRAFT", "Черновики"], ["PUBLISHED", "Опубликованы"], ["HIDDEN", "Скрыты"], ["ARCHIVED", "Архив"]].map(([k, l]) => (
-          <Link key={k} href={k ? `/admin/cats?state=${k}` : "/admin/cats"} className={`rounded-full px-3 py-1.5 ${state === k || (!state && !k) ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>
+          <Link key={k} href={k ? `/admin/cats?state=${k}` : "/admin/cats"} className={`rounded-md px-3 py-1.5 ${state === k || (!state && !k) ? "bg-ink text-milk" : "bg-paper ring-1 ring-line"}`}>
             {l}
           </Link>
         ))}
@@ -30,7 +30,7 @@ export default async function AdminCats({ searchParams }: PageProps<"/admin/cats
       {cats.length === 0 ? (
         <p className="text-ink-soft">Котов пока нет.</p>
       ) : (
-        <ul className="divide-y divide-line rounded-2xl bg-paper ring-1 ring-line">
+        <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
           {cats.map((c) => {
             const missing = missingLocales(c.name).concat(missingLocales(c.summary));
             return (

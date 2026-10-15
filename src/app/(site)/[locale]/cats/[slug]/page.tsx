@@ -103,7 +103,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
             <ul className="mt-4 flex flex-wrap gap-2">
               {instagram.map((m) => (
                 <li key={m.id}>
-                  <a href={m.url!} target="_blank" rel="noopener" className="inline-block rounded-full bg-ink px-4 py-2 text-sm font-semibold text-milk hover:bg-brick">
+                  <a href={m.url!} target="_blank" rel="noopener" className="inline-block rounded-[var(--radius-control)] bg-ink px-4 py-2 text-sm font-semibold text-milk hover:bg-brick">
                     ▶ {dict.cat.instagram}
                   </a>
                 </li>
@@ -117,7 +117,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
             <div className="flex items-start justify-between gap-4">
               <div>
                 <StatusBadge status={cat.status} locale={locale} />
-                <h1 className="mt-3 font-display text-4xl font-bold md:text-5xl">{name}</h1>
+                <h1 className="mt-3 font-display text-5xl uppercase md:text-7xl">{name}</h1>
               </div>
               <ShareButton title={name} label={dict.cat.share} copiedLabel={dict.cat.linkCopied} />
             </div>
@@ -125,14 +125,14 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
               {[sex, formatAge(cat.birthDate, dict), cat.color, ...cat.flags.filter((f) => f.flag.isPublic).map((f) => t(f.flag.label, locale))]
                 .filter(Boolean)
                 .map((tag) => (
-                  <li key={tag} className="rounded-full bg-paper px-3 py-1.5 ring-1 ring-line">
+                  <li key={tag} className="rounded-md bg-paper px-3 py-1.5 ring-1 ring-line">
                     {tag}
                   </li>
                 ))}
             </ul>
             {L(cat.summary) && <p className="mt-4 text-lg">{L(cat.summary)}</p>}
             {canApply && (
-              <Link href={`/${locale}/cats/${cat.slug}/adopt`} className="mt-5 inline-block rounded-full bg-brick px-6 py-3 font-semibold text-white hover:bg-brick-dark">
+              <Link href={`/${locale}/cats/${cat.slug}/adopt`} className="mt-5 inline-block rounded-[var(--radius-control)] bg-brick px-6 py-3 font-semibold text-white hover:bg-brick-dark">
                 {dict.cat.applyAdopt}
               </Link>
             )}
@@ -180,7 +180,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                   </ul>
                 </>
               )}
-              <Link href={`/${locale}/help#donate`} className="mt-5 block rounded-full bg-brick px-6 py-3 text-center font-semibold text-white hover:bg-brick-dark">
+              <Link href={`/${locale}/help#donate`} className="mt-5 block rounded-[var(--radius-control)] bg-brick px-6 py-3 text-center font-semibold text-white hover:bg-brick-dark">
                 {dict.cat.donate}
               </Link>
             </section>
@@ -231,7 +231,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
               <ul className="mt-2 flex flex-wrap gap-2">
                 {bonded.map((b) => (
                   <li key={b.slug}>
-                    <Link href={`/${locale}/cats/${b.slug}`} className="rounded-full bg-paper px-4 py-2 font-semibold ring-1 ring-line hover:ring-brick">
+                    <Link href={`/${locale}/cats/${b.slug}`} className="rounded-[var(--radius-control)] bg-paper px-4 py-2 font-semibold ring-1 ring-line hover:ring-brick">
                       {t(b.name, locale)}
                     </Link>
                   </li>
@@ -243,7 +243,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
           {expenses.length > 0 && (
             <section>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-soft">{dict.cat.expenses}</h2>
-              <ul className="mt-2 divide-y divide-line rounded-2xl bg-paper ring-1 ring-line">
+              <ul className="mt-2 divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
                 {expenses.map((e) => (
                   <li key={e.id} className="flex items-start justify-between gap-3 px-4 py-3 text-[15px]">
                     <div>

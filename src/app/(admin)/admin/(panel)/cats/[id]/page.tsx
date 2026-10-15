@@ -102,7 +102,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
             <legend className="text-sm font-medium">Признаки</legend>
             <div className="mt-2 flex flex-wrap gap-3">
               {flags.map((f) => (
-                <label key={f.id} className="flex items-center gap-2 rounded-full bg-milk px-3 py-1.5">
+                <label key={f.id} className="flex items-center gap-2 rounded-md bg-milk px-3 py-1.5">
                   <input type="checkbox" name="flags" value={f.id} defaultChecked={flagIds.has(f.id)} />
                   {t(f.label, "ru")}
                 </label>
@@ -175,7 +175,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
             <legend className="text-sm font-medium">Кураторы (их контакты видны на странице кота)</legend>
             <div className="mt-2 flex flex-wrap gap-3">
               {users.map((u) => (
-                <label key={u.id} className="flex items-center gap-2 rounded-full bg-milk px-3 py-1.5">
+                <label key={u.id} className="flex items-center gap-2 rounded-md bg-milk px-3 py-1.5">
                   <input type="checkbox" name="curators" value={u.id} defaultChecked={curatorIds.has(u.id)} />
                   {u.name}
                 </label>
@@ -187,7 +187,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
               <legend className="text-sm font-medium">Пристраивается вместе с</legend>
               <div className="mt-2 flex max-h-48 flex-wrap gap-3 overflow-y-auto">
                 {otherCats.map((c) => (
-                  <label key={c.id} className="flex items-center gap-2 rounded-full bg-milk px-3 py-1.5">
+                  <label key={c.id} className="flex items-center gap-2 rounded-md bg-milk px-3 py-1.5">
                     <input type="checkbox" name="bonded" value={c.id} defaultChecked={bondedIds.has(c.id)} />
                     {t(c.name, "ru")}
                   </label>
@@ -233,7 +233,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
               {cat.media
                 .filter((m) => m.kind === "PHOTO" && m.storageKey)
                 .map((m) => (
-                  <li key={m.id} className={`rounded-xl bg-milk p-2 ${m.isHidden ? "opacity-50" : ""}`}>
+                  <li key={m.id} className={`rounded-[var(--radius-card)] bg-milk p-2 ${m.isHidden ? "opacity-50" : ""}`}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={photoUrl(m.storageKey!, 480)} alt="" className="aspect-[4/3] w-full rounded-lg object-cover" />
                     <p className="mt-1 text-xs font-semibold">
@@ -251,7 +251,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
                         <form key={op} action={updatePhoto}>
                           <input type="hidden" name="id" value={m.id} />
                           <input type="hidden" name="op" value={op} />
-                          <button className="rounded-full bg-paper px-2.5 py-1 text-xs ring-1 ring-line hover:bg-line">{label}</button>
+                          <button className="rounded-md bg-paper px-2.5 py-1 text-xs ring-1 ring-line hover:bg-line">{label}</button>
                         </form>
                       ))}
                     </div>
@@ -270,7 +270,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
                     <form action={updatePhoto}>
                       <input type="hidden" name="id" value={m.id} />
                       <input type="hidden" name="op" value={m.isHidden ? "show" : "hide"} />
-                      <button className="rounded-full bg-paper px-2.5 py-1 text-xs ring-1 ring-line">{m.isHidden ? "Показать" : "Скрыть"}</button>
+                      <button className="rounded-md bg-paper px-2.5 py-1 text-xs ring-1 ring-line">{m.isHidden ? "Показать" : "Скрыть"}</button>
                     </form>
                   </li>
                 ))}

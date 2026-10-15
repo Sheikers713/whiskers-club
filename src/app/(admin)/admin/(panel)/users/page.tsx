@@ -39,7 +39,7 @@ export default async function Users({ searchParams }: PageProps<"/admin/users">)
           <fieldset className="flex flex-wrap gap-3">
             <legend className="text-sm font-medium">Роли</legend>
             {allRoles.map((r) => (
-              <label key={r} className="flex items-center gap-2 rounded-full bg-milk px-3 py-1.5">
+              <label key={r} className="flex items-center gap-2 rounded-md bg-milk px-3 py-1.5">
                 <input type="checkbox" name="roles" value={r} defaultChecked={r === "EDITOR"} /> {roleLabels[r]}
               </label>
             ))}

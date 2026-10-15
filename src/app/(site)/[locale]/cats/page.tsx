@@ -23,7 +23,7 @@ export default async function CatsPage({ params, searchParams }: PageProps<"/[lo
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <h1 className="font-display text-4xl font-bold">{dict.cats.title}</h1>
+      <h1 className="font-display text-4xl uppercase md:text-6xl">{dict.cats.title}</h1>
       <p className="mt-1 text-ink-soft">{fmt(dict.cats.waiting, { count: total })}</p>
       <nav className="-mx-4 mt-6 overflow-x-auto px-4" aria-label={dict.cats.title}>
         <ul className="flex w-max gap-2">
@@ -34,7 +34,7 @@ export default async function CatsPage({ params, searchParams }: PageProps<"/[lo
                 <Link
                   href={`/${locale}/cats${f.key === filters[0]?.key ? "" : `?filter=${f.key}`}`}
                   aria-current={current ? "page" : undefined}
-                  className={`block rounded-full border px-4 py-2 font-medium ${
+                  className={`block rounded-[var(--radius-control)] border px-4 py-2 font-medium ${
                     current ? "border-ink bg-ink text-milk" : "border-line bg-paper hover:border-ink"
                   }`}
                 >
@@ -46,7 +46,11 @@ export default async function CatsPage({ params, searchParams }: PageProps<"/[lo
         </ul>
       </nav>
       {cats.length === 0 ? (
-        <p className="mt-10 text-lg text-ink-soft">{dict.cats.empty}</p>
+        <div className="olive-dot relative mt-8 overflow-hidden rounded-[var(--radius-card)] px-6 pb-56 pt-8 sm:pb-72">
+          <p className="relative z-10 max-w-md text-lg font-semibold">{dict.cats.empty}</p>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/cat-ginger.webp" alt="" aria-hidden className="absolute bottom-0 left-1/2 w-[34rem] max-w-[120%] -translate-x-1/2" />
+        </div>
       ) : (
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {cats.map((cat) => (
