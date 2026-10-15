@@ -207,7 +207,7 @@ async function main() {
   if (!token) {
     console.log("[bot] TELEGRAM_BOT_TOKEN is not set; the bot is idle.");
     // Stay up so `restart: unless-stopped` does not loop.
-    await new Promise(() => undefined);
+    setInterval(() => undefined, 1 << 30);
     return;
   }
   const tg = new Telegram(token);
