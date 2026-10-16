@@ -64,7 +64,7 @@ docker compose --env-file .env.staging -p whiskers-staging up -d --build
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | при первом запуске | Первый суперадмин. Создаётся, только если такого email ещё нет |
 | `RESEND_API_KEY`, `MAIL_FROM` | нет | Отправка писем с приглашениями и сбросом пароля через [Resend](https://resend.com). Без них ссылка пишется в лог `app`, а приглашение всё равно можно скопировать в админке |
 | `TELEGRAM_BOT_TOKEN` | нет | Токен бота от @BotFather: уведомления админам и бот для обновлений сайта |
-| `TELEGRAM_ADMIN_IDS` | для бота | Числовые Telegram id админов через запятую. Только им бот разрешает менять сайт |
+| `TELEGRAM_ADMIN_IDS` | для бота | Числовые Telegram id (или @username) админов через запятую. Только им бот разрешает менять сайт |
 | `BOT_RATES` | нет | Курсы для сумм не в динарах, например `EUR=117.2,USD=100` |
 | `CLOUDFLARE_TUNNEL_TOKEN` | да | Токен туннеля Cloudflare |
 | `RESTIC_REPOSITORY`, `RESTIC_PASSWORD` | да | Куда складывать бэкапы и пароль шифрования |

@@ -15,15 +15,23 @@ import { db } from "../lib/db";
 import { actorFor, applyPlan, loadContext, type Upload } from "./apply";
 import { parseMessage } from "./llm";
 import { describe, normalize, type Plan, type SiteContext } from "./plan";
-import { Telegram, type TgMessage, type TgUpdate } from "./telegram";
+import { Telegram, type TgMessage, type TgUpdate, type TgUser } from "./telegram";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
-const admins = new Set(
-  (process.env.TELEGRAM_ADMIN_IDS || "")
-    .split(/[\s,]+/)
-    .filter(Boolean)
-    .map(Number),
-);
+// Numeric ids, or @usernames (case-insensitive) for admins whose id is not known yet.
+const adminEntries = (process.env.TELEGRAM_ADMIN_IDS || "").split(/[\s,]+/).filter(Boolean);
+const adminIds = new Set(adminEntries.filter((e) => /^\d+$/.test(e)).map(Number));
+const adminNames = new Set(adminEntries.filter((e) => !/^\d+$/.test(e)).map((e) => e.replace(/^@/, "").toLowerCase()));
+
+function isAdmin(user: TgUser | undefined): boolean {
+  if (!user) return false;
+  if (adminIds.has(user.id)) return true;
+  if (user.username && adminNames.has(user.username.toLowerCase())) {
+    console.log(`[bot] admin @${user.username} has id ${user.id}`);
+    return true;
+  }
+  return false;
+}
 
 type Proposal = {
   id: string;
@@ -120,7 +128,7 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
   const text = messages.map((m) => m.text ?? m.caption ?? "").filter(Boolean).join("\n").trim();
 
   if (first.chat.type !== "private") return;
-  if (!admins.has(userId)) {
+  if (!isAdmin(first.from)) {
     await tg.sendMessage(chatId, `Этот бот только для админов Whiskers Club. Ваш Telegram id: ${userId}. Перешлите его администратору, чтобы получить доступ.`);
     console.log(`[bot] message from non-admin ${userId} (@${first.from?.username ?? "-"})`);
     return;
@@ -179,7 +187,7 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
 async function onCallback(tg: Telegram, q: NonNullable<TgUpdate["callback_query"]>) {
   const [action, id] = (q.data ?? "").split(":");
   const chatId = q.message?.chat.id;
-  if (!chatId || !admins.has(q.from.id)) return void (await tg.answerCallback(q.id));
+  if (!chatId || !isAdmin(q.from)) return void (await tg.answerCallback(q.id));
   const p = proposals.get(chatId);
   if (!p || p.id !== id) {
     await tg.answerCallback(q.id, "Это предложение уже неактуально");
@@ -212,7 +220,7 @@ async function main() {
   }
   const tg = new Telegram(token);
   const me = await tg.call<{ username: string }>("getMe");
-  console.log(`[bot] @${me.username} started; admins: ${[...admins].join(", ") || "none"}`);
+  console.log(`[bot] @${me.username} started; admins: ${adminEntries.join(", ") || "none"}`);
   await tg.call("setMyCommands", {
     commands: [
       { command: "help", description: "Как пользоваться" },
