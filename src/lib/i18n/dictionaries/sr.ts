@@ -199,6 +199,7 @@ const sr: Dictionary = {
     title: "O nama",
   },
   footer: {
+    reports: "Izveštaji o donacijama",
     disclaimer:
       "Whiskers Club je neformalna volonterska inicijativa, a ne registrovano udruženje. Donacije idu na lične račune organizatora i objavljuju se u finansijskom izveštaju.",
     contacts: "Kontakt",

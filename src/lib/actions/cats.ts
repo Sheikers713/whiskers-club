@@ -8,7 +8,7 @@ import { audit } from "../audit";
 import { requireUser } from "../auth/session";
 import { bool, date, ids, int, localized, optStr, str } from "../admin/form";
 import { slugify } from "../slug";
-import { storePhoto } from "../storage";
+import { deletePhoto, storePhoto } from "../storage";
 import { translateFromRussian } from "../ai/translate";
 import { planTranslations, type AutoKey } from "../ai/translation-plan";
 import { asLocalized, type LocalizedText } from "../i18n/localized";
@@ -199,6 +199,10 @@ export async function updatePhoto(fd: FormData) {
       [reordered[i], reordered[j]] = [reordered[j], reordered[i]];
       await db.$transaction(reordered.map((s, k) => db.mediaAsset.update({ where: { id: s.id }, data: { sortOrder: k } })));
     }
+  } else if (op === "delete") {
+    await db.cat.updateMany({ where: { coverId: id }, data: { coverId: null } });
+    await db.mediaAsset.delete({ where: { id } });
+    if (asset!.storageKey) await deletePhoto(asset!.storageKey);
   } else if (op === "alt") {
     await db.mediaAsset.update({ where: { id }, data: { alt: localized(fd, "alt", 200) } });
   }

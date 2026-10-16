@@ -7,6 +7,7 @@ import { photoUrl } from "@/lib/media-url";
 import { aiEnabled } from "@/lib/ai/translate";
 import { addInstagramLink, saveCat, saveCatUpdate, updatePhoto, uploadPhotos } from "@/lib/actions/cats";
 import { ActionForm } from "@/components/admin/ActionForm";
+import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { BackLink, Card, Field, Flash, LocalizedField, PageTitle, StateBadge, StateSelect, btnCls, btnSecondaryCls, inputCls } from "@/components/admin/ui";
 
 export const metadata = { title: "Кот" };
@@ -88,7 +89,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
         {cat && <input type="hidden" name="id" value={cat.id} />}
         <Card title="Основное">
           <LocalizedField name="name" label="Имя" value={cat?.name} required locales={textLocales} auto={auto} />
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Статус">
               <select name="statusId" defaultValue={cat?.statusId ?? statuses.find((s) => s.key === "ready")?.id} className={inputCls} required>
                 {statuses.map((s) => (
@@ -105,7 +106,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
           </div>
           <fieldset>
             <legend className="text-sm font-medium">Признаки</legend>
-            <div className="mt-2 flex flex-wrap gap-3">
+            <div className="mt-2 flex flex-wrap gap-2">
               {flags.map((f) => (
                 <label key={f.id} className="flex items-center gap-2 rounded-md bg-milk px-3 py-1.5">
                   <input type="checkbox" name="flags" value={f.id} defaultChecked={flagIds.has(f.id)} />
@@ -118,7 +119,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
         </Card>
 
         <Card title="Данные">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <Field label="Пол">
               <Select name="sex" value={cat?.sex ?? "UNKNOWN"} options={[["UNKNOWN", "Неизвестно"], ["FEMALE", "Девочка"], ["MALE", "Мальчик"]]} />
             </Field>
@@ -172,11 +173,11 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
                 ? "Пишите только по-русски. Английский и сербский переводы появятся после сохранения, их можно будет поправить."
                 : "Пустые EN и SR переводятся с русского при сохранении. Пометка «авто» значит машинный перевод: если поменять русский текст, он обновится сам, а исправленный вручную перевод останется как есть."}
           </p>
-          <LocalizedField name="story" label="История" value={cat?.story} multiline rows={6} locales={textLocales} auto={auto} />
-          <LocalizedField name="character" label="Характер и привычки" value={cat?.character} multiline locales={textLocales} auto={auto} />
-          <LocalizedField name="health" label="Здоровье" value={cat?.health} multiline locales={textLocales} auto={auto} />
+          <LocalizedField name="story" label="История" value={cat?.story} multiline rows={4} locales={textLocales} auto={auto} />
+          <LocalizedField name="character" label="Характер и привычки" value={cat?.character} multiline rows={3} locales={textLocales} auto={auto} />
+          <LocalizedField name="health" label="Здоровье" value={cat?.health} multiline rows={3} locales={textLocales} auto={auto} />
           <LocalizedField name="specialNeeds" label="Особые потребности (если отмечены)" value={cat?.specialNeeds} multiline rows={2} locales={textLocales} auto={auto} />
-          <LocalizedField name="adoptionTerms" label="Условия пристройства" value={cat?.adoptionTerms} multiline rows={3} locales={textLocales} auto={auto} />
+          <LocalizedField name="adoptionTerms" label="Условия пристройства" value={cat?.adoptionTerms} multiline rows={2} locales={textLocales} auto={auto} />
           {!isNew && ai && (
             <label className="flex items-center gap-2">
               <input type="checkbox" name="retranslate" /> Перевести EN и SR заново с русского (заменит и ручные правки)
@@ -211,8 +212,10 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
           )}
         </Card>
 
-        <Card title="Порядок и учёт">
-          <div className="grid gap-4 sm:grid-cols-3">
+        <details className="rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line md:p-5">
+          <summary className="cursor-pointer text-lg font-bold">Порядок и учёт</summary>
+          <div className="mt-3 space-y-3">
+          <div className="grid gap-3 sm:grid-cols-3">
             <label className="flex items-center gap-2">
               <input type="checkbox" name="isPinned" defaultChecked={cat?.isPinned} /> Закрепить в начале каталога
             </label>
@@ -226,7 +229,8 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
           <Field label="Адрес страницы" hint="Латиницей; пусто = из имени">
             <input name="slug" defaultValue={cat?.slug ?? ""} className={inputCls} pattern="[a-z0-9-]*" />
           </Field>
-        </Card>
+          </div>
+        </details>
 
         <div className="sticky bottom-0 -mx-4 border-t border-line bg-milk/95 px-4 py-3 backdrop-blur md:static md:mx-0 md:border-0 md:bg-transparent md:p-0">
           <button className={btnCls}>{isNew ? "Создать" : "Сохранить"}</button>
@@ -269,6 +273,13 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
                           <button className="rounded-md bg-paper px-2.5 py-1 text-xs ring-1 ring-line hover:bg-line">{label}</button>
                         </form>
                       ))}
+                      <form action={updatePhoto}>
+                        <input type="hidden" name="id" value={m.id} />
+                        <input type="hidden" name="op" value="delete" />
+                        <ConfirmButton message="Удалить это фото насовсем?" className="rounded-md bg-paper px-2.5 py-1 text-xs text-brick ring-1 ring-line hover:bg-brick-soft">
+                          Удалить
+                        </ConfirmButton>
+                      </form>
                     </div>
                   </li>
                 ))}
@@ -286,6 +297,13 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
                       <input type="hidden" name="id" value={m.id} />
                       <input type="hidden" name="op" value={m.isHidden ? "show" : "hide"} />
                       <button className="rounded-md bg-paper px-2.5 py-1 text-xs ring-1 ring-line">{m.isHidden ? "Показать" : "Скрыть"}</button>
+                    </form>
+                    <form action={updatePhoto}>
+                      <input type="hidden" name="id" value={m.id} />
+                      <input type="hidden" name="op" value="delete" />
+                      <ConfirmButton message="Удалить эту ссылку?" className="rounded-md bg-paper px-2.5 py-1 text-xs text-brick ring-1 ring-line hover:bg-brick-soft">
+                        Удалить
+                      </ConfirmButton>
                     </form>
                   </li>
                 ))}

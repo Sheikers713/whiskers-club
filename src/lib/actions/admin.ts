@@ -214,7 +214,12 @@ export async function saveSettings(fd: FormData) {
     privacyText: localized(fd, "privacyText", 50_000),
     contactText: localized(fd, "contactText"),
     instagramUrl: str(fd, "instagramUrl", 300),
+    facebookUrl: str(fd, "facebookUrl", 300),
+    youtubeUrl: str(fd, "youtubeUrl", 300),
+    tiktokUrl: str(fd, "tiktokUrl", 300),
     telegramUrl: str(fd, "telegramUrl", 300),
+    paypalUrl: str(fd, "paypalUrl", 300),
+    reportsUrl: str(fd, "reportsUrl", 500),
     contactEmail: str(fd, "contactEmail", 200),
   };
   for (const [k, v] of Object.entries(values)) await setSetting(k as keyof SiteSettings, v as never);

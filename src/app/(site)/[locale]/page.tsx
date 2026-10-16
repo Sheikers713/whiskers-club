@@ -9,6 +9,7 @@ import { getHomeStats } from "@/lib/queries/stats";
 import { db } from "@/lib/db";
 import { formatNumber } from "@/lib/format";
 import { CatCard } from "@/components/site/CatCard";
+import { SocialLinks } from "@/components/site/SocialLinks";
 import { Money } from "@/components/site/Money";
 import { PaymentMethods } from "@/components/site/PaymentMethods";
 
@@ -157,10 +158,12 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
       {settings.instagramUrl && (
         <section className="mx-auto max-w-6xl px-4 py-8">
-          <a href={settings.instagramUrl} target="_blank" rel="noopener" className="flex items-center justify-between rounded-[var(--radius-card)] bg-paper p-6 ring-1 ring-line hover:ring-brick">
-            <span className="text-xl font-bold">{dict.home.instagramTitle}</span>
-            <span aria-hidden className="text-2xl">→</span>
-          </a>
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-card)] bg-paper p-6 ring-1 ring-line">
+            <a href={settings.instagramUrl} target="_blank" rel="noopener" className="text-xl font-bold hover:text-brick">
+              {dict.home.instagramTitle} <span aria-hidden>→</span>
+            </a>
+            <SocialLinks settings={settings} dict={dict} />
+          </div>
         </section>
       )}
 

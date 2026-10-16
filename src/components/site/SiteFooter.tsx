@@ -3,6 +3,7 @@ import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionary";
 import type { SiteSettings } from "@/lib/settings";
 import { t } from "@/lib/i18n/localized";
+import { SocialLinks } from "./SocialLinks";
 
 export function SiteFooter({ locale, dict, settings }: { locale: Locale; dict: Dictionary; settings: SiteSettings }) {
   const contactText = t(settings.contactText, locale);
@@ -20,21 +21,8 @@ export function SiteFooter({ locale, dict, settings }: { locale: Locale; dict: D
         </div>
         <div>
           <p className="eyebrow">{dict.footer.contacts}</p>
-          <ul className="mt-2 space-y-1 text-sm">
-            {settings.instagramUrl && (
-              <li>
-                <a href={settings.instagramUrl} className="underline hover:text-brick" rel="noopener" target="_blank">
-                  Instagram
-                </a>
-              </li>
-            )}
-            {settings.telegramUrl && (
-              <li>
-                <a href={settings.telegramUrl} className="underline hover:text-brick" rel="noopener" target="_blank">
-                  Telegram
-                </a>
-              </li>
-            )}
+          <SocialLinks settings={settings} dict={dict} className="mt-3" />
+          <ul className="mt-3 space-y-1 text-sm">
             {settings.contactEmail && (
               <li>
                 <a href={`mailto:${settings.contactEmail}`} className="underline hover:text-brick">

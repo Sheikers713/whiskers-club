@@ -13,7 +13,13 @@ export type SiteSettings = {
   malaStory: LocalizedText;
   privacyText: LocalizedText;
   instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  tiktokUrl: string;
   telegramUrl: string;
+  paypalUrl: string;
+  // Public spreadsheet with donation reports.
+  reportsUrl: string;
   contactEmail: string;
   contactText: LocalizedText;
 };
@@ -25,8 +31,13 @@ export const defaultSettings: SiteSettings = {
   aboutText: {},
   malaStory: {},
   privacyText: {},
-  instagramUrl: "https://www.instagram.com/whiskersclub.rs/",
+  instagramUrl: "https://www.instagram.com/whiskers_club.rs/",
+  facebookUrl: "https://www.facebook.com/whiskersclub.rs/",
+  youtubeUrl: "https://www.youtube.com/@whiskers_club",
+  tiktokUrl: "https://www.tiktok.com/@dfvdf",
   telegramUrl: "",
+  paypalUrl: "https://paypal.me/natashuko",
+  reportsUrl: "https://docs.google.com/spreadsheets/d/1VcEOPmK-3-YhS6kpLkc3LMb6lw5ahFy0QA55CFb-AsA/edit?usp=drivesdk",
   contactEmail: "",
   contactText: {},
 };
@@ -37,6 +48,8 @@ export async function getSettings(): Promise<SiteSettings> {
   for (const row of rows) {
     if (row.key in defaultSettings) out[row.key] = row.value;
   }
+  // The first default pointed at a wrong account; saved copies of it are fixed here.
+  if (out.instagramUrl === "https://www.instagram.com/whiskersclub.rs/") out.instagramUrl = defaultSettings.instagramUrl;
   return out as SiteSettings;
 }
 

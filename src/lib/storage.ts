@@ -1,6 +1,6 @@
 import "server-only";
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 import { PHOTO_WIDTHS } from "./media-url";
@@ -43,6 +43,13 @@ export async function fileExists(key: string): Promise<boolean> {
     return true;
   } catch {
     return false;
+  }
+}
+
+/** Removes a gallery photo's original and its resized variants. */
+export async function deletePhoto(storageKey: string) {
+  for (const key of [storageKey, ...PHOTO_WIDTHS.map((w) => `${storageKey}.w${w}.webp`)]) {
+    await rm(resolveKey(key), { force: true });
   }
 }
 

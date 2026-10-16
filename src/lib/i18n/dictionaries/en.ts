@@ -196,6 +196,7 @@ const en = {
     title: "About us",
   },
   footer: {
+    reports: "Donation reports",
     disclaimer:
       "Whiskers Club is an informal volunteer initiative, not a registered organization. Donations go to the personal accounts of the organizers and are published in the financial report.",
     contacts: "Contacts",
