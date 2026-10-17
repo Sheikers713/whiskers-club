@@ -6,7 +6,7 @@ import { getFinanceTotals } from "./finance";
 /**
  * Home page counters, computed from the database plus the offsets for the
  * time before the site (decision 3.4: 27 cats rescued before launch).
- * Hidden records with countInStats (e.g. TNR cats) are included.
+ * Hidden records with countInStats (e.g. archived cats) are included.
  */
 export async function getHomeStats() {
   const settings = await getSettings();

@@ -20,6 +20,8 @@ const EASE_RISE = "cubic-bezier(0.18, 0.9, 0.3, 1.08)";
 const EASE_DUCK = "cubic-bezier(0.6, 0, 0.9, 0.4)";
 const EASE_POP = "cubic-bezier(0.16, 1, 0.3, 1)";
 
+// Far enough round the pivot to leave even a short, wide (phone) frame.
+const OFF = 110;
 const arm = (deg: number) => ({ transform: `translateX(-50%) rotate(${deg}deg)` });
 const catAt = (y: string) => ({ transform: `translateX(-8%) translateY(${y})` });
 
@@ -73,9 +75,12 @@ export function HeroArt() {
       count += 1;
       const moves: Promise<void>[] = [
         (async () => {
-          await run(out, [arm(0), arm(75)], { duration: SET_MS, easing: EASE_SET });
-          out.style.transform = arm(-75).transform;
-          await run(next, [arm(-75), arm(0)], { duration: RISE_MS, easing: EASE_RISE });
+          await run(out, [arm(0), arm(OFF)], { duration: SET_MS, easing: EASE_SET });
+          // Park it hidden: on a short phone frame part of a parked sun would still peek in.
+          out.style.visibility = "hidden";
+          out.style.transform = arm(-OFF).transform;
+          next.style.visibility = "visible";
+          await run(next, [arm(-OFF), arm(0)], { duration: RISE_MS, easing: EASE_RISE });
         })(),
       ];
       if (count % SUNS_PER_CAT === 0) {
@@ -110,7 +115,7 @@ export function HeroArt() {
       <div ref={sunA} className="absolute left-1/2 top-[12%] h-[110%] w-[52%] max-w-64 origin-bottom" style={arm(0)}>
         <div className="aspect-square w-full rounded-full motion-safe:animate-[sun-float_6s_ease-in-out_infinite]" style={{ backgroundColor: SUN_COLORS[0] }} />
       </div>
-      <div ref={sunB} className="absolute left-1/2 top-[12%] h-[110%] w-[52%] max-w-64 origin-bottom" style={arm(-75)}>
+      <div ref={sunB} className="absolute left-1/2 top-[12%] h-[110%] w-[52%] max-w-64 origin-bottom" style={{ ...arm(-OFF), visibility: "hidden" }}>
         <div className="aspect-square w-full rounded-full motion-safe:animate-[sun-float_6s_ease-in-out_infinite]" style={{ backgroundColor: SUN_COLORS[0] }} />
       </div>
       {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -31,7 +31,7 @@ type FilterDef = Awaited<ReturnType<typeof getPublicFilters>>[number];
 
 export function filterWhere(filter: FilterDef | null): Prisma.CatWhereInput {
   // "All" means every public cat, adopted and memorial ones included; only
-  // non-public statuses (archive, released after TNR) stay hidden.
+  // non-public statuses (archive) stay hidden.
   if (!filter || filter.key === "all") return publicCatWhere;
   const and: Prisma.CatWhereInput[] = [
     publicCatWhere,
