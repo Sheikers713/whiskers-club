@@ -1,14 +1,15 @@
-export const typeLabels = { ADOPTION: "Усыновление", VOLUNTEER: "Волонтёр", FOSTER: "Передержка", PARTNERSHIP: "Партнёрство" } as const;
-export const statusLabels = {
+import type { ApplicationStatus } from "@prisma/client";
+
+export const typeLabels = { ADOPTION: "Укотовление", VOLUNTEER: "Волонтёр", FOSTER: "Передержка", PARTNERSHIP: "Партнёрство" } as const;
+// The workflow the team uses. CONTACTED, COMPLETED and WITHDRAWN stay in the
+// database enum but are no longer offered; old rows were moved by a migration.
+export const statusLabels: Partial<Record<ApplicationStatus, string>> = {
   NEW: "Новая",
-  CONTACTED: "Связались",
   INTERVIEW: "Беседа",
-  MEETING: "Знакомство",
+  MEETING: "Пробный период",
   APPROVED: "Одобрена",
   REJECTED: "Отказ",
-  COMPLETED: "Завершена",
-  WITHDRAWN: "Отозвана",
-} as const;
+};
 export const answerLabels: Record<string, string> = {
   household: "Кто живёт",
   kids: "Дети",

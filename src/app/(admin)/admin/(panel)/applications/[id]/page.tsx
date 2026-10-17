@@ -17,7 +17,7 @@ export default async function ApplicationPage({ params, searchParams }: PageProp
   if (!a) notFound();
   const users = await db.user.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } });
   const answers = (a.answers ?? {}) as Record<string, string>;
-  const closed = ["REJECTED", "COMPLETED", "WITHDRAWN"].includes(a.status);
+  const closed = a.status === "REJECTED";
   return (
     <div className="max-w-3xl space-y-6">
       <BackLink href="/admin/applications">Заявки</BackLink>

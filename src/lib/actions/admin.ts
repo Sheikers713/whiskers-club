@@ -21,7 +21,7 @@ function pickRoles(fd: FormData): Role[] {
 // ---------------------------------------------------------------------------
 // Applications
 
-const appStatuses: ApplicationStatus[] = ["NEW", "CONTACTED", "INTERVIEW", "MEETING", "APPROVED", "REJECTED", "COMPLETED", "WITHDRAWN"];
+const appStatuses: ApplicationStatus[] = ["NEW", "INTERVIEW", "MEETING", "APPROVED", "REJECTED"];
 
 export async function updateApplication(fd: FormData) {
   const user = await requireUser(["EDITOR"]);

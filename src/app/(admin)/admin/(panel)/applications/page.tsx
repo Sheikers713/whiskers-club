@@ -56,7 +56,7 @@ export default async function Applications({ searchParams }: PageProps<"/admin/a
                   {a.cat ? ` · ${t(a.cat.name, "ru")}` : ""} · {formatShortDate(a.createdAt, "ru")}
                 </span>
               </span>
-              <span className="shrink-0 text-sm">{statusLabels[a.status]}</span>
+              <span className="shrink-0 text-sm">{statusLabels[a.status] ?? a.status}</span>
             </Link>
           </li>
         ))}
