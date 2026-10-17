@@ -7,6 +7,7 @@ import { saveDonation } from "@/lib/actions/finance";
 import { BackLink, Card, Field, Flash, PageTitle, StateBadge, StateSelect, btnCls, inputCls } from "@/components/admin/ui";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { AuditTrail } from "@/components/admin/AuditTrail";
+import { FileInput } from "@/components/admin/FileInput";
 
 export const metadata = { title: "Поступление" };
 
@@ -20,6 +21,16 @@ export default async function DonationPage({ params, searchParams }: PageProps<"
     db.campaign.findMany({ where: { status: "ACTIVE" }, orderBy: { startDate: "desc" } }),
     db.cat.findMany({ select: { id: true, name: true }, orderBy: { createdAt: "desc" } }),
   ]);
+  // Donation channels come from the payment methods shown on the site, plus cash.
+  const methods = await db.paymentMethod.findMany({ orderBy: { sortOrder: "asc" } });
+  const methodOptions = [
+    ...new Set([
+      ...methods.map((m) => [t(m.title, "ru"), m.currencyNote].filter(Boolean).join(", ")),
+      "Наличные",
+      "Другое",
+      ...(d?.method ? [d.method] : []),
+    ]),
+  ];
   const campaignOptions = d?.campaignId && !campaigns.some((c) => c.id === d.campaignId)
     ? [...campaigns, await db.campaign.findUniqueOrThrow({ where: { id: d.campaignId } })]
     : campaigns;
@@ -38,8 +49,15 @@ export default async function DonationPage({ params, searchParams }: PageProps<"
             <Field label="Сумма, RSD" hint="Если пришло в другой валюте, пересчитайте и округлите">
               <input name="amountRsd" inputMode="numeric" required defaultValue={d?.amountRsd ?? ""} className={inputCls} />
             </Field>
-            <Field label="Способ (PayPal, карта RSD, RUB...)">
-              <input name="method" defaultValue={d?.method ?? ""} className={inputCls} />
+            <Field label="Способ">
+              <select name="method" defaultValue={d?.method ?? ""} className={inputCls}>
+                <option value="">Не указан</option>
+                {methodOptions.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
             </Field>
             <Field label="Публикация">
               <StateSelect value={d?.state} />
@@ -88,9 +106,7 @@ export default async function DonationPage({ params, searchParams }: PageProps<"
           <Field label="Внутренний комментарий">
             <textarea name="internalComment" defaultValue={d?.internalComment ?? ""} rows={2} className={inputCls} />
           </Field>
-          <Field label="Подтверждение (скриншот перевода и т.п., не публикуется)">
-            <input type="file" name="files" multiple accept="image/*,application/pdf" className="mt-1 block" />
-          </Field>
+          <FileInput name="files" label="Подтверждение (скриншот перевода и т.п., не публикуется)" accept="image/*,application/pdf" multiple />
           {d && d.files.length > 0 && (
             <ul className="text-sm">
               {d.files.map((f) => (

@@ -9,6 +9,7 @@ import { addInstagramLink, saveCat, saveCatUpdate, updatePhoto, uploadPhotos } f
 import { ActionForm } from "@/components/admin/ActionForm";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { AgeField } from "@/components/admin/AgeField";
+import { FileInput } from "@/components/admin/FileInput";
 import { BackLink, Card, Field, Flash, LocalizedField, PageTitle, StateBadge, StateSelect, btnCls, btnSecondaryCls, inputCls } from "@/components/admin/ui";
 
 export const metadata = { title: "Кот" };
@@ -249,9 +250,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
           <Card title="Фото и видео">
             <form action={uploadPhotos} className="flex flex-wrap items-end gap-3">
               <input type="hidden" name="catId" value={cat.id} />
-              <Field label="Добавить фото (JPEG, PNG, WebP, HEIC до 25 МБ)">
-                <input type="file" name="photos" accept="image/*" multiple required className="mt-1 block" />
-              </Field>
+              <FileInput name="photos" label="Добавить фото (JPEG, PNG, WebP, HEIC до 25 МБ)" accept="image/*" multiple required />
               <button className={btnCls}>Загрузить</button>
             </form>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">

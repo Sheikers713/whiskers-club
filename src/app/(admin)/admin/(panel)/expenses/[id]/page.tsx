@@ -7,6 +7,7 @@ import { saveExpense } from "@/lib/actions/finance";
 import { BackLink, Card, Field, Flash, LocalizedField, PageTitle, StateBadge, StateSelect, btnCls, inputCls } from "@/components/admin/ui";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { AuditTrail } from "@/components/admin/AuditTrail";
+import { FileInput } from "@/components/admin/FileInput";
 
 export const metadata = { title: "Расход" };
 
@@ -95,9 +96,7 @@ export default async function ExpensePage({ params, searchParams }: PageProps<"/
           <Field label="Причина отсутствия чека (обязательно для «без чека»)">
             <input name="noReceiptReason" defaultValue={e?.noReceiptReason ?? ""} className={inputCls} />
           </Field>
-          <Field label="Фото чека или документ">
-            <input type="file" name="files" multiple accept="image/*,application/pdf" className="mt-1 block" />
-          </Field>
+          <FileInput name="files" label="Фото чека или документ" accept="image/*,application/pdf" multiple />
           <label className="flex items-center gap-2">
             <input type="checkbox" name="newFilesPublic" defaultChecked /> Показывать новые файлы в публичном отчёте
           </label>
