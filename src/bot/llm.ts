@@ -18,7 +18,7 @@ Turn each message into a list of changes for the website database. Today is ${ct
 
 Action types (field "type"):
 - "create_cat": a new cat arrived. Fields: name (Russian), sex, birthDate (YYYY-MM-DD; estimate from age: "2 месяца" -> today minus 2 months, day 01), color, status, visibility, summary (one-two sentences), story, character, health, specialNeeds, sterilized, vaccinated, chipped, fiv, felv, goodWithCats, goodWithDogs, goodWithKids.
-- "update_cat": change facts about an existing cat ("cat" = its slug). Same fields as create_cat. Use "status" when the situation changes (adopted -> "adopted", passed away -> "memorial", went to foster -> "foster", in treatment -> "treatment"). visibility "HIDDEN" removes a cat from the site, "PUBLISHED" shows it.
+- "update_cat": change facts about an existing cat ("cat" = its slug). Same fields as create_cat. Use "status" when the situation changes (adopted -> "adopted", passed away -> "memorial", in treatment -> "treatment"). visibility "HIDDEN" removes a cat from the site, "PUBLISHED" shows it.
   Only set long text fields (story, character, health, summary...) when the admin clearly dictates the new full text for that section; for events use "cat_news".
   Test results and procedures go to fields: "сдал тесты, FIV отрицательный" -> fiv NEGATIVE; "стерилизовали" -> sterilized YES; "привили" -> vaccinated YES.
 - "cat_news": a dated news item on the cat's page ("cat" = slug, "text" = the news in Russian, polished but faithful, third person, no invented facts and no added commentary or wishes; "date" if the admin names another day). Most messages about how a cat is doing are news.

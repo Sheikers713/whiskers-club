@@ -15,7 +15,7 @@ export async function getHomeStats() {
     db.cat.count({ where: counted }),
     db.cat.count({ where: { ...counted, status: { group: "ADOPTED" } } }),
     db.cat.count({ where: { ...counted, sterilized: "YES" } }),
-    db.cat.count({ where: { ...counted, status: { key: { in: ["urgent", "treatment", "quarantine"] } } } }),
+    db.cat.count({ where: { ...counted, status: { key: "treatment" } } }),
     getFinanceTotals(),
   ]);
   const o = settings.counterOffsets;

@@ -18,12 +18,8 @@ const statuses: Array<{
   priority: number;
   isPublic?: boolean;
 }> = [
-  { key: "urgent", label: { en: "Urgent help", ru: "Срочная помощь", sr: "Hitna pomoć" }, color: "#c82424", group: "ACTIVE", priority: 10 },
   { key: "ready", label: { en: "Ready for adoption", ru: "Готов к пристройству", sr: "Spreman za udomljavanje" }, color: "#5f6e5b", group: "ACTIVE", priority: 20 },
-  { key: "reserved", label: { en: "Reserved", ru: "Забронирован", sr: "Rezervisan" }, color: "#51443e", group: "ACTIVE", priority: 25 },
   { key: "treatment", label: { en: "In treatment", ru: "На лечении", sr: "Na lečenju" }, color: "#cf6437", group: "ACTIVE", priority: 30 },
-  { key: "quarantine", label: { en: "Quarantine", ru: "Карантин", sr: "Karantin" }, color: "#8d98a0", group: "ACTIVE", priority: 40 },
-  { key: "foster", label: { en: "Foster care", ru: "На передержке", sr: "Privremeni dom" }, color: "#71816d", group: "ACTIVE", priority: 50 },
   { key: "adopted", label: { en: "Adopted", ru: "Нашёл дом", sr: "Udomljen" }, color: "#e39a46", group: "ADOPTED", priority: 90 },
   { key: "tnr", label: { en: "Released after TNR", ru: "Выпущен после TNR", sr: "Pušten posle TNR" }, color: "#616161", group: "ARCHIVE", priority: 95, isPublic: false },
   { key: "memorial", label: { en: "Memorial", ru: "Память", sr: "Sećanje" }, color: "#424242", group: "ARCHIVE", priority: 97 },
@@ -47,7 +43,7 @@ const filters: Array<{
   { key: "all", label: { en: "All cats", ru: "Все", sr: "Sve" } },
   { key: "looking", label: { en: "Looking for a home", ru: "Ищут дом", sr: "Traže dom" }, flagKeys: ["looking_for_home"] },
   { key: "fundraising", label: { en: "Need help", ru: "Нужна помощь", sr: "Potrebna pomoć" }, requireActiveCampaign: true },
-  { key: "treatment", label: { en: "In treatment", ru: "На лечении", sr: "Na lečenju" }, statusKeys: ["urgent", "treatment", "quarantine"] },
+  { key: "treatment", label: { en: "In treatment", ru: "На лечении", sr: "Na lečenju" }, statusKeys: ["treatment"] },
   { key: "foster", label: { en: "Foster care", ru: "Передержка", sr: "Privremeni dom" }, flagKeys: ["foster"] },
   { key: "happy", label: { en: "Happy endings", ru: "Нашли дом", sr: "Srećni krajevi" }, statusGroups: ["ADOPTED"] },
 ];
