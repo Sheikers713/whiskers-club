@@ -82,3 +82,14 @@ body {
   height: 1px;
   background: currentColor;
 }
+
+/* Home hero: the resting sun drifts gently up and down. */
+@keyframes sun-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
