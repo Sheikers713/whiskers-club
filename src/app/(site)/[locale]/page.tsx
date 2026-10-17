@@ -59,6 +59,33 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         </div>
       </section>
 
+      {looking.cats.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 py-8">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="font-display text-3xl md:text-4xl">{dict.home.lookingTitle}</h2>
+            <Link href={`/${locale}/cats`} className="font-semibold text-brick hover:underline">
+              {dict.home.seeAllCats} →
+            </Link>
+          </div>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {looking.cats.map((cat) => (
+              <CatCard key={cat.id} cat={cat} locale={locale} dict={dict} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {urgent.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 py-8">
+          <h2 className="font-display text-3xl md:text-4xl">{dict.home.urgentTitle}</h2>
+          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {urgent.map((cat) => (
+              <CatCard key={cat.id} cat={cat} locale={locale} dict={dict} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {about && (
         <section className="mx-auto max-w-6xl px-4 py-8">
           <h2 className="font-display text-3xl md:text-4xl">{dict.home.whoTitle}</h2>
@@ -92,33 +119,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
       </section>
       )}
 
-      {looking.cats.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 py-8">
-          <div className="flex items-end justify-between gap-4">
-            <h2 className="font-display text-3xl md:text-4xl">{dict.home.lookingTitle}</h2>
-            <Link href={`/${locale}/cats`} className="font-semibold text-brick hover:underline">
-              {dict.home.seeAllCats} →
-            </Link>
-          </div>
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {looking.cats.map((cat) => (
-              <CatCard key={cat.id} cat={cat} locale={locale} dict={dict} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {urgent.length > 0 && (
-        <section className="mx-auto max-w-6xl px-4 py-8">
-          <h2 className="font-display text-3xl md:text-4xl">{dict.home.urgentTitle}</h2>
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {urgent.map((cat) => (
-              <CatCard key={cat.id} cat={cat} locale={locale} dict={dict} />
-            ))}
-          </div>
-        </section>
-      )}
-
       {story && (
         <section className="mx-auto max-w-6xl px-4 py-8">
           <div className="rounded-[var(--radius-card)] bg-paper p-6 ring-1 ring-line md:p-10">
@@ -127,33 +127,6 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </div>
         </section>
       )}
-
-      <section className="mx-auto max-w-6xl px-4 py-8">
-        <h2 className="font-display text-3xl md:text-4xl">{dict.home.helpTitle}</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { href: `/${locale}/help#donate`, title: dict.help.donateTitle, text: dict.help.donateText },
-            { href: `/${locale}/volunteer`, title: dict.help.volunteerTitle, text: dict.help.volunteerText },
-            { href: `/${locale}/foster`, title: dict.help.fosterTitle, text: dict.help.fosterText },
-            { href: `/${locale}/partnership`, title: dict.help.partnerTitle, text: dict.help.partnerText },
-          ].map((c) => (
-            <Link key={c.href} href={c.href} className="group rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-ink">
-              <h3 className="text-lg font-extrabold group-hover:text-brick">{c.title}</h3>
-              <p className="mt-2 line-clamp-4 text-sm text-ink-soft">{c.text}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-8">
-        <div className="olive-dot rounded-[var(--radius-card)] p-6 md:p-12">
-          <h2 className="font-display text-3xl md:text-4xl">{dict.home.transparencyTitle}</h2>
-          <p className="mt-3 max-w-2xl text-lg">{dict.home.transparencyText}</p>
-          <Link href={`/${locale}/transparency`} className="mt-6 inline-block rounded-[var(--radius-control)] bg-ink px-6 py-3.5 font-bold text-milk hover:bg-brick">
-            {dict.home.transparencyLink}
-          </Link>
-        </div>
-      </section>
 
       {settings.instagramUrl && (
         <section className="mx-auto max-w-6xl px-4 py-8">
