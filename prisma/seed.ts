@@ -102,47 +102,42 @@ async function main() {
       en: "Message us on Instagram",
       sr: "Pišite nam na Instagramu",
     };
+    // Payers pick by currency, so titles lead with it.
     const methods = [
       {
-        title: { ru: "PayPal", en: "PayPal", sr: "PayPal" },
-        url: "https://paypal.me/natashuko",
-        currencyNote: "EUR / USD",
-      },
-      {
-        title: { ru: "Банковский перевод, Bank of Georgia", en: "Bank transfer, Bank of Georgia", sr: "Bankovni transfer, Bank of Georgia" },
+        title: { ru: "EUR/USD Банковский перевод", en: "EUR/USD Bank transfer", sr: "EUR/USD Bankovni transfer" },
         value: "GE15BG0000000162702714",
-        currencyNote: "EUR / USD",
-        instructions: { ru: "Получатель: Nataliya Rogova", en: "Recipient: Nataliya Rogova", sr: "Primalac: Nataliya Rogova" },
-      },
-      {
-        title: { ru: "Т-Банк (Тинькофф) по номеру телефона", en: "T-Bank (Tinkoff) by phone number", sr: "T-Bank (Tinkoff) preko broja telefona" },
-        value: "+79775112775",
-        currencyNote: "RUB",
-        instructions: { ru: "Получатель: Наталия Михайловна Р.", en: "Recipient: Nataliya Mikhailovna R.", sr: "Primalac: Natalija Mihajlovna R." },
-      },
-      {
-        title: { ru: "Карта Raiffeisen banka", en: "Raiffeisen banka card", sr: "Kartica Raiffeisen banka" },
-        value: "4054 7700 3919 7582",
-        currencyNote: "RSD",
-        instructions: { ru: "Получатель: KRISTINA NIKITINA", en: "Recipient: KRISTINA NIKITINA", sr: "Primalac: KRISTINA NIKITINA" },
-      },
-      {
-        title: { ru: "Счёт Raiffeisen banka", en: "Raiffeisen banka account", sr: "Račun Raiffeisen banka" },
-        value: "265000000700256005",
-        currencyNote: "RSD",
         instructions: {
-          ru: `Получатель: KRISTINA NIKITINA\nМожно также наличными или через Raiffeisen Mobile Cash: ${dm.ru.toLowerCase()}.`,
-          en: `Recipient: KRISTINA NIKITINA\nCash or Raiffeisen Mobile Cash also work: ${dm.en.toLowerCase()}.`,
-          sr: `Primalac: KRISTINA NIKITINA\nMožete i u gotovini ili preko Raiffeisen Mobile Cash: ${dm.sr.toLowerCase()}.`,
+          ru: "Bank of Georgia\nПолучатель: Nataliya Rogova",
+          en: "Bank of Georgia\nRecipient: Nataliya Rogova",
+          sr: "Bank of Georgia\nPrimalac: Nataliya Rogova",
         },
       },
       {
-        title: { ru: "Криптовалюта", en: "Cryptocurrency", sr: "Kriptovalute" },
-        currencyNote: "USDT / USDC",
+        title: { ru: "RUB перевод по СБП", en: "RUB transfer via SBP", sr: "RUB transfer preko SBP" },
+        value: "+79775112775",
         instructions: {
-          ru: `USDT, USDC и другие. ${dm.ru}, пришлём адрес кошелька.`,
-          en: `USDT, USDC and others. ${dm.en} for the wallet address.`,
-          sr: `USDT, USDC i druge. ${dm.sr} za adresu novčanika.`,
+          ru: "Т-Банк (Тинькофф), по номеру телефона\nПолучатель: Наталия Михайловна Р.",
+          en: "T-Bank (Tinkoff), by phone number\nRecipient: Nataliya Mikhailovna R.",
+          sr: "T-Bank (Tinkoff), preko broja telefona\nPrimalac: Natalija Mihajlovna R.",
+        },
+      },
+      {
+        title: { ru: "RSD перевод из сербского банка", en: "RSD transfer from a Serbian bank", sr: "RSD uplata iz srpske banke" },
+        value: "265000000700256005",
+        instructions: {
+          ru: `Raiffeisen banka\nПолучатель: KRISTINA NIKITINA\nМожно также наличными или через Raiffeisen Mobile Cash: ${dm.ru.toLowerCase()}.`,
+          en: `Raiffeisen banka\nRecipient: KRISTINA NIKITINA\nCash or Raiffeisen Mobile Cash also work: ${dm.en.toLowerCase()}.`,
+          sr: `Raiffeisen banka\nPrimalac: KRISTINA NIKITINA\nMožete i u gotovini ili preko Raiffeisen Mobile Cash: ${dm.sr.toLowerCase()}.`,
+        },
+      },
+      { title: { ru: "PayPal", en: "PayPal", sr: "PayPal" }, url: "https://paypal.me/natashuko" },
+      {
+        title: { ru: "Crypto USDT/USDC", en: "Crypto USDT/USDC", sr: "Crypto USDT/USDC" },
+        instructions: {
+          ru: `Другие криптовалюты тоже подойдут. ${dm.ru}, пришлём адрес кошелька.`,
+          en: `Other cryptocurrencies work too. ${dm.en} for the wallet address.`,
+          sr: `I druge kriptovalute su u redu. ${dm.sr} za adresu novčanika.`,
         },
       },
     ];
