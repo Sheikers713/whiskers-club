@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import "../../globals.css";
 import { isLocale, locales } from "@/lib/i18n/config";
@@ -30,15 +29,14 @@ export default async function SiteLayout({ children, params }: LayoutProps<"/[lo
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
-  const [settings, h] = await Promise.all([getSettings(), headers()]);
-  const path = h.get("x-wc-path") ?? "";
+  const settings = await getSettings();
   return (
     <html lang={locale === "sr" ? "sr-Latn" : locale}>
       <body className="min-h-screen antialiased">
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-paper focus:px-4 focus:py-2">
           Skip to content
         </a>
-        <SiteHeader locale={locale} dict={dict} path={path} />
+        <SiteHeader locale={locale} dict={dict} />
         <main id="main">{children}</main>
         <SiteFooter locale={locale} dict={dict} settings={settings} />
       </body>

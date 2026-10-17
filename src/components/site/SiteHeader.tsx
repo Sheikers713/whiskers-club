@@ -1,34 +1,16 @@
 import Link from "next/link";
-import { locales, localeNames, type Locale } from "@/lib/i18n/config";
+import type { Locale } from "@/lib/i18n/config";
 import type { Dictionary } from "@/lib/i18n/dictionary";
+import { LangLinks } from "./LangLinks";
 
-export function SiteHeader({ locale, dict, path }: { locale: Locale; dict: Dictionary; path: string }) {
+export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const nav = [
     { href: `/${locale}/cats`, label: dict.nav.cats },
     { href: `/${locale}/help`, label: dict.nav.help },
     { href: `/${locale}/transparency`, label: dict.nav.transparency },
     { href: `/${locale}/about`, label: dict.nav.about },
   ];
-  const langLinks = (
-    <ul className="flex gap-1" aria-label={dict.nav.language}>
-      {locales.map((l) => (
-        <li key={l}>
-          <a
-            href={`/${l}${path}`}
-            hrefLang={l}
-            lang={l}
-            aria-current={l === locale ? "true" : undefined}
-            className={`rounded-[var(--radius-control)] px-2.5 py-1 text-sm font-bold uppercase ${
-              l === locale ? "bg-ink text-milk" : "text-ink-soft hover:bg-line"
-            }`}
-            title={localeNames[l]}
-          >
-            {l}
-          </a>
-        </li>
-      ))}
-    </ul>
-  );
+  const langLinks = <LangLinks locale={locale} label={dict.nav.language} />;
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-milk/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
