@@ -8,7 +8,7 @@ const CATS = ["black", "blue", "calico", "ginger", "mackerel", "point", "tortie"
 
 const HOLD_MS = 4500; // the sun rests at its peak
 const SWING_MS = 2400; // setting / rising along the arc
-const RISE_DELAY_MS = 350; // the new sun follows a moment after the old one starts to set
+const RISE_DELAY_MS = 1100; // the new sun follows a moment after the old one starts to set
 const CAT_DOWN_MS = 650;
 const CAT_UP_MS = 1100;
 const SUNS_PER_CAT = 3;
