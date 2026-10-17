@@ -208,6 +208,7 @@ export async function saveSettings(fd: FormData) {
       adopted: int(fd, "offsetAdopted") ?? 0,
       sterilized: int(fd, "offsetSterilized") ?? 0,
     },
+    showStats: bool(fd, "showStats"),
     heroText: localized(fd, "heroText"),
     aboutText: localized(fd, "aboutText"),
     malaStory: localized(fd, "malaStory"),

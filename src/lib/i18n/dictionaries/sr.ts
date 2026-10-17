@@ -197,6 +197,23 @@ const sr: Dictionary = {
   },
   about: {
     title: "O nama",
+    foundersTitle: "Osnivači",
+    foundersIntro: "Whiskers Club je počeo sa dve volonterke, jednim azilom i zajedničkom idejom: da pomognemo što većem broju mačaka da nađu svoj dom.",
+    founders: [
+      { name: "Nata", text: "Spasava životinje od 2020. godine i više od deset godina radi kao pet siterka." },
+      { name: "Kristina", text: "Ceo odrasli život pomaže ljudima kao lekarka, a mačke i njihovo ponašanje oduvek su zauzimali ogroman deo njenog života." },
+    ],
+    foundersOutro: "Mi nismo azil. Mačke uzimamo sa ulice ili iz azila, lečimo ih, tražimo privremene domove i, najvažnije, tražimo baš one ljude koji će im postati porodica.",
+    storyTitle: "Priča o jednoj mački",
+    story: [
+      "I ranije smo pomagali mačkama kao volonteri. Ali jedna mačka nas je inspirisala da napravimo korak dalje i pretvorimo pomoć u pravi projekat. Zvala se Mala.",
+      "Prva vlasnica Male bila je starija profesorka. Mala je imala dve godine kada je ona preminula. Mačku je uzela prijateljica vlasnice, ali je godinu dana kasnije i ona preminula. Sa tri godine Mala je završila u azilu i tamo provela više od deset godina. Koliko tačno, više niko ne zna.",
+      "Mala je došla kod nas 30. decembra 2025. godine. Bila je u užasnom stanju: teška anemija, bubrezi skoro da nisu radili, krzno prljavo i zamršeno. Bila je toliko iscrpljena da je mogla samo da leži.",
+      "Uložili smo u nju mnogo snage i vremena, i posle tri meseca nije se mogla prepoznati. Ali previše je toga preživela u životu, i bolesti su se nadovezale jedna na drugu. Kada je bolest ušla u novu akutnu fazu, Mala nas je napustila.",
+      "Mala je zauvek promenila naš pogled na starije mačke. Bila je jedna od najpametnijih, najšarmantnijih i najnežnijih mačaka koje smo ikada upoznali i ostavila je dubok trag na nama. Zato se posebno trudimo da nađemo dom mačkama starijeg uzrasta.",
+    ],
+    photoBefore: "Mala prvih dana kod nas",
+    photoAfter: "Mala posle tri meseca",
   },
   footer: {
     reports: "Izveštaji o donacijama",

@@ -8,6 +8,8 @@ export type SiteSettings = {
   eurRate: number;
   // Cats helped before the site existed are added to the counters (decision 3.4).
   counterOffsets: { rescued: number; adopted: number; sterilized: number };
+  // Counters on the home page; off until the numbers are filled in.
+  showStats: boolean;
   heroText: LocalizedText;
   aboutText: LocalizedText;
   malaStory: LocalizedText;
@@ -27,6 +29,7 @@ export type SiteSettings = {
 export const defaultSettings: SiteSettings = {
   eurRate: 117,
   counterOffsets: { rescued: 27, adopted: 0, sterilized: 0 },
+  showStats: false,
   heroText: {},
   aboutText: {},
   malaStory: {},
@@ -34,7 +37,7 @@ export const defaultSettings: SiteSettings = {
   instagramUrl: "https://www.instagram.com/whiskers_club.rs/",
   facebookUrl: "https://www.facebook.com/whiskersclub.rs/",
   youtubeUrl: "https://www.youtube.com/@whiskers_club",
-  tiktokUrl: "https://www.tiktok.com/@dfvdf",
+  tiktokUrl: "",
   telegramUrl: "",
   paypalUrl: "https://paypal.me/natashuko",
   reportsUrl: "https://docs.google.com/spreadsheets/d/1VcEOPmK-3-YhS6kpLkc3LMb6lw5ahFy0QA55CFb-AsA/edit?usp=drivesdk",

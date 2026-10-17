@@ -32,6 +32,9 @@ export default async function Settings({ searchParams }: PageProps<"/admin/setti
       <Flash searchParams={sp} />
       <form action={saveSettings} className="space-y-6">
         <Card title="Деньги и счётчики">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" name="showStats" defaultChecked={s.showStats} /> Показывать счётчики на главной
+          </label>
           <div className="grid gap-4 sm:grid-cols-4">
             <Field label="Курс: динаров за 1 €" hint="Только для подсказки «≈ €»">
               <input name="eurRate" inputMode="decimal" defaultValue={s.eurRate} className={inputCls} />

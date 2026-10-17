@@ -194,6 +194,23 @@ const en = {
   },
   about: {
     title: "About us",
+    foundersTitle: "Founders",
+    foundersIntro: "Whiskers Club started with two volunteers, one shelter and a shared idea: to help as many cats as possible find a home of their own.",
+    founders: [
+      { name: "Nata", text: "Has been rescuing animals since 2020 and has worked as a pet sitter for more than ten years." },
+      { name: "Kristina", text: "Has spent her whole adult life helping people as a doctor, while cats and their behaviour have always been a huge part of her life." },
+    ],
+    foundersOutro: "We are not a shelter. We take cats from the street or from shelters, treat them, find foster homes and, most importantly, find the people who will become their family.",
+    storyTitle: "The story of one cat",
+    story: [
+      "We had helped cats as volunteers before. But one cat inspired us to take the next step and turn that help into a real project. Her name was Mala.",
+      "Mala's first owner was an elderly university professor. Mala was two years old when she passed away. A friend of the owner took the cat in, but a year later she died too. At three, Mala ended up in a shelter and lived there for more than ten years. Nobody knows exactly how long.",
+      "On 30 December 2025 Mala came to us. She was in a terrible state: severe anaemia, kidneys barely working, her fur dirty and matted. She was so exhausted that all she could do was lie down.",
+      "We put a great deal of time and effort into her, and three months later she was unrecognisable. But she had been through too much in her life, and one illness piled on another. When her disease entered a new acute stage, Mala left us.",
+      "Mala changed the way we see older cats forever. She was one of the smartest, most charming and affectionate cats we have ever met, and she left a deep mark on us. That is why we make a special effort to find homes for senior cats.",
+    ],
+    photoBefore: "Mala in her first days with us",
+    photoAfter: "Mala three months later",
   },
   footer: {
     reports: "Donation reports",

@@ -95,6 +95,60 @@ async function main() {
     await db.expenseCategory.upsert({ where: { key: c.key }, update: {}, create: { ...c, sortOrder: i } });
   }
 
+  // Donation details from the project's Taplink, added once; later edits live in the admin.
+  if ((await db.paymentMethod.count()) === 0) {
+    const dm = {
+      ru: "Напишите нам в Instagram",
+      en: "Message us on Instagram",
+      sr: "Pišite nam na Instagramu",
+    };
+    const methods = [
+      {
+        title: { ru: "PayPal", en: "PayPal", sr: "PayPal" },
+        url: "https://paypal.me/natashuko",
+        currencyNote: "EUR / USD",
+      },
+      {
+        title: { ru: "Банковский перевод, Bank of Georgia", en: "Bank transfer, Bank of Georgia", sr: "Bankovni transfer, Bank of Georgia" },
+        value: "GE15BG0000000162702714",
+        currencyNote: "EUR / USD",
+        instructions: { ru: "Получатель: Nataliya Rogova", en: "Recipient: Nataliya Rogova", sr: "Primalac: Nataliya Rogova" },
+      },
+      {
+        title: { ru: "Т-Банк (Тинькофф) по номеру телефона", en: "T-Bank (Tinkoff) by phone number", sr: "T-Bank (Tinkoff) preko broja telefona" },
+        value: "+79775112775",
+        currencyNote: "RUB",
+        instructions: { ru: "Получатель: Наталия Михайловна Р.", en: "Recipient: Nataliya Mikhailovna R.", sr: "Primalac: Natalija Mihajlovna R." },
+      },
+      {
+        title: { ru: "Карта Raiffeisen banka", en: "Raiffeisen banka card", sr: "Kartica Raiffeisen banka" },
+        value: "4054 7700 3919 7582",
+        currencyNote: "RSD",
+        instructions: { ru: "Получатель: KRISTINA NIKITINA", en: "Recipient: KRISTINA NIKITINA", sr: "Primalac: KRISTINA NIKITINA" },
+      },
+      {
+        title: { ru: "Счёт Raiffeisen banka", en: "Raiffeisen banka account", sr: "Račun Raiffeisen banka" },
+        value: "265000000700256005",
+        currencyNote: "RSD",
+        instructions: {
+          ru: `Получатель: KRISTINA NIKITINA\nМожно также наличными или через Raiffeisen Mobile Cash: ${dm.ru.toLowerCase()}.`,
+          en: `Recipient: KRISTINA NIKITINA\nCash or Raiffeisen Mobile Cash also work: ${dm.en.toLowerCase()}.`,
+          sr: `Primalac: KRISTINA NIKITINA\nMožete i u gotovini ili preko Raiffeisen Mobile Cash: ${dm.sr.toLowerCase()}.`,
+        },
+      },
+      {
+        title: { ru: "Криптовалюта", en: "Cryptocurrency", sr: "Kriptovalute" },
+        currencyNote: "USDT / USDC",
+        instructions: {
+          ru: `USDT, USDC и другие. ${dm.ru}, пришлём адрес кошелька.`,
+          en: `USDT, USDC and others. ${dm.en} for the wallet address.`,
+          sr: `USDT, USDC i druge. ${dm.sr} za adresu novčanika.`,
+        },
+      },
+    ];
+    for (const [i, m] of methods.entries()) await db.paymentMethod.create({ data: { ...m, sortOrder: i } });
+  }
+
   const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const password = process.env.ADMIN_PASSWORD;
   if ((await db.user.count()) === 0) {

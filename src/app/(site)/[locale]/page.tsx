@@ -46,10 +46,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">{heroText}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href={`/${locale}/cats?filter=looking`} className="rounded-[var(--radius-control)] bg-brick px-6 py-3.5 font-bold text-white hover:bg-brick-dark">
-                {dict.nav.adopt}
-              </Link>
-              <Link href={`/${locale}/help`} className="rounded-[var(--radius-control)] border border-ink px-6 py-3.5 font-bold hover:bg-ink hover:text-milk">
+              <Link href={`/${locale}/help`} className="rounded-[var(--radius-control)] bg-brick px-6 py-3.5 font-bold text-white hover:bg-brick-dark">
                 {dict.nav.donate}
               </Link>
             </div>
@@ -69,6 +66,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         </section>
       )}
 
+      {settings.showStats && (
       <section className="mx-auto max-w-6xl px-4 py-8" aria-labelledby="stats">
         <h2 id="stats" className="sr-only">{dict.home.statsTitle}</h2>
         <dl className="grid grid-cols-2 gap-3 md:grid-cols-6">
@@ -92,6 +90,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           </div>
         </dl>
       </section>
+      )}
 
       {looking.cats.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-8">
