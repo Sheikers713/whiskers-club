@@ -197,9 +197,30 @@ const en = {
     foundersTitle: "Founders",
     foundersIntro: "Whiskers Club started with two volunteers, one shelter and a shared idea: to help as many cats as possible find a home of their own.",
     founders: [
-      { name: "Nata", text: "Has been rescuing animals since 2020 and has worked as a pet sitter for more than ten years." },
-      { name: "Kristina", text: "Has spent her whole adult life helping people as a doctor, while cats and their behaviour have always been a huge part of her life." },
+      {
+        name: "Nata",
+        role: "Co-founder of Whiskers Club",
+        tags: ["Animal rescuer", "Pet sitter"],
+        items: [
+          { icon: "globe", text: "My volunteering journey began in **2020**, when I started rescuing cats and dogs in Georgia." },
+          { icon: "home", text: "After moving to Belgrade **in 2023**, I almost immediately started volunteering at **Pro Anima shelter**." },
+          { icon: "heart", text: "I've been working as a pet sitter for **over 10 years**, and I know that caring for animals is so much more than just feeding them." },
+        ],
+      },
+      {
+        name: "Kristina",
+        role: "Co-founder of Whiskers Club",
+        tags: ["Animal rescuer"],
+        items: [
+          { icon: "people", text: "I've spent my adult life helping people as a doctor. But since childhood, I've also dreamed of **helping animals**." },
+          { icon: "cat", text: "Cats have always been **a big part of my life**. Over the years I've learned a lot about their behaviour: how to understand them, build trust and help them adapt." },
+          { icon: "home", text: "That's what eventually brought me to **Pro Anima** as a volunteer. There I met Nata, and together we created **Whiskers Club**." },
+        ],
+      },
     ],
+    slogan: "Cats change lives",
+    before: "Before",
+    after: "After",
     foundersOutro: "We are not a shelter. We take cats from the street or from shelters, treat them, find foster homes and, most importantly, find the people who will become their family.",
     storyTitle: "The story of one cat",
     story: [

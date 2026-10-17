@@ -200,9 +200,30 @@ const sr: Dictionary = {
     foundersTitle: "Osnivači",
     foundersIntro: "Whiskers Club je počeo sa dve volonterke, jednim azilom i zajedničkom idejom: da pomognemo što većem broju mačaka da nađu svoj dom.",
     founders: [
-      { name: "Nata", text: "Spasava životinje od 2020. godine i više od deset godina radi kao pet siterka." },
-      { name: "Kristina", text: "Ceo odrasli život pomaže ljudima kao lekarka, a mačke i njihovo ponašanje oduvek su zauzimali ogroman deo njenog života." },
+      {
+        name: "Nata",
+        role: "Suosnivačica Whiskers Cluba",
+        tags: ["Spasava životinje", "Pet siterka"],
+        items: [
+          { icon: "globe", text: "Moj volonterski put počeo je **2020. godine**, kada sam počela da spasavam mačke i pse u Gruziji." },
+          { icon: "home", text: "Kada sam se **2023. godine** preselila u Beograd, skoro odmah sam postala volonterka azila **Pro Anima**." },
+          { icon: "heart", text: "Kao pet siterka radim **više od 10 godina** i znam da je briga o životinjama mnogo više od toga da ih nahranite." },
+        ],
+      },
+      {
+        name: "Kristina",
+        role: "Suosnivačica Whiskers Cluba",
+        tags: ["Spasava životinje"],
+        items: [
+          { icon: "people", text: "Ceo odrasli život pomažem ljudima kao lekarka. Ali od detinjstva sam sanjala da **pomažem životinjama**." },
+          { icon: "cat", text: "Mačke su oduvek bile **veliki deo mog života**. Tokom godina sam naučila mnogo o njihovom ponašanju: kako da ih razumem, steknem poverenje i pomognem im da se prilagode." },
+          { icon: "home", text: "Tako sam došla kao volonterka u **Pro Anima**. Tamo sam upoznala Natu i zajedno smo stvorile **Whiskers Club**." },
+        ],
+      },
     ],
+    slogan: "Mačke menjaju živote",
+    before: "Pre",
+    after: "Posle",
     foundersOutro: "Mi nismo azil. Mačke uzimamo sa ulice ili iz azila, lečimo ih, tražimo privremene domove i, najvažnije, tražimo baš one ljude koji će im postati porodica.",
     storyTitle: "Priča o jednoj mački",
     story: [
