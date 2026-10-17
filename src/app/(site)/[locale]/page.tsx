@@ -9,6 +9,7 @@ import { getHomeStats } from "@/lib/queries/stats";
 import { db } from "@/lib/db";
 import { formatNumber } from "@/lib/format";
 import { CatCard } from "@/components/site/CatCard";
+import { HeroArt } from "@/components/site/HeroArt";
 import { SocialLinks } from "@/components/site/SocialLinks";
 import { Money } from "@/components/site/Money";
 import { PaymentMethods } from "@/components/site/PaymentMethods";
@@ -51,11 +52,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
               </Link>
             </div>
           </div>
-          <div aria-hidden className="olive-dot relative min-h-72 overflow-hidden md:my-10 md:min-h-[26rem] md:rounded-[var(--radius-card)]">
-            <div className="absolute left-1/2 top-[12%] aspect-square w-[52%] max-w-64 -translate-x-1/2 rounded-full bg-sun" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/cat-black.webp" alt="" width={1100} height={568} className="absolute inset-x-0 bottom-0 mx-auto w-[118%] max-w-none -translate-x-[8%]" />
-          </div>
+          <HeroArt />
         </div>
       </section>
 
