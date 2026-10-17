@@ -29,7 +29,7 @@ const sr: Dictionary = {
     statInTreatment: "na lečenju",
     statRaised: "prikupljeno",
     statSpent: "potrošeno",
-    lookingTitle: "Traže dom",
+    lookingTitle: "Naše mačke",
     seeAllCats: "Sve mačke",
     urgentTitle: "Hitni slučajevi i akcije",
     storyTitle: "Kako je sve počelo",

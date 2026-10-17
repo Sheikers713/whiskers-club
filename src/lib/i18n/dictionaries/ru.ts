@@ -28,7 +28,7 @@ const ru: Dictionary = {
     statInTreatment: "на лечении",
     statRaised: "собрано",
     statSpent: "потрачено",
-    lookingTitle: "Ищут дом",
+    lookingTitle: "Наши коты",
     seeAllCats: "Все коты",
     urgentTitle: "Срочные случаи и сборы",
     storyTitle: "С чего всё началось",

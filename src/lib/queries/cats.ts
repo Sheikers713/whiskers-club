@@ -81,6 +81,12 @@ export async function getCatalog(filterKey: string | undefined, take?: number) {
   return { filters, active, total: cats.length, cats: await withCampaigns(page) };
 }
 
+/** Home feed: every public cat that is still with us, regardless of flags. */
+export async function getHomeCats(take: number) {
+  const cats = await db.cat.findMany({ where: filterWhere(null), include: cardInclude });
+  return withCampaigns(sortCats(cats).slice(0, take));
+}
+
 export async function getCatsWithActiveCampaign(take: number) {
   const cats = await db.cat.findMany({
     where: {

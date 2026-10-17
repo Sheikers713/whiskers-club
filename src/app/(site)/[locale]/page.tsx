@@ -4,7 +4,7 @@ import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { t } from "@/lib/i18n/localized";
 import { getSettings } from "@/lib/settings";
-import { getCatalog, getCatsWithActiveCampaign } from "@/lib/queries/cats";
+import { getCatsWithActiveCampaign, getHomeCats } from "@/lib/queries/cats";
 import { getHomeStats } from "@/lib/queries/stats";
 import { db } from "@/lib/db";
 import { formatNumber } from "@/lib/format";
@@ -20,7 +20,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const [settings, stats, looking, urgent, partners] = await Promise.all([
     getSettings(),
     getHomeStats(),
-    getCatalog("looking", 6),
+    getHomeCats(9),
     getCatsWithActiveCampaign(3),
     db.partner.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
   ]);
@@ -59,7 +59,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         </div>
       </section>
 
-      {looking.cats.length > 0 && (
+      {looking.length > 0 && (
         <section className="mx-auto max-w-6xl px-4 py-8">
           <div className="flex items-end justify-between gap-4">
             <h2 className="font-display text-3xl md:text-4xl">{dict.home.lookingTitle}</h2>
@@ -68,7 +68,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </Link>
           </div>
           <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {looking.cats.map((cat) => (
+            {looking.map((cat) => (
               <CatCard key={cat.id} cat={cat} locale={locale} dict={dict} />
             ))}
           </div>

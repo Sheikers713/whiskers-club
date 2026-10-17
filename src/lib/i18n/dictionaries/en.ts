@@ -26,7 +26,7 @@ const en = {
     statInTreatment: "in treatment",
     statRaised: "raised",
     statSpent: "spent",
-    lookingTitle: "Looking for a home",
+    lookingTitle: "Our cats",
     seeAllCats: "See all cats",
     urgentTitle: "Urgent cases and fundraisers",
     storyTitle: "How it started",
