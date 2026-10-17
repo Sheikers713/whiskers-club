@@ -30,7 +30,9 @@ export async function getPublicFilters() {
 type FilterDef = Awaited<ReturnType<typeof getPublicFilters>>[number];
 
 export function filterWhere(filter: FilterDef | null): Prisma.CatWhereInput {
-  if (!filter) return { ...publicCatWhere, status: { isPublic: true, group: "ACTIVE" } };
+  // "All" means every public cat, adopted and memorial ones included; only
+  // non-public statuses (archive, released after TNR) stay hidden.
+  if (!filter || filter.key === "all") return publicCatWhere;
   const and: Prisma.CatWhereInput[] = [
     publicCatWhere,
     { status: { group: { in: filter.statusGroups } } },
@@ -81,7 +83,7 @@ export async function getCatalog(filterKey: string | undefined, take?: number) {
   return { filters, active, total: cats.length, cats: await withCampaigns(page) };
 }
 
-/** Home feed: every public cat that is still with us, regardless of flags. */
+/** Home feed: every public cat, regardless of flags. */
 export async function getHomeCats(take: number) {
   const cats = await db.cat.findMany({ where: filterWhere(null), include: cardInclude });
   return withCampaigns(sortCats(cats).slice(0, take));
