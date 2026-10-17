@@ -7,17 +7,18 @@ const SUN_COLORS = ["#efc766", "#e39a46", "#cf6437", "#c82424", "#f5dcd5", "#f8f
 const CATS = ["black", "blue", "calico", "ginger", "mackerel", "point", "tortie", "tuxedo"];
 
 const HOLD_MS = 4500; // the sun rests at its peak
-const SWING_MS = 2400; // setting / rising along the arc
-const RISE_DELAY_MS = 1100; // the new sun follows a moment after the old one starts to set
+const SET_MS = 1800; // the old sun leaves along the arc...
+const RISE_MS = 2200; // ...and only then the new one rises
 const CAT_DOWN_MS = 650;
 const CAT_UP_MS = 1100;
 const SUNS_PER_CAT = 3;
 
 // Setting accelerates away; rising decelerates and settles with a slight overshoot.
+// The cat never overshoots upwards: that would lift its cropped bottom edge into view.
 const EASE_SET = "cubic-bezier(0.55, 0, 0.8, 0.35)";
 const EASE_RISE = "cubic-bezier(0.18, 0.9, 0.3, 1.08)";
 const EASE_DUCK = "cubic-bezier(0.6, 0, 0.9, 0.4)";
-const EASE_POP = "cubic-bezier(0.2, 1, 0.35, 1.12)";
+const EASE_POP = "cubic-bezier(0.16, 1, 0.3, 1)";
 
 const arm = (deg: number) => ({ transform: `translateX(-50%) rotate(${deg}deg)` });
 const catAt = (y: string) => ({ transform: `translateX(-8%) translateY(${y})` });
@@ -71,10 +72,11 @@ export function HeroArt() {
       active = 1 - active;
       count += 1;
       const moves: Promise<void>[] = [
-        run(out, [arm(0), arm(75)], { duration: SWING_MS, easing: EASE_SET }).then(() => {
+        (async () => {
+          await run(out, [arm(0), arm(75)], { duration: SET_MS, easing: EASE_SET });
           out.style.transform = arm(-75).transform;
-        }),
-        run(next, [arm(-75), arm(0)], { duration: SWING_MS, delay: RISE_DELAY_MS, easing: EASE_RISE }),
+          await run(next, [arm(-75), arm(0)], { duration: RISE_MS, easing: EASE_RISE });
+        })(),
       ];
       if (count % SUNS_PER_CAT === 0) {
         moves.push(
