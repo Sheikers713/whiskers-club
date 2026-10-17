@@ -24,8 +24,32 @@ const icons = {
   reports: icon(<path d="M4 20V10h3v10zm6.5 0V4h3v16zM17 20v-7h3v7z" />),
 };
 
-/** Round icon links to the project's pages elsewhere; empty settings are skipped. */
-export function SocialLinks({ settings, dict, className = "" }: { settings: SiteSettings; dict: Dictionary; className?: string }) {
+// Each platform in its own colour so it is recognisable at a glance.
+const brand: Record<keyof typeof icons, string> = {
+  instagram: "bg-[linear-gradient(45deg,#f9a825,#e1306c_45%,#833ab4)] text-white",
+  facebook: "bg-[#1877f2] text-white",
+  youtube: "bg-[#ff0000] text-white",
+  tiktok: "bg-[#111] text-white",
+  telegram: "bg-[#229ed9] text-white",
+  paypal: "bg-[#003087] text-white",
+  reports: "bg-sage text-white",
+};
+
+/**
+ * Links to the project's pages elsewhere; empty settings are skipped.
+ * `labeled` shows the platform name next to its icon.
+ */
+export function SocialLinks({
+  settings,
+  dict,
+  className = "",
+  labeled = false,
+}: {
+  settings: SiteSettings;
+  dict: Dictionary;
+  className?: string;
+  labeled?: boolean;
+}) {
   const links: Array<[keyof typeof icons, string, string]> = [
     ["instagram", "Instagram", settings.instagramUrl],
     ["facebook", "Facebook", settings.facebookUrl],
@@ -41,16 +65,28 @@ export function SocialLinks({ settings, dict, className = "" }: { settings: Site
         .filter(([, , url]) => url)
         .map(([key, label, url]) => (
           <li key={key}>
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener"
-              title={label}
-              aria-label={label}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-paper text-ink ring-1 ring-line hover:bg-ink hover:text-milk"
-            >
-              {icons[key]}
-            </a>
+            {labeled ? (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener"
+                className="flex items-center gap-2.5 rounded-full bg-paper py-1.5 pl-1.5 pr-4 font-semibold ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-ink"
+              >
+                <span className={`flex h-9 w-9 items-center justify-center rounded-full ${brand[key]}`}>{icons[key]}</span>
+                {label}
+              </a>
+            ) : (
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener"
+                title={label}
+                aria-label={label}
+                className={`flex h-10 w-10 items-center justify-center rounded-full transition hover:-translate-y-0.5 hover:opacity-90 ${brand[key]}`}
+              >
+                {icons[key]}
+              </a>
+            )}
           </li>
         ))}
     </ul>

@@ -38,7 +38,7 @@ const sr: Dictionary = {
     transparencyText:
       "Svaka donacija i svaki trošak objavljuju se sa računima. Lični podaci su sakriveni.",
     transparencyLink: "Otvori izveštaj",
-    instagramTitle: "Pratite nas na Instagramu",
+    instagramTitle: "Pratite nas na društvenim mrežama",
     partnersTitle: "Partneri",
   },
   help: {

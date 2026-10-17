@@ -35,7 +35,7 @@ const en = {
     transparencyText:
       "Every donation and every expense is published with receipts. Personal data is hidden.",
     transparencyLink: "Open the report",
-    instagramTitle: "Follow us on Instagram",
+    instagramTitle: "Find us on social media",
     partnersTitle: "Partners",
   },
   help: {

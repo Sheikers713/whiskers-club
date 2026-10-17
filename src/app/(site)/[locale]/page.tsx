@@ -130,11 +130,9 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
       {settings.instagramUrl && (
         <section className="mx-auto max-w-6xl px-4 py-8">
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--radius-card)] bg-paper p-6 ring-1 ring-line">
-            <a href={settings.instagramUrl} target="_blank" rel="noopener" className="text-xl font-bold hover:text-brick">
-              {dict.home.instagramTitle} <span aria-hidden>→</span>
-            </a>
-            <SocialLinks settings={settings} dict={dict} />
+          <div className="rounded-[var(--radius-card)] bg-cream-deep p-6 md:p-8">
+            <h2 className="font-display text-3xl md:text-4xl">{dict.home.instagramTitle}</h2>
+            <SocialLinks settings={settings} dict={dict} labeled className="mt-5 gap-3" />
           </div>
         </section>
       )}

@@ -37,7 +37,7 @@ const ru: Dictionary = {
     transparencyText:
       "Каждое пожертвование и каждый расход публикуются вместе с чеками. Личные данные скрыты.",
     transparencyLink: "Открыть отчёт",
-    instagramTitle: "Мы в Instagram",
+    instagramTitle: "Мы в соцсетях",
     partnersTitle: "Партнёры",
   },
   help: {
