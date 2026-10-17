@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { t } from "@/lib/i18n/localized";
+import { mergeTexts, t } from "@/lib/i18n/localized";
 import { toDateInput } from "@/lib/admin/form";
 import { photoUrl } from "@/lib/media-url";
 import { aiEnabled } from "@/lib/ai/translate";
 import { addInstagramLink, saveCat, saveCatUpdate, updatePhoto, uploadPhotos } from "@/lib/actions/cats";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
+import { AgeField } from "@/components/admin/AgeField";
 import { BackLink, Card, Field, Flash, LocalizedField, PageTitle, StateBadge, StateSelect, btnCls, btnSecondaryCls, inputCls } from "@/components/admin/ui";
 
 export const metadata = { title: "Кот" };
@@ -68,6 +69,9 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
   const textLocales = isNew ? (["ru"] as const) : undefined;
   const auto = cat?.autoTranslated;
   const ai = aiEnabled();
+  // Special needs used to be a separate field; it is shown merged into health
+  // and saved there from now on.
+  const healthText = mergeTexts(cat?.health, cat?.hasSpecialNeeds ? cat.specialNeeds : undefined);
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -120,12 +124,27 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
 
         <Card title="Данные">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <Field label="Пол">
-              <Select name="sex" value={cat?.sex ?? "UNKNOWN"} options={[["UNKNOWN", "Неизвестно"], ["FEMALE", "Девочка"], ["MALE", "Мальчик"]]} />
-            </Field>
-            <Field label="Примерная дата рождения" hint="Возраст на сайте считается сам">
-              <input type="date" name="birthDate" defaultValue={toDateInput(cat?.birthDate)} className={inputCls} />
-            </Field>
+            <fieldset className="col-span-2 md:col-span-1">
+              <legend className="text-sm font-medium">Пол</legend>
+              <div className="mt-1 flex gap-2">
+                {(
+                  [
+                    ["FEMALE", "♀", "Девочка", "peer-checked:bg-brick peer-checked:text-white"],
+                    ["MALE", "♂", "Мальчик", "peer-checked:bg-ink peer-checked:text-milk"],
+                    ["UNKNOWN", "?", "Неизвестно", "peer-checked:bg-line"],
+                  ] as const
+                ).map(([v, sign, label, on]) => (
+                  <label key={v} title={label} className="relative">
+                    <input type="radio" name="sex" value={v} defaultChecked={(cat?.sex ?? "UNKNOWN") === v} className="peer sr-only" />
+                    <span className={`flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-paper text-2xl font-bold ring-1 ring-line peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-orange ${on}`}>
+                      {sign}
+                    </span>
+                    <span className="sr-only">{label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <AgeField birthDate={toDateInput(cat?.birthDate)} exact={cat?.birthDateExact ?? false} />
             <Field label="Окрас">
               <input name="color" defaultValue={cat?.color ?? ""} className={inputCls} />
             </Field>
@@ -147,22 +166,10 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
             <Field label="Дата, когда попал к нам">
               <input type="date" name="intakeDate" defaultValue={toDateInput(cat?.intakeDate ?? new Date())} className={inputCls} />
             </Field>
-            <Field label="Ладит с кошками">
-              <Select name="goodWithCats" value={cat?.goodWithCats ?? "UNKNOWN"} options={triOptions} />
-            </Field>
-            <Field label="Ладит с собаками">
-              <Select name="goodWithDogs" value={cat?.goodWithDogs ?? "UNKNOWN"} options={triOptions} />
-            </Field>
-            <Field label="Ладит с детьми">
-              <Select name="goodWithKids" value={cat?.goodWithKids ?? "UNKNOWN"} options={triOptions} />
-            </Field>
             <Field label="Дата пристройства" hint="Ставится сама при статусе «Нашёл дом»">
               <input type="date" name="adoptedAt" defaultValue={toDateInput(cat?.adoptedAt)} className={inputCls} />
             </Field>
           </div>
-          <label className="flex items-center gap-2">
-            <input type="checkbox" name="hasSpecialNeeds" defaultChecked={cat?.hasSpecialNeeds} /> Особые потребности
-          </label>
         </Card>
 
         <Card title="Тексты">
@@ -175,9 +182,8 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
           </p>
           <LocalizedField name="story" label="История" value={cat?.story} multiline rows={4} locales={textLocales} auto={auto} />
           <LocalizedField name="character" label="Характер и привычки" value={cat?.character} multiline rows={3} locales={textLocales} auto={auto} />
-          <LocalizedField name="health" label="Здоровье" value={cat?.health} multiline rows={3} locales={textLocales} auto={auto} />
-          <LocalizedField name="specialNeeds" label="Особые потребности (если отмечены)" value={cat?.specialNeeds} multiline rows={2} locales={textLocales} auto={auto} />
-          <LocalizedField name="adoptionTerms" label="Условия пристройства" value={cat?.adoptionTerms} multiline rows={2} locales={textLocales} auto={auto} />
+          <LocalizedField name="health" label="Здоровье и особые потребности" value={healthText} multiline rows={3} locales={textLocales} auto={auto} />
+          <LocalizedField name="adoptionTerms" label="Условия пристройства (необязательно, к стандартному тексту на сайте)" value={cat?.adoptionTerms} multiline rows={2} locales={textLocales} auto={auto} />
           {!isNew && ai && (
             <label className="flex items-center gap-2">
               <input type="checkbox" name="retranslate" /> Перевести EN и SR заново с русского (заменит и ручные правки)

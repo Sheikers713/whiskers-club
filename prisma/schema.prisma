@@ -209,6 +209,8 @@ model Cat {
   sex             Sex        @default(UNKNOWN)
   // Approximate birth date; public age is computed from it.
   birthDate       DateTime?  @db.Date
+  // False when only an approximate age (years + months) was entered.
+  birthDateExact  Boolean    @default(false)
   color           String?
   sterilized      TriState   @default(UNKNOWN)
   vaccinated      TriState   @default(UNKNOWN)

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { TestResult, TriState } from "@prisma/client";
 import { isLocale } from "@/lib/i18n/config";
 import { fmt, getDictionary, type Dictionary } from "@/lib/i18n/dictionary";
-import { t } from "@/lib/i18n/localized";
+import { mergeTexts, t } from "@/lib/i18n/localized";
 import { getPublicCat } from "@/lib/queries/cats";
 import { getSettings } from "@/lib/settings";
 import { formatAge, formatDate, formatRsd } from "@/lib/format";
@@ -70,8 +70,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
   const sections = [
     { title: dict.cat.story, body: L(cat.story) },
     { title: dict.cat.character, body: L(cat.character) },
-    { title: dict.cat.health, body: L(cat.health) },
-    { title: dict.cat.specialNeeds, body: cat.hasSpecialNeeds ? L(cat.specialNeeds) : "" },
+    { title: dict.cat.health, body: L(mergeTexts(cat.health, cat.hasSpecialNeeds ? cat.specialNeeds : undefined)) },
   ].filter((s) => s.body);
 
   // Public timeline: meaningful events only; "card edited" stays in the audit log.
@@ -186,10 +185,11 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
             </section>
           )}
 
-          {L(cat.adoptionTerms) && (
+          {(canApply || L(cat.adoptionTerms)) && (
             <section className="rounded-[var(--radius-card)] bg-sage-soft p-5">
               <h2 className="text-lg font-bold">{dict.cat.adoptionTerms}</h2>
-              <p className="mt-2 whitespace-pre-line">{L(cat.adoptionTerms)}</p>
+              {canApply && <p className="mt-2 whitespace-pre-line">{dict.cat.adoptionDisclaimer}</p>}
+              {L(cat.adoptionTerms) && <p className="mt-3 whitespace-pre-line">{L(cat.adoptionTerms)}</p>}
             </section>
           )}
 
@@ -213,15 +213,6 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
               <dd>{test(cat.fiv, dict)}</dd>
               <dt className="text-ink-soft">{dict.cat.felv}</dt>
               <dd>{test(cat.felv, dict)}</dd>
-            </dl>
-            <h3 className="mt-5 text-sm font-semibold uppercase tracking-wide text-ink-soft">{dict.cat.compatibility}</h3>
-            <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 text-[15px]">
-              <dt className="text-ink-soft">{dict.cat.withCats}</dt>
-              <dd>{tri(cat.goodWithCats, dict)}</dd>
-              <dt className="text-ink-soft">{dict.cat.withDogs}</dt>
-              <dd>{tri(cat.goodWithDogs, dict)}</dd>
-              <dt className="text-ink-soft">{dict.cat.withKids}</dt>
-              <dd>{tri(cat.goodWithKids, dict)}</dd>
             </dl>
           </section>
 

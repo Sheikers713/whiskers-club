@@ -79,9 +79,11 @@ const sr: Dictionary = {
     about: "O mački",
     story: "Priča",
     character: "Karakter i navike",
-    health: "Zdravlje",
+    health: "Zdravlje i posebne potrebe",
     medical: "Medicinski podaci",
     adoptionTerms: "Uslovi udomljavanja",
+    adoptionDisclaimer:
+      "Mačke dajemo samo u brižne ruke, ljudima koji su spremni da brinu o mački i pre svega o njenoj bezbednosti. Bezbedni prozori su obavezni: zaštitne mreže za mačke ili bar graničnici. Ako mačka ima preporuke veterinara, potrebno ih je poštovati. U prvo vreme posle udomljavanja proveravamo da li se uslovi poštuju.",
     specialNeeds: "Posebne potrebe",
     compatibility: "Slaže se sa",
     withCats: "mačkama",

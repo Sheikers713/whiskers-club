@@ -43,3 +43,15 @@ export function missingLocales(value: unknown): Locale[] {
   const v = asLocalized(value);
   return locales.filter((l) => !v[l]);
 }
+
+/** Joins two texts per language with a blank line, skipping empty parts. */
+export function mergeTexts(a: unknown, b: unknown): LocalizedText {
+  const x = asLocalized(a);
+  const y = asLocalized(b);
+  const out: LocalizedText = {};
+  for (const l of locales) {
+    const v = [x[l], y[l]].filter(Boolean).join("\n\n");
+    if (v) out[l] = v;
+  }
+  return out;
+}

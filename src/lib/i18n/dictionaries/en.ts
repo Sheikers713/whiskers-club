@@ -76,9 +76,11 @@ const en = {
     about: "About",
     story: "Story",
     character: "Character and habits",
-    health: "Health",
+    health: "Health and special needs",
     medical: "Medical checklist",
     adoptionTerms: "Adoption terms",
+    adoptionDisclaimer:
+      "We only rehome cats into caring hands: people who are ready to look after the cat and, above all, keep her safe. Safe windows are a must, with cat-proof screens or at least window restrictors. Any vet recommendations must be followed. For a while after adoption we check that these conditions are met.",
     specialNeeds: "Special needs",
     compatibility: "Gets along with",
     withCats: "cats",

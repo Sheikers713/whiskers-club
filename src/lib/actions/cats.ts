@@ -34,6 +34,15 @@ async function uniqueSlug(base: string, exceptId?: string): Promise<string> {
   return `${root}-${Date.now()}`;
 }
 
+/** Birth date from "X years Y months"; both empty means unknown. */
+function approxBirthDate(fd: FormData): Date | null {
+  const y = int(fd, "ageYears");
+  const m = int(fd, "ageMonths");
+  if (y === null && m === null) return null;
+  const now = new Date();
+  return new Date(Date.UTC(now.getUTCFullYear() - (y ?? 0), now.getUTCMonth() - (m ?? 0), 1));
+}
+
 export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
   const user = await requireUser(["EDITOR"]);
   const id = optStr(fd, "id");
@@ -44,7 +53,8 @@ export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
     character: localized(fd, "character"),
     health: localized(fd, "health"),
     adoptionTerms: localized(fd, "adoptionTerms"),
-    specialNeeds: localized(fd, "specialNeeds"),
+    // Special needs now live inside the health text (the form shows them merged).
+    specialNeeds: {},
   };
   if (!texts.name.ru) return { error: "Укажите имя кота по-русски." };
 
@@ -86,6 +96,7 @@ export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
     }
   }
 
+  const exact = bool(fd, "birthDateExact");
   const requestedSlug = str(fd, "slug", 60);
   const slug = await uniqueSlug(requestedSlug || texts.name.en || texts.name.ru, id ?? undefined);
 
@@ -101,17 +112,15 @@ export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
     originalLocale: "ru",
     autoTranslated: [...autoTranslated],
     sex: pick(str(fd, "sex"), sexes, "UNKNOWN"),
-    birthDate: date(fd, "birthDate"),
+    birthDate: exact ? date(fd, "birthDate") : approxBirthDate(fd),
+    birthDateExact: exact,
     color: optStr(fd, "color", 80),
     sterilized: pick(str(fd, "sterilized"), tri, "UNKNOWN"),
     vaccinated: pick(str(fd, "vaccinated"), tri, "UNKNOWN"),
     chipped: pick(str(fd, "chipped"), tri, "UNKNOWN"),
     fiv: pick(str(fd, "fiv"), tests, "NOT_TESTED"),
     felv: pick(str(fd, "felv"), tests, "NOT_TESTED"),
-    goodWithCats: pick(str(fd, "goodWithCats"), tri, "UNKNOWN"),
-    goodWithDogs: pick(str(fd, "goodWithDogs"), tri, "UNKNOWN"),
-    goodWithKids: pick(str(fd, "goodWithKids"), tri, "UNKNOWN"),
-    hasSpecialNeeds: bool(fd, "hasSpecialNeeds"),
+    hasSpecialNeeds: false,
     statusId: status.id,
     state,
     isPinned: bool(fd, "isPinned"),
