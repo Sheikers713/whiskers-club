@@ -15,6 +15,8 @@ export function CatCard({ cat, locale, dict }: { cat: CatCardData; locale: Local
   const camp = cat.activeCampaign;
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-paper ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-ink">
+      {/* The whole card opens the cat; the name stays the link's accessible text. */}
+      <Link href={`/${locale}/cats/${cat.slug}`} aria-label={name} className="absolute inset-0 z-10" />
       <div className="olive-dot relative aspect-[4/3]">
         {cat.cover?.storageKey ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -40,9 +42,7 @@ export function CatCard({ cat, locale, dict }: { cat: CatCardData; locale: Local
           )}
         </div>
         <h3 className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-12 font-display text-3xl text-white">
-          <Link href={`/${locale}/cats/${cat.slug}`} className="after:absolute after:inset-0">
-            {name}
-          </Link>
+          {name}
         </h3>
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
