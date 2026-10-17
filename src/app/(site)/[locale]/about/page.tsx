@@ -57,7 +57,7 @@ export default async function Page({ params }: PageProps<"/[locale]/about">) {
             {photos.map((p) => (
               <figure key={p.src}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.src} alt={dict.about[p.key]} className="aspect-[4/3] w-full rounded-lg object-cover" />
+                <img src={p.src} alt={dict.about[p.key]} className="aspect-[3/4] w-full rounded-lg object-cover" />
                 <figcaption className="mt-2 text-sm text-ink-soft">{dict.about[p.key]}</figcaption>
               </figure>
             ))}
