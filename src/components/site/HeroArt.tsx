@@ -24,7 +24,7 @@ const catAt = (y: string) => ({ transform: `translateX(-8%) translateY(${y})` })
 
 /** Runs an animation and bakes its end state into the inline style, so finished animations don't pile up. */
 function run(el: HTMLElement, frames: Keyframe[], options: KeyframeAnimationOptions): Promise<void> {
-  const a = el.animate(frames, { ...options, fill: "forwards" });
+  const a = el.animate(frames, { ...options, fill: "both" });
   return a.finished.then(() => {
     a.commitStyles();
     a.cancel();
@@ -58,27 +58,48 @@ export function HeroArt() {
     let cat = "black";
     let count = 0;
 
-    const cycle = () => {
+    // One swing after another, each started only when the previous one has
+    // finished, so a hidden tab never queues up a pile of animations.
+    const sleep = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
+    let alive = true;
+
+    const swing = async () => {
       const out = suns[active];
       const next = suns[1 - active];
       color = pick(SUN_COLORS, color);
       (next.firstElementChild as HTMLElement).style.backgroundColor = color;
-      void run(out, [arm(0), arm(75)], { duration: SWING_MS, easing: EASE_SET }).then(() => Object.assign(out.style, arm(-75)));
-      void run(next, [arm(-75), arm(0)], { duration: SWING_MS, delay: RISE_DELAY_MS, easing: EASE_RISE });
       active = 1 - active;
-
       count += 1;
+      const moves: Promise<void>[] = [
+        run(out, [arm(0), arm(75)], { duration: SWING_MS, easing: EASE_SET }).then(() => {
+          out.style.transform = arm(-75).transform;
+        }),
+        run(next, [arm(-75), arm(0)], { duration: SWING_MS, delay: RISE_DELAY_MS, easing: EASE_RISE }),
+      ];
       if (count % SUNS_PER_CAT === 0) {
-        void run(img, [catAt("0"), catAt("105%")], { duration: CAT_DOWN_MS, easing: EASE_DUCK }).then(async () => {
-          cat = pick(CATS, cat);
-          img.src = `/brand/cat-${cat}.webp`;
-          await img.decode().catch(() => {});
-          await run(img, [catAt("105%"), catAt("0")], { duration: CAT_UP_MS, easing: EASE_POP });
-        });
+        moves.push(
+          run(img, [catAt("0"), catAt("105%")], { duration: CAT_DOWN_MS, easing: EASE_DUCK }).then(async () => {
+            cat = pick(CATS, cat);
+            img.src = `/brand/cat-${cat}.webp`;
+            await img.decode().catch(() => {});
+            await run(img, [catAt("105%"), catAt("0")], { duration: CAT_UP_MS, easing: EASE_POP });
+          }),
+        );
       }
+      await Promise.all(moves);
     };
-    const interval = window.setInterval(cycle, HOLD_MS + SWING_MS);
-    return () => window.clearInterval(interval);
+
+    void (async () => {
+      while (alive) {
+        await sleep(HOLD_MS);
+        if (!alive) break;
+        if (document.hidden) continue;
+        await swing().catch(() => {});
+      }
+    })();
+    return () => {
+      alive = false;
+    };
   }, []);
 
   return (
