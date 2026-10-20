@@ -230,7 +230,7 @@ const en = {
       "Mala's first owner was an elderly university professor. Mala was two years old when she passed away. A friend of the owner took the cat in, but a year later she died too. At three, Mala ended up in a shelter and lived there for more than ten years. Nobody knows exactly how long.",
       "On 30 December 2025 Mala came to us. She was in a terrible state: severe anaemia, kidneys barely working, her fur dirty and matted. She was so exhausted that all she could do was lie down.",
       "We put a great deal of time and effort into her, and three months later she was unrecognisable. But she had been through too much in her life, and one illness piled on another. When her disease entered a new acute stage, Mala left us.",
-      "Mala changed the way we see older cats forever. She was one of the smartest, most charming and affectionate cats we have ever met, and she left a deep mark on us. That is why we make a special effort to find homes for senior cats.",
+      "Mala changed the way we see older cats forever. She was one of the smartest, most charming and affectionate cats we have ever met, and she left a deep mark on us. That is why we also try to help senior cats find homes.",
     ],
     photoBefore: "Mala in her first days with us",
     photoAfter: "Mala three months later",

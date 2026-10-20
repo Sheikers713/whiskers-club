@@ -233,7 +233,7 @@ const sr: Dictionary = {
       "Prva vlasnica Male bila je starija profesorka. Mala je imala dve godine kada je ona preminula. Mačku je uzela prijateljica vlasnice, ali je godinu dana kasnije i ona preminula. Sa tri godine Mala je završila u azilu i tamo provela više od deset godina. Koliko tačno, više niko ne zna.",
       "Mala je došla kod nas 30. decembra 2025. godine. Bila je u užasnom stanju: teška anemija, bubrezi skoro da nisu radili, krzno prljavo i zamršeno. Bila je toliko iscrpljena da je mogla samo da leži.",
       "Uložili smo u nju mnogo snage i vremena, i posle tri meseca nije se mogla prepoznati. Ali previše je toga preživela u životu, i bolesti su se nadovezale jedna na drugu. Kada je bolest ušla u novu akutnu fazu, Mala nas je napustila.",
-      "Mala je zauvek promenila naš pogled na starije mačke. Bila je jedna od najpametnijih, najšarmantnijih i najnežnijih mačaka koje smo ikada upoznali i ostavila je dubok trag na nama. Zato se posebno trudimo da nađemo dom mačkama starijeg uzrasta.",
+      "Mala je zauvek promenila naš pogled na starije mačke. Bila je jedna od najpametnijih, najšarmantnijih i najnežnijih mačaka koje smo ikada upoznali i ostavila je dubok trag na nama. Zato se trudimo da pomognemo i u udomljavanju mačaka starijeg uzrasta.",
     ],
     photoBefore: "Mala prvih dana kod nas",
     photoAfter: "Mala posle tri meseca",
