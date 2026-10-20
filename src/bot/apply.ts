@@ -5,7 +5,7 @@ import { storePhoto, storePrivateFile } from "../lib/storage";
 import { translateFromRussian } from "../lib/ai/translate";
 import { planTranslations, type AutoKey } from "../lib/ai/translation-plan";
 import { asLocalized, type LocalizedText } from "../lib/i18n/localized";
-import { catTextFields, type CatChanges, type CatTarget, type Change, type Plan, type SiteContext } from "./plan";
+import { catName, catTextFields, type CatChanges, type CatTarget, type Change, type Plan, type SiteContext } from "./plan";
 
 export type Upload = { data: Buffer; name: string };
 
@@ -225,14 +225,14 @@ export async function applyPlan(plan: Plan, ctx: SiteContext, uploads: Upload[],
           data: { catId, text: text.text, date: day(ch.date), state: "PUBLISHED", createdById: actorId },
         });
         await audit(actorId, "cat_update.create", "CatUpdate", saved.id, { catId, text: text.text, date: ch.date });
-        done.push(`Новость у ${ch.cat.kind === "new" ? ch.cat.name : ch.cat.cat.name} опубликована`);
+        done.push(`Новость у ${catName(ch.cat)} опубликована`);
         return;
       }
       case "add_photos": {
         const catId = resolve(ch.cat);
         if (!catId) throw new Error("кот для фото не создан");
         const n = await addPhotos(catId, uploads, actorId, ch.cover, notes);
-        done.push(`${n} фото добавлено в галерею ${ch.cat.kind === "new" ? ch.cat.name : ch.cat.cat.name}`);
+        done.push(`${n} фото добавлено в галерею ${catName(ch.cat)}`);
         return;
       }
       case "donation": {
@@ -246,7 +246,7 @@ export async function applyPlan(plan: Plan, ctx: SiteContext, uploads: Upload[],
           comment: ch.comment ?? null,
           internalComment: ch.money.original ? `Из Telegram: ${ch.money.original}` : null,
           campaignId: ch.campaign?.id ?? null,
-          catId: ch.campaign ? null : (ch.cat?.id ?? null),
+          catId: ch.campaign || !ch.cat ? null : (resolve(ch.cat) ?? null),
           state: "PUBLISHED" as const,
           createdById: actorId,
         };
@@ -281,13 +281,14 @@ export async function applyPlan(plan: Plan, ctx: SiteContext, uploads: Upload[],
           state: state as "DRAFT" | "PUBLISHED",
           createdById: actorId,
         };
+        const catIds = ch.cats.map(resolve).filter((id): id is string => !!id);
         const saved = await db.$transaction(async (tx) => {
           const e = await tx.expense.create({ data });
-          if (ch.cats.length) await tx.expenseCat.createMany({ data: ch.cats.map((c) => ({ expenseId: e.id, catId: c.id })) });
+          if (catIds.length) await tx.expenseCat.createMany({ data: catIds.map((catId) => ({ expenseId: e.id, catId })) });
           if (fileIds.length) await tx.expenseFile.createMany({ data: fileIds.map((fileId) => ({ expenseId: e.id, fileId, isPublic: false })) });
           return e;
         });
-        await audit(actorId, "expense.create", "Expense", saved.id, { ...data, catIds: ch.cats.map((c) => c.id), addedFiles: fileIds });
+        await audit(actorId, "expense.create", "Expense", saved.id, { ...data, catIds, addedFiles: fileIds });
         done.push(
           state === "DRAFT"
             ? `Расход ${ch.money.amountRsd} RSD сохранён черновиком (нет чека): ${site}/admin/expenses/${saved.id}`

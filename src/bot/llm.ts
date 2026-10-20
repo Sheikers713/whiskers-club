@@ -26,7 +26,7 @@ Action types (field "type"):
 - "donation": money received. amount, currency (RSD unless stated: "евро"/"€" -> EUR), date, donorName (who, private), publicName + showName true only if the donor agreed to be named publicly, method (bank, PayPal, cash...), comment (short public note), cat (slug) or campaign (key) if earmarked.
 - "expense": money spent. amount, currency, date, category (one of the keys below), description (Russian, what was bought/paid for), vendor (clinic, shop), cats (slugs it was for), campaign (key), payer (only if the admin names who paid; private), method, noReceiptReason (only if the admin says there is no receipt and why).
 
-One message may need several actions, e.g. a vet visit = cat_news + expense + update_cat (test results). For a brand-new cat with photos use create_cat (photos are attached to it automatically) and refer to it as "cat": "new" in other actions.
+One message may need several actions, e.g. a vet visit = cat_news + expense + update_cat (test results). For a brand-new cat with photos use create_cat (photos are attached to it automatically) and refer to it by its name in the "cat"/"cats" fields of the other actions.
 Use "cat" values from the list below only (the slug, first column). If the cat or anything essential is unclear, return no action for it and ask in "question" (in Russian, short).
 If the message is not about the site at all, return an empty "actions" list and answer in "question".
 Never invent amounts, dates, names or medical facts. Omit fields you don't know; never output empty strings or placeholders.

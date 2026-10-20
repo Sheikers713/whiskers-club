@@ -120,7 +120,7 @@ export type Change =
       showName: boolean;
       method?: string;
       comment?: string;
-      cat?: CatRef;
+      cat?: CatTarget;
       campaign?: { id: string; title: string };
     }
   | {
@@ -130,7 +130,7 @@ export type Change =
       categoryKey: string;
       description: string;
       vendor?: string;
-      cats: CatRef[];
+      cats: CatTarget[];
       campaign?: { id: string; title: string };
       payer?: string;
       method?: string;
@@ -224,11 +224,13 @@ function isEmptyChanges(c: CatChanges) {
 export function normalize(raw: RawPlan, ctx: SiteContext, opts: { photoCount: number }): Plan {
   const problems: string[] = [];
   const changes: Change[] = [];
-  let newCatName: string | undefined;
+  // The model may mention the new cat (as "new" or by name) before or after creating it.
+  let newCatName: string | undefined = clean(raw.actions.find((a) => a.type === "create_cat")?.name, 80);
   let photosUsed = false;
+  const isNewCat = (ref: string | undefined) => !!newCatName && !!ref && (ref === "new" || lower(ref) === lower(newCatName));
 
   const target = (ref: string | undefined, what: string): CatTarget | null => {
-    if (newCatName && ref && (ref === "new" || lower(ref) === lower(newCatName))) return { kind: "new", name: newCatName };
+    if (isNewCat(ref)) return { kind: "new", name: newCatName! };
     const cat = findCat(ctx, ref);
     if (cat) return { kind: "existing", cat };
     problems.push(ref ? `${what}: не нашёл кота «${ref}».` : `${what}: не понял, о каком коте речь.`);
@@ -253,7 +255,7 @@ export function normalize(raw: RawPlan, ctx: SiteContext, opts: { photoCount: nu
       }
       case "update_cat": {
         const created = changes.find((c) => c.type === "create_cat");
-        if (created && newCatName && a.cat && (a.cat === "new" || lower(a.cat) === lower(newCatName))) {
+        if (created && isNewCat(a.cat)) {
           // Facts about the cat created in this same message go into its profile.
           const extra = catChanges(a, ctx, problems);
           Object.assign(created.changes.texts, extra.texts);
@@ -297,7 +299,12 @@ export function normalize(raw: RawPlan, ctx: SiteContext, opts: { photoCount: nu
       case "donation": {
         const m = money(a, ctx, problems, "Пожертвование");
         if (!m) break;
-        const cat = a.cat ? findCat(ctx, a.cat) : undefined;
+        const cat: CatTarget | undefined = isNewCat(a.cat)
+          ? { kind: "new", name: newCatName! }
+          : (() => {
+              const c = findCat(ctx, a.cat);
+              return c && { kind: "existing" as const, cat: c };
+            })();
         if (a.cat && !cat) problems.push(`Пожертвование: не нашёл кота «${a.cat}», запишу в общий фонд.`);
         const campaign = a.campaign ? ctx.campaigns.find((c) => c.key === a.campaign) : undefined;
         changes.push({
@@ -327,10 +334,14 @@ export function normalize(raw: RawPlan, ctx: SiteContext, opts: { photoCount: nu
           problems.push("Расход: не понял, на что потрачено.");
           break;
         }
-        const cats: CatRef[] = [];
+        const cats: CatTarget[] = [];
         for (const ref of [...(a.cats ?? []), ...(a.cat ? [a.cat] : [])]) {
+          if (isNewCat(ref)) {
+            if (!cats.some((c) => c.kind === "new")) cats.push({ kind: "new", name: newCatName! });
+            continue;
+          }
           const c = findCat(ctx, ref);
-          if (c && !cats.includes(c)) cats.push(c);
+          if (c && !cats.some((t) => t.kind === "existing" && t.cat.id === c.id)) cats.push({ kind: "existing", cat: c });
           else if (!c) problems.push(`Расход: не нашёл кота «${ref}», расход будет без привязки к нему.`);
         }
         const campaign = a.campaign ? ctx.campaigns.find((c) => c.key === a.campaign) : undefined;
@@ -354,6 +365,7 @@ export function normalize(raw: RawPlan, ctx: SiteContext, opts: { photoCount: nu
       }
     }
   }
+  changes.sort((x, y) => Number(y.type === "create_cat") - Number(x.type === "create_cat"));
   if (opts.photoCount && !photosUsed && changes.length)
     problems.push("Фотографии не к чему приложить: напишите, к какому коту или расходу они относятся.");
   return { changes, problems, question: clean(raw.question, 500) };
@@ -413,7 +425,7 @@ function withoutName(texts: CatChanges["texts"]): CatChanges["texts"] {
   return rest;
 }
 
-const catName = (t: CatTarget) => (t.kind === "new" ? `${t.name} (новый)` : t.cat.name);
+export const catName = (t: CatTarget) => (t.kind === "new" ? t.name : t.cat.name);
 
 export function describe(plan: Plan, ctx: SiteContext, photoCount: number): string {
   const out: string[] = [];
@@ -445,7 +457,7 @@ export function describe(plan: Plan, ctx: SiteContext, photoCount: number): stri
         out.push(`  На сайте: ${ch.showName && ch.publicName ? ch.publicName : "Аноним"}`);
         if (ch.method) out.push(`  Способ: ${ch.method}`);
         if (ch.comment) out.push(`  Комментарий: ${ch.comment}`);
-        out.push(`  Куда: ${ch.campaign ? `сбор «${ch.campaign.title}»` : ch.cat ? `на ${ch.cat.name}` : "общий фонд"}`);
+        out.push(`  Куда: ${ch.campaign ? `сбор «${ch.campaign.title}»` : ch.cat ? `на ${catName(ch.cat)}` : "общий фонд"}`);
         break;
       }
       case "expense": {
@@ -454,7 +466,7 @@ export function describe(plan: Plan, ctx: SiteContext, photoCount: number): stri
         out.push(`  Категория: ${ctx.categories.find((c) => c.key === ch.categoryKey)?.label ?? ch.categoryKey}`);
         out.push(`  Описание: ${short(ch.description)}`);
         if (ch.vendor) out.push(`  Где: ${ch.vendor}`);
-        if (ch.cats.length) out.push(`  Коты: ${ch.cats.map((c) => c.name).join(", ")}`);
+        if (ch.cats.length) out.push(`  Коты: ${ch.cats.map(catName).join(", ")}`);
         if (ch.campaign) out.push(`  Сбор: ${ch.campaign.title}`);
         if (ch.payer) out.push(`  Платил: ${ch.payer} (видно только админам)`);
         if (ch.withReceipt) out.push(`  Чек: ${photoCount} фото, закрыт от публики`);
