@@ -20,7 +20,7 @@ const sr: Dictionary = {
   home: {
     heroTitle: "Svaka mačka zaslužuje topao dom",
     heroText:
-      "Spasavamo, lečimo i udomljavamo mačke sa ulice i iz azila u Beogradu, preko privremenih i naših domova. Za svaki dinar javno polažemo račune.",
+      "Spasavamo, lečimo i udomljavamo mačke sa ulice i iz azila u Beogradu, preko privremenih i naših domova. Za svaku donaciju javno polažemo račune.",
     whoTitle: "Ko smo mi",
     statsTitle: "Naš rad u brojevima",
     statRescued: "spaseno",

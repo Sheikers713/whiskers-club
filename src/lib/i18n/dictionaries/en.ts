@@ -17,7 +17,7 @@ const en = {
   home: {
     heroTitle: "Every cat deserves a warm home",
     heroText:
-      "We rescue, treat and rehome street and shelter cats in Belgrade through foster homes and our own homes. Every dinar is accounted for in public.",
+      "We rescue, treat and rehome street and shelter cats in Belgrade through foster homes and our own homes. Every donation is publicly accounted for.",
     whoTitle: "Who we are",
     statsTitle: "Our work in numbers",
     statRescued: "rescued",
