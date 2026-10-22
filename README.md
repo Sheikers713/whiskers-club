@@ -65,6 +65,7 @@ docker compose --env-file .env.staging -p whiskers-staging up -d --build
 | `RESEND_API_KEY`, `MAIL_FROM` | нет | Отправка писем с приглашениями и сбросом пароля через [Resend](https://resend.com). Без них ссылка пишется в лог `app`, а приглашение всё равно можно скопировать в админке |
 | `TELEGRAM_BOT_TOKEN` | нет | Токен бота от @BotFather: уведомления админам и бот для обновлений сайта |
 | `TELEGRAM_ADMIN_IDS` | для бота | Числовые Telegram id (или @username) админов через запятую. Только им бот разрешает менять сайт |
+| `WHISPER_URL` | нет | Адрес whisper-server для голосовых сообщений боту, обычно `http://host.docker.internal:8178` |
 | `BOT_RATES` | нет | Курсы для сумм не в динарах, например `EUR=117.2,USD=100` |
 | `CLOUDFLARE_TUNNEL_TOKEN` | да | Токен туннеля Cloudflare |
 | `RESTIC_REPOSITORY`, `RESTIC_PASSWORD` | да | Куда складывать бэкапы и пароль шифрования |
@@ -90,6 +91,15 @@ docker compose --env-file .env.staging -p whiskers-staging up -d --build
 - Пускает только `TELEGRAM_ADMIN_IDS`; незнакомому человеку бот отвечает его id, чтобы его можно было добавить.
 - `/link email` связывает Telegram с аккаунтом админки: изменения пишутся в журнал от этого имени, и туда же приходят уведомления.
 - Тексты пишутся по-русски, английский и сербский переводятся автоматически (нужен `AI_ENABLED=true`). Расход без чека и без причины сохраняется черновиком.
+- Голосовые сообщения распознаёт [whisper.cpp](https://github.com/ggml-org/whisper.cpp) прямо на Mac (модель large-v3-turbo, ~1 секунда на короткое голосовое), дальше они идут как обычный текст. Установка:
+  ```sh
+  brew install whisper-cpp ffmpeg
+  mkdir -p ~/whisper-models && curl -L -o ~/whisper-models/ggml-large-v3-turbo.bin \
+    https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin
+  cp docker/whisper/com.whiskers.whisper.plist ~/Library/LaunchAgents/
+  launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.whiskers.whisper.plist
+  ```
+  и `WHISPER_URL=http://host.docker.internal:8178` в `.env.production`. В plist прописан путь `/Users/macstudio`; на другом Mac его надо поправить.
 
 ## Бэкапы
 

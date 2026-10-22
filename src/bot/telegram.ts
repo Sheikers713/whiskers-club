@@ -16,8 +16,13 @@ export type TgMessage = {
   caption?: string;
   photo?: TgPhotoSize[];
   document?: TgDocument;
+  voice?: TgAudio;
+  audio?: TgAudio & { file_name?: string };
+  video_note?: TgAudio;
   media_group_id?: string;
 };
+
+export type TgAudio = { file_id: string; duration: number; mime_type?: string; file_size?: number };
 
 export type TgCallbackQuery = { id: string; from: TgUser; message?: TgMessage; data?: string };
 

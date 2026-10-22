@@ -14,6 +14,7 @@ import { randomBytes } from "node:crypto";
 import { db } from "../lib/db";
 import { actorFor, applyPlan, loadContext, type Upload } from "./apply";
 import { parseMessage } from "./llm";
+import { transcribe } from "./voice";
 import { describe, normalize, type Plan, type SiteContext } from "./plan";
 import { Telegram, type TgMessage, type TgUpdate, type TgUser } from "./telegram";
 
@@ -48,13 +49,14 @@ type Proposal = {
 /** Open proposals by chat; one per chat, a newer message refines it. Lost on restart. */
 const proposals = new Map<number, Proposal>();
 const PROPOSAL_TTL = 6 * 60 * 60 * 1000;
+const MAX_VOICE_SECONDS = 5 * 60;
 
 const HELP = `Пишите обычным текстом, что произошло, можно с фото. Например:
 • «Новая кошка Мила, ~3 месяца, трёхцветная, привита, с котами ладит» + фото
 • «Барсику сделали тесты: FIV и FeLV отрицательные, 4200 дин в Vet Plus, чек на фото»
 • «Пришло 50 евро от Анны на лечение Рыжика»
 • «Тигра забрали домой!»
-Я покажу, что изменю на сайте, и запишу только после «✅ Сохранить». Если что-то не так, просто напишите уточнение.`;
+Можно надиктовать голосовым. Я покажу, что изменю на сайте, и запишу только после «✅ Сохранить». Если что-то не так, просто напишите уточнение.`;
 
 // ---------------------------------------------------------------------------
 
@@ -125,7 +127,7 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
   const first = messages[0];
   const chatId = first.chat.id;
   const userId = first.from?.id ?? 0;
-  const text = messages.map((m) => m.text ?? m.caption ?? "").filter(Boolean).join("\n").trim();
+  let text = messages.map((m) => m.text ?? m.caption ?? "").filter(Boolean).join("\n").trim();
 
   if (first.chat.type !== "private") return;
   if (!isAdmin(first.from)) {
@@ -150,6 +152,24 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
       return void (await tg.sendMessage(chatId, `Готово: изменения из Telegram будут записаны от имени ${user.name}, и сюда будут приходить уведомления сайта.`));
     }
     return void (await tg.sendMessage(chatId, HELP));
+  }
+
+  // Voice messages (and round videos) become text first, then go the same way as typed ones.
+  for (const m of messages) {
+    const audio = m.voice ?? m.audio ?? m.video_note;
+    if (!audio) continue;
+    if (audio.duration > MAX_VOICE_SECONDS) {
+      await tg.sendMessage(chatId, `Голосовое длиннее ${MAX_VOICE_SECONDS / 60} минут, разбейте его на части.`);
+      return;
+    }
+    await tg.typing(chatId);
+    const heard = await transcribe(await tg.download(audio.file_id), m.audio?.file_name ?? `voice-${m.message_id}.ogg`);
+    if (!heard.ok) {
+      await tg.sendMessage(chatId, `Не смог распознать голосовое: ${heard.reason}. Напишите текстом.`);
+      return;
+    }
+    await tg.sendMessage(chatId, `🎤 Распознал: «${heard.text}»`);
+    text = [text, heard.text].filter(Boolean).join("\n");
   }
 
   const { uploads, errors } = await collectUploads(tg, messages);

@@ -78,6 +78,8 @@ services:
       AI_ENABLED: ${AI_ENABLED:-false}
       OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma4:26b}
+      # Voice messages: whisper.cpp `whisper-server` running natively on the Mac.
+      WHISPER_URL: ${WHISPER_URL:-}
     volumes:
       - uploads:/data/uploads
     extra_hosts:
