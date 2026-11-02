@@ -2,22 +2,27 @@
 
 import { useState } from "react";
 
-type Photo = { src: string; srcSet: string; alt: string };
+type Photo = { src: string; srcSet: string; alt: string; width?: number | null; height?: number | null };
 
 export function Gallery({ photos, name }: { photos: Photo[]; name: string }) {
   const [index, setIndex] = useState(0);
-  if (!photos.length) return <div className="aspect-[4/3] rounded-[var(--radius-card)] bg-line" />;
+  if (!photos.length) return <div className="aspect-[3/4] rounded-[var(--radius-card)] bg-line" />;
   const current = photos[Math.min(index, photos.length - 1)];
   return (
     <div>
-      <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-line">
+      {/* Photos inside the cat page come in any shape: show each whole, never cropped.
+          The frame follows the photo; very tall ones are capped by the screen height. */}
+      <div className="relative flex justify-center overflow-hidden rounded-[var(--radius-card)] bg-line">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
+          key={current.src}
           src={current.src}
           srcSet={current.srcSet}
           sizes="(min-width: 1024px) 55vw, 100vw"
+          width={current.width ?? undefined}
+          height={current.height ?? undefined}
           alt={current.alt || name}
-          className="aspect-[4/3] w-full object-cover"
+          className="block h-auto max-h-[80vh] w-auto max-w-full object-contain"
         />
         {photos.length > 1 && (
           <>
@@ -55,7 +60,7 @@ export function Gallery({ photos, name }: { photos: Photo[]; name: string }) {
                 className={`block overflow-hidden rounded-[var(--radius-card)] ring-2 ${i === index ? "ring-brick" : "ring-transparent"}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.src.replace(".w1200.", ".w480.")} alt="" className="h-16 w-20 object-cover" loading="lazy" />
+                <img src={p.src.replace(".w1200.", ".w480.")} alt="" className="h-20 w-16 object-cover" loading="lazy" />
               </button>
             </li>
           ))}

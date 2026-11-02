@@ -18,7 +18,8 @@ export function CatCard({ cat, locale, dict }: { cat: CatCardData; locale: Local
     <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-paper ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-ink">
       {/* The whole card opens the cat; the name stays the link's accessible text. */}
       <Link href={`/${locale}/cats/${cat.slug}`} aria-label={name} className="absolute inset-0 z-10" />
-      <div className="olive-dot relative aspect-[4/3]">
+      {/* Covers are shot vertical (3:4), so the card keeps that shape instead of cropping them flat. */}
+      <div className="olive-dot relative aspect-[3/4]">
         {cat.cover?.storageKey ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
