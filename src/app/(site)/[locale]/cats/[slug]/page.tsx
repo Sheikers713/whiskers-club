@@ -117,7 +117,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
           <div>
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <StatusBadge status={cat.status} locale={locale} />
+                <StatusBadge status={cat.status} sex={cat.sex} locale={locale} />
                 <h1 className="mt-3 font-display text-5xl uppercase md:text-7xl">{name}</h1>
               </div>
               <ShareButton title={name} label={dict.cat.share} copiedLabel={dict.cat.linkCopied} />

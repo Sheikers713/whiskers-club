@@ -13,14 +13,15 @@ type L = { en: string; ru: string; sr: string };
 const statuses: Array<{
   key: string;
   label: L;
+  labelFemale?: Partial<L>;
   color: string;
   group: StatusGroup;
   priority: number;
   isPublic?: boolean;
 }> = [
-  { key: "ready", label: { en: "Ready for adoption", ru: "Готов к пристройству", sr: "Spreman za udomljavanje" }, color: "#5f6e5b", group: "ACTIVE", priority: 20 },
+  { key: "ready", label: { en: "Ready for adoption", ru: "Готов к пристройству", sr: "Spreman za udomljavanje" }, labelFemale: { ru: "Готова к пристройству", sr: "Spremna za udomljavanje" }, color: "#5f6e5b", group: "ACTIVE", priority: 20 },
   { key: "treatment", label: { en: "In treatment", ru: "На лечении", sr: "Na lečenju" }, color: "#cf6437", group: "ACTIVE", priority: 30 },
-  { key: "adopted", label: { en: "Adopted", ru: "Нашёл дом", sr: "Udomljen" }, color: "#e39a46", group: "ADOPTED", priority: 90 },
+  { key: "adopted", label: { en: "Adopted", ru: "Нашёл дом", sr: "Udomljen" }, labelFemale: { ru: "Нашла дом", sr: "Udomljena" }, color: "#e39a46", group: "ADOPTED", priority: 90 },
   { key: "memorial", label: { en: "Memorial", ru: "Память", sr: "Sećanje" }, color: "#424242", group: "ARCHIVE", priority: 97 },
   { key: "archive", label: { en: "Archive", ru: "Архив", sr: "Arhiva" }, color: "#9e9e9e", group: "ARCHIVE", priority: 99, isPublic: false },
 ];

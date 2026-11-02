@@ -35,6 +35,18 @@ export function pickLocalized(
   return { text: "", locale: null, isFallback: true };
 }
 
+/**
+ * A cat status in the cat's grammatical gender: the feminine form when the cat
+ * is female and that language has one, otherwise the regular label.
+ */
+export function statusLabel(status: { label: unknown; labelFemale?: unknown }, sex: string | null | undefined, locale: Locale): string {
+  if (sex === "FEMALE") {
+    const female = asLocalized(status.labelFemale)[locale];
+    if (female) return female;
+  }
+  return t(status.label, locale);
+}
+
 export function t(value: unknown, locale: Locale, originalLocale?: string | null): string {
   return pickLocalized(value, locale, originalLocale).text;
 }
