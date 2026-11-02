@@ -25,6 +25,8 @@
   --color-sun: #efc766; /* Sunshine */
   --color-cocoa: #51443e;
   --color-ginger: #e39a46;
+  --color-sex-female: #d9467f; /* pink Venus mark on cat cards */
+  --color-sex-male: #2f78c4; /* blue Mars mark on cat cards */
 
   --font-sans: "Manrope Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-display: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;

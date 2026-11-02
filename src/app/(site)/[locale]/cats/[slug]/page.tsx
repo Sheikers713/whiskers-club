@@ -12,6 +12,7 @@ import { photoUrl } from "@/lib/media-url";
 import { Gallery } from "@/components/site/Gallery";
 import { Money } from "@/components/site/Money";
 import { Progress } from "@/components/site/Progress";
+import { SexIcon } from "@/components/site/SexIcon";
 import { ShareButton } from "@/components/site/ShareButton";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { CuratorCard } from "@/components/site/CuratorCard";
@@ -63,7 +64,6 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
       alt: t(m.alt, locale),
     }));
   const instagram = cat.media.filter((m) => m.kind === "INSTAGRAM" && m.url);
-  const sex = cat.sex === "FEMALE" ? dict.cats.female : cat.sex === "MALE" ? dict.cats.male : dict.cats.sexUnknown;
   const canApply = cat.status.group === "ACTIVE";
   const bonded = [...cat.bondedWith, ...cat.bondedOf];
 
@@ -121,7 +121,14 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
               <ShareButton title={name} label={dict.cat.share} copiedLabel={dict.cat.linkCopied} />
             </div>
             <ul className="mt-4 flex flex-wrap gap-2 text-sm">
-              {[sex, formatAge(cat.birthDate, dict), cat.color, ...cat.flags.filter((f) => f.flag.isPublic).map((f) => t(f.flag.label, locale))]
+              <li className="flex items-center rounded-md bg-paper px-3 py-1.5 ring-1 ring-line">
+                {cat.sex === "FEMALE" || cat.sex === "MALE" ? (
+                  <SexIcon sex={cat.sex} label={cat.sex === "FEMALE" ? dict.cats.female : dict.cats.male} className="h-[1.3em] w-[1.3em]" />
+                ) : (
+                  dict.cats.sexUnknown
+                )}
+              </li>
+              {[formatAge(cat.birthDate, dict), cat.color, ...cat.flags.filter((f) => f.flag.isPublic).map((f) => t(f.flag.label, locale))]
                 .filter(Boolean)
                 .map((tag) => (
                   <li key={tag} className="rounded-md bg-paper px-3 py-1.5 ring-1 ring-line">

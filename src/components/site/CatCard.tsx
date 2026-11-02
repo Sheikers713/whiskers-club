@@ -6,12 +6,13 @@ import { t } from "@/lib/i18n/localized";
 import { formatAge, formatRsd } from "@/lib/format";
 import { photoUrl } from "@/lib/media-url";
 import { Progress } from "./Progress";
+import { SexIcon } from "./SexIcon";
 import { StatusBadge } from "./StatusBadge";
 
 export function CatCard({ cat, locale, dict }: { cat: CatCardData; locale: Locale; dict: Dictionary }) {
   const name = t(cat.name, locale, cat.originalLocale);
   const summary = t(cat.summary, locale, cat.originalLocale);
-  const sex = cat.sex === "FEMALE" ? dict.cats.female : cat.sex === "MALE" ? dict.cats.male : null;
+  const age = formatAge(cat.birthDate, dict);
   const camp = cat.activeCampaign;
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-paper ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-ink">
@@ -41,8 +42,11 @@ export function CatCard({ cat, locale, dict }: { cat: CatCardData; locale: Local
         </h3>
       </div>
       <div className="flex flex-1 flex-col gap-3 p-4">
-        <p className="text-sm text-ink-soft">
-          {[sex, formatAge(cat.birthDate, dict)].filter(Boolean).join(" · ")}
+        <p className="flex items-center gap-1.5 text-sm text-ink-soft">
+          {cat.sex === "FEMALE" || cat.sex === "MALE" ? (
+            <SexIcon sex={cat.sex} label={cat.sex === "FEMALE" ? dict.cats.female : dict.cats.male} />
+          ) : null}
+          {age && <span>{age}</span>}
         </p>
         {summary && <p className="line-clamp-2 text-[15px]">{summary}</p>}
         {camp && (
