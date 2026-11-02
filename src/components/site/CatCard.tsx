@@ -36,7 +36,7 @@ export function CatCard({ cat, locale, dict }: { cat: CatCardData; locale: Local
           <img src="/brand/cat-black.webp" alt="" aria-hidden loading="lazy" className="absolute inset-x-0 bottom-0 mx-auto w-[92%] opacity-90" />
         )}
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          <StatusBadge status={cat.status} locale={locale} />
+          <StatusBadge status={cat.status} sex={cat.sex} locale={locale} />
         </div>
         <h3 className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-3 pt-12 font-display text-3xl text-white">
           {name}

@@ -124,6 +124,8 @@ model CatStatus {
   id        String      @id @default(uuid()) @db.Uuid
   key       String      @unique
   label     Json
+  // Feminine form for female cats ("Готова к пристройству"); empty per language = use label.
+  labelFemale Json      @default("{}")
   color     String      @default("#888888")
   icon      String?
   sortOrder Int         @default(0)
