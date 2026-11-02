@@ -62,6 +62,8 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
       src: photoUrl(m.storageKey!, 1200),
       srcSet: `${photoUrl(m.storageKey!, 480)} 480w, ${photoUrl(m.storageKey!, 1200)} 1200w`,
       alt: t(m.alt, locale),
+      width: m.width,
+      height: m.height,
     }));
   const instagram = cat.media.filter((m) => m.kind === "INSTAGRAM" && m.url);
   const canApply = cat.status.group === "ACTIVE";
@@ -95,8 +97,8 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
       <Link href={`/${locale}/cats`} className="font-medium text-brick hover:underline">
         ‹ {dict.cat.back}
       </Link>
-      <div className="mt-4 grid gap-8 lg:grid-cols-[1.15fr_1fr]">
-        <div className="lg:sticky lg:top-20 lg:self-start">
+      <div className="mt-4 grid grid-cols-1 gap-8 lg:grid-cols-[1.15fr_1fr]">
+        <div className="min-w-0 lg:sticky lg:top-20 lg:self-start">
           <Gallery photos={photos} name={name} />
           {instagram.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2">
@@ -113,7 +115,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
 
         <div className="space-y-8">
           <div>
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <StatusBadge status={cat.status} locale={locale} />
                 <h1 className="mt-3 font-display text-5xl uppercase md:text-7xl">{name}</h1>
