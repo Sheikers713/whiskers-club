@@ -36,12 +36,19 @@ export function pickLocalized(
 }
 
 /**
- * A cat status in the cat's grammatical gender: the feminine form when the cat
- * is female and that language has one, otherwise the regular label.
+ * Feminine forms of status names, by status key, for languages where the
+ * word changes with the cat's gender. Kept in code on purpose: admins edit only
+ * the regular name. English has none, so it always uses the regular name.
  */
-export function statusLabel(status: { label: unknown; labelFemale?: unknown }, sex: string | null | undefined, locale: Locale): string {
+const FEMALE_STATUS_LABELS: Record<string, Partial<Record<Locale, string>>> = {
+  ready: { ru: "Готова к пристройству", sr: "Spremna za udomljavanje" },
+  adopted: { ru: "Нашла дом", sr: "Udomljena" },
+};
+
+/** A cat status in the cat's grammatical gender. */
+export function statusLabel(status: { key: string; label: unknown }, sex: string | null | undefined, locale: Locale): string {
   if (sex === "FEMALE") {
-    const female = asLocalized(status.labelFemale)[locale];
+    const female = FEMALE_STATUS_LABELS[status.key]?.[locale];
     if (female) return female;
   }
   return t(status.label, locale);
