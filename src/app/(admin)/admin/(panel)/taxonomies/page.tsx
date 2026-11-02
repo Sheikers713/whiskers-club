@@ -35,7 +35,6 @@ export default async function Taxonomies({ searchParams }: PageProps<"/admin/tax
         </Field>
       )}
       <LocalizedField name="label" label="Название" value={s?.label} required />
-      <LocalizedField name="labelFemale" label="Название для кошки, если отличается («Готова к пристройству»)" value={s?.labelFemale} />
       <div className="grid gap-3 sm:grid-cols-4">
         <Field label="Группа">
           <select name="group" defaultValue={s?.group ?? "ACTIVE"} className={inputCls}>
