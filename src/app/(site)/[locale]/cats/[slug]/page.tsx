@@ -6,6 +6,7 @@ import { isLocale } from "@/lib/i18n/config";
 import { fmt, getDictionary, type Dictionary } from "@/lib/i18n/dictionary";
 import { mergeTexts, t } from "@/lib/i18n/localized";
 import { getPublicCat } from "@/lib/queries/cats";
+import { expenseShare } from "@/lib/queries/finance";
 import { getSettings } from "@/lib/settings";
 import { formatAge, formatDate, formatRsd } from "@/lib/format";
 import { photoUrl } from "@/lib/media-url";
@@ -16,6 +17,9 @@ import { SexIcon } from "@/components/site/SexIcon";
 import { ShareButton } from "@/components/site/ShareButton";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { CuratorCard } from "@/components/site/CuratorCard";
+
+// The cat page lists only the latest expenses; the rest open on demand.
+const EXPENSES_SHOWN = 5;
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/cats/[slug]">): Promise<Metadata> {
   const { locale, slug } = await params;
@@ -89,8 +93,20 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
         name: d.showName && d.publicName ? d.publicName : dict.cat.anonymous,
       }),
     })),
-    ...expenses.map((e) => ({ date: e.date, icon: "🧾", text: fmt(dict.cat.eventExpense, { text: t(e.publicSummary, locale) || e.description }) })),
   ].sort((a, b) => b.date.getTime() - a.date.getTime());
+
+  const expenseRow = (e: (typeof expenses)[number]) => (
+    <li key={e.id} className="flex items-start justify-between gap-3 px-4 py-3 text-[15px]">
+      <div>
+        <p>{t(e.publicSummary, locale) || e.description}</p>
+        <p className="text-xs text-ink-soft">
+          {formatDate(e.date, locale)} · {t(e.category.label, locale)}
+          {e._count.cats > 1 && ` · ${dict.cat.sharedExpense} · ${dict.cat.shareOf} ${formatRsd(e.amountRsd, locale)}`}
+        </p>
+      </div>
+      <span className="shrink-0 font-semibold">{formatRsd(Math.round(expenseShare(e.amountRsd, e._count.cats)), locale)}</span>
+    </li>
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -244,19 +260,18 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
             <section>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-soft">{dict.cat.expenses}</h2>
               <ul className="mt-2 divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
-                {expenses.map((e) => (
-                  <li key={e.id} className="flex items-start justify-between gap-3 px-4 py-3 text-[15px]">
-                    <div>
-                      <p>{t(e.publicSummary, locale) || e.description}</p>
-                      <p className="text-xs text-ink-soft">
-                        {formatDate(e.date, locale)} · {t(e.category.label, locale)}
-                        {e._count.cats > 1 && ` · ${dict.cat.sharedExpense}`}
-                      </p>
-                    </div>
-                    <span className="shrink-0 font-semibold">{formatRsd(e.amountRsd, locale)}</span>
-                  </li>
-                ))}
+                {expenses.slice(0, EXPENSES_SHOWN).map(expenseRow)}
               </ul>
+              {expenses.length > EXPENSES_SHOWN && (
+                <details className="group mt-2">
+                  <summary className="cursor-pointer list-none text-sm font-semibold text-brick hover:underline group-open:hidden">
+                    {dict.cat.showAllExpenses} ({expenses.length})
+                  </summary>
+                  <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
+                    {expenses.slice(EXPENSES_SHOWN).map(expenseRow)}
+                  </ul>
+                </details>
+              )}
             </section>
           )}
 

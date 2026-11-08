@@ -7,7 +7,7 @@ import { getDictionary, type Dictionary } from "@/lib/i18n/dictionary";
 import { t } from "@/lib/i18n/localized";
 import { db } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
-import { campaignRaised, getPublicReport } from "@/lib/queries/finance";
+import { campaignRaised, expenseShare, getPublicReport } from "@/lib/queries/finance";
 import { publicCatWhere } from "@/lib/queries/cats";
 import { formatRsd, formatShortDate } from "@/lib/format";
 import { Money } from "@/components/site/Money";
@@ -215,7 +215,18 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
                       ))}
                     </div>
                   </div>
-                  <span className="font-semibold sm:text-right">{formatRsd(e.amountRsd, locale)}</span>
+                  <span className="font-semibold sm:text-right">
+                    {catId && e.cats.length > 1 ? (
+                      <>
+                        {formatRsd(Math.round(expenseShare(e.amountRsd, e.cats.length)), locale)}
+                        <span className="block text-xs font-normal text-ink-soft">
+                          {dict.cat.shareOf} {formatRsd(e.amountRsd, locale)}
+                        </span>
+                      </>
+                    ) : (
+                      formatRsd(e.amountRsd, locale)
+                    )}
+                  </span>
                 </li>
               );
             })}
