@@ -12,7 +12,7 @@ export function Gallery({ photos, name }: { photos: Photo[]; name: string }) {
     <div>
       {/* Photos inside the cat page come in any shape: show each whole, never cropped.
           The frame hugs the photo (no side bars); very tall ones are capped by the screen height. */}
-      <div className="relative mx-auto w-fit max-w-full overflow-hidden rounded-[var(--radius-card)] bg-line">
+      <div className="relative w-fit max-w-full overflow-hidden rounded-[var(--radius-card)] bg-line">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           key={current.src}

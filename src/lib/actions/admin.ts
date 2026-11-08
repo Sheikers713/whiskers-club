@@ -144,7 +144,6 @@ export async function saveStatus(fd: FormData) {
   const groupRaw = str(fd, "group");
   const data = {
     label: localized(fd, "label", 80),
-    labelFemale: localized(fd, "labelFemale", 80),
     color: /^#[0-9a-f]{6}$/i.test(str(fd, "color")) ? str(fd, "color") : "#888888",
     sortOrder: int(fd, "sortOrder") ?? 0,
     priority: int(fd, "priority") ?? 50,
