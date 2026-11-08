@@ -79,7 +79,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
   type Ev = { date: Date; icon: string; text: string };
   const events: Ev[] = [
     ...(cat.publishedAt ? [{ date: cat.publishedAt, icon: "🐾", text: dict.cat.eventPublished }] : []),
-    ...(cat.adoptedAt ? [{ date: cat.adoptedAt, icon: "🏠", text: dict.cat.eventAdopted }] : []),
+    ...(cat.adoptedAt ? [{ date: cat.adoptedAt, icon: "🏠", text: cat.sex === "FEMALE" ? dict.cat.eventAdoptedFemale : dict.cat.eventAdopted }] : []),
     ...cat.updates.map((u) => ({ date: u.date, icon: "📝", text: L(u.text) })),
     ...donations.map((d) => ({
       date: d.date,
