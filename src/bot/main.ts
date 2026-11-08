@@ -88,9 +88,10 @@ const buttons = (id: string, canSave: boolean) => [
 ];
 
 async function propose(tg: Telegram, chatId: number, userId: number, text: string, uploads: Upload[], extra: string[], previous?: Proposal) {
-  const status = previous
-    ? await tg.editMessage(chatId, previous.previewId, "Учитываю уточнение…").catch(() => tg.sendMessage(chatId, "Учитываю уточнение…"))
-    : await tg.sendMessage(chatId, "Разбираю сообщение…");
+  // Always a new message: an edit of the old preview happens above the admin's
+  // latest message, where it looks as if the bot did not answer at all.
+  if (previous?.previewId) await tg.editMessage(chatId, previous.previewId, "Заменено новым предложением ниже.").catch(() => undefined);
+  const status = await tg.sendMessage(chatId, previous?.text ? "Учитываю как уточнение к прошлому сообщению…" : "Разбираю сообщение…");
   const typing = setInterval(() => tg.typing(chatId), 4500);
   await tg.typing(chatId);
   try {
@@ -104,7 +105,12 @@ async function propose(tg: Telegram, chatId: number, userId: number, text: strin
     plan.problems.unshift(...extra);
     if (!plan.changes.length) {
       const msg = [plan.question, ...plan.problems].filter(Boolean).join("\n") || "Не нашёл, что изменить на сайте.";
-      // Keep the text so the answer to the question can refine it.
+      // Keep the text only if the bot asked something, so the answer can refine it.
+      if (!plan.question) {
+        proposals.delete(chatId);
+        await tg.editMessage(chatId, status.message_id, msg);
+        return;
+      }
       const id = randomBytes(6).toString("hex");
       proposals.set(chatId, { id, chatId, userId, previewId: status.message_id, text, uploads, plan, ctx, createdAt: Date.now() });
       await tg.editMessage(chatId, status.message_id, msg, buttons(id, false));
@@ -115,12 +121,18 @@ async function propose(tg: Telegram, chatId: number, userId: number, text: strin
     await tg.editMessage(
       chatId,
       status.message_id,
-      `Вот что я изменю на сайте:\n\n${describe(plan, ctx, uploads.length)}\n\nЕсли что-то не так, напишите уточнение.`,
+      `Вот что я изменю на сайте:\n\n${describe(plan, ctx, uploads.length)}\n\n${previous?.text ? "Я объединил это с прошлым сообщением. Если это другая тема, нажмите «Отмена» и отправьте заново." : "Если что-то не так, напишите уточнение."}`,
       buttons(id, true),
     );
   } finally {
     clearInterval(typing);
   }
+}
+
+/** What kind of message arrived, for the log. The content itself is never logged. */
+function messageKind(m: TgMessage): string {
+  const kinds = ["text", "caption", "photo", "document", "voice", "audio", "video_note", "video", "sticker"] as const;
+  return kinds.filter((k) => m[k]).join("+") || "other";
 }
 
 async function onMessages(tg: Telegram, messages: TgMessage[]) {
@@ -129,6 +141,7 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
   const userId = first.from?.id ?? 0;
   let text = messages.map((m) => m.text ?? m.caption ?? "").filter(Boolean).join("\n").trim();
 
+  console.log(`[bot] message from ${userId} in ${first.chat.type}: ${messages.map(messageKind).join(", ")}`);
   if (first.chat.type !== "private") return;
   if (!isAdmin(first.from)) {
     await tg.sendMessage(chatId, `Этот бот только для админов Whiskers Club. Ваш Telegram id: ${userId}. Перешлите его администратору, чтобы получить доступ.`);
@@ -173,7 +186,12 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
   }
 
   const { uploads, errors } = await collectUploads(tg, messages);
-  if (!text && !uploads.length) return;
+  if (!text && !uploads.length) {
+    await tg.sendMessage(chatId, errors.join("\n") || "Такое сообщение я прочитать не могу. Напишите текстом, голосовым или пришлите фото.");
+    return;
+  }
+  // A video with a caption: the text is used, but say the video itself was skipped.
+  if (messages.some((m) => m.video)) errors.push("Видео я загрузить не могу, использую только текст. Для видео добавьте ссылку на Instagram в админке.");
 
   // A message right after a proposal refines it ("нет, это было вчера").
   const open = proposals.get(chatId);

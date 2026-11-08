@@ -19,6 +19,8 @@ export type TgMessage = {
   voice?: TgAudio;
   audio?: TgAudio & { file_name?: string };
   video_note?: TgAudio;
+  video?: { file_id: string };
+  sticker?: { file_id: string };
   media_group_id?: string;
 };
 
