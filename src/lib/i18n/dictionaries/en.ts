@@ -110,6 +110,7 @@ const en = {
     donate: "Donate",
     anonymous: "Anonymous",
     expenses: "Expenses",
+    shareOf: "share of",
     sharedExpense: "shared expense",
     history: "Timeline",
     updates: "Updates",

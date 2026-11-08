@@ -35,6 +35,11 @@ export async function campaignRaised(campaignIds: string[]): Promise<Map<string,
   return out;
 }
 
+/** One cat's part of an expense linked to `catCount` cats (equal split). */
+export function expenseShare(amountRsd: number, catCount: number): number {
+  return catCount > 1 ? amountRsd / catCount : amountRsd;
+}
+
 export type ReportFilters = {
   from?: Date;
   to?: Date;
@@ -95,7 +100,11 @@ export async function getPublicReport(f: ReportFilters) {
     db.expense.aggregate({ where: expenseWhere, _sum: { amountRsd: true } }),
   ]);
   const incomeRsd = donationSum._sum.amountRsd ?? 0;
-  const expenseRsd = expenseSum._sum.amountRsd ?? 0;
+  // An expense shared by several cats is split equally between them, so a
+  // single cat's report counts only its share.
+  const expenseRsd = f.catId
+    ? Math.round(expenses.reduce((sum, e) => sum + expenseShare(e.amountRsd, e.cats.length), 0))
+    : (expenseSum._sum.amountRsd ?? 0);
   // The opening balance belongs to the report when the period starts on or
   // before its date (and does not end before it).
   const opening = (await getSettings()).openingBalance;

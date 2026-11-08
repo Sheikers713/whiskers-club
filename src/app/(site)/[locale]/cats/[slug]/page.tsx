@@ -6,6 +6,7 @@ import { isLocale } from "@/lib/i18n/config";
 import { fmt, getDictionary, type Dictionary } from "@/lib/i18n/dictionary";
 import { mergeTexts, t } from "@/lib/i18n/localized";
 import { getPublicCat } from "@/lib/queries/cats";
+import { expenseShare } from "@/lib/queries/finance";
 import { getSettings } from "@/lib/settings";
 import { formatAge, formatDate, formatRsd } from "@/lib/format";
 import { photoUrl } from "@/lib/media-url";
@@ -250,10 +251,10 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                       <p>{t(e.publicSummary, locale) || e.description}</p>
                       <p className="text-xs text-ink-soft">
                         {formatDate(e.date, locale)} · {t(e.category.label, locale)}
-                        {e._count.cats > 1 && ` · ${dict.cat.sharedExpense}`}
+                        {e._count.cats > 1 && ` · ${dict.cat.sharedExpense} · ${dict.cat.shareOf} ${formatRsd(e.amountRsd, locale)}`}
                       </p>
                     </div>
-                    <span className="shrink-0 font-semibold">{formatRsd(e.amountRsd, locale)}</span>
+                    <span className="shrink-0 font-semibold">{formatRsd(Math.round(expenseShare(e.amountRsd, e._count.cats)), locale)}</span>
                   </li>
                 ))}
               </ul>

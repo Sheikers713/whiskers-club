@@ -113,6 +113,7 @@ const sr: Dictionary = {
     donate: "Pomozi",
     anonymous: "Anonimno",
     expenses: "Troškovi",
+    shareOf: "udeo od",
     sharedExpense: "zajednički trošak",
     history: "Hronologija",
     updates: "Novosti",

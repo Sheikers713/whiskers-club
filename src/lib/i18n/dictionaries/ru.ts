@@ -112,6 +112,7 @@ const ru: Dictionary = {
     donate: "Помочь",
     anonymous: "Аноним",
     expenses: "Расходы",
+    shareOf: "доля от",
     sharedExpense: "общий расход",
     history: "Хроника",
     updates: "Новости",
