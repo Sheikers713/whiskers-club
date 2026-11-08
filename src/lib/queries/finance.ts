@@ -1,6 +1,7 @@
 import "server-only";
 import type { Prisma } from "@prisma/client";
 import { db } from "../db";
+import { getSettings } from "../settings";
 
 /**
  * Money collected for each campaign: published donations plus published
@@ -93,19 +94,39 @@ export async function getPublicReport(f: ReportFilters) {
       : db.donation.aggregate({ where: donationWhere, _sum: { amountRsd: true } }),
     db.expense.aggregate({ where: expenseWhere, _sum: { amountRsd: true } }),
   ]);
+  const incomeRsd = donationSum._sum.amountRsd ?? 0;
+  const expenseRsd = expenseSum._sum.amountRsd ?? 0;
+  // The opening balance belongs to the report when the period starts on or
+  // before its date (and does not end before it).
+  const opening = (await getSettings()).openingBalance;
+  const openingDate = opening?.date ? new Date(`${opening.date}T00:00:00Z`) : null;
+  const openingRsd =
+    opening?.amountRsd && openingDate && (!f.from || f.from <= openingDate) && (!f.to || f.to >= openingDate)
+      ? opening.amountRsd
+      : 0;
   return {
     donations,
     expenses,
-    incomeRsd: donationSum._sum.amountRsd ?? 0,
-    expenseRsd: expenseSum._sum.amountRsd ?? 0,
+    incomeRsd,
+    expenseRsd,
+    openingRsd,
+    openingDate: openingRsd ? openingDate : null,
+    balanceRsd: openingRsd + incomeRsd - expenseRsd,
   };
 }
 
-/** All-time totals for the home page counters. */
+/**
+ * All-time totals for the home page counters. "Raised" counts donations only;
+ * the opening balance is added to the balance, not to what was raised.
+ */
 export async function getFinanceTotals() {
-  const [inc, exp] = await Promise.all([
+  const [inc, exp, settings] = await Promise.all([
     db.donation.aggregate({ where: { state: "PUBLISHED" }, _sum: { amountRsd: true } }),
     db.expense.aggregate({ where: { state: "PUBLISHED" }, _sum: { amountRsd: true } }),
+    getSettings(),
   ]);
-  return { raisedRsd: inc._sum.amountRsd ?? 0, spentRsd: exp._sum.amountRsd ?? 0 };
+  const raisedRsd = inc._sum.amountRsd ?? 0;
+  const spentRsd = exp._sum.amountRsd ?? 0;
+  const openingRsd = settings.openingBalance?.amountRsd ?? 0;
+  return { raisedRsd, spentRsd, openingRsd, balanceRsd: openingRsd + raisedRsd - spentRsd };
 }

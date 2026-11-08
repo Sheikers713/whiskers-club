@@ -43,6 +43,14 @@ export default async function Settings({ searchParams }: PageProps<"/admin/setti
             <Field label="Пристроено до сайта"><input name="offsetAdopted" type="number" defaultValue={s.counterOffsets.adopted} className={inputCls} /></Field>
             <Field label="Стерилизовано до сайта"><input name="offsetSterilized" type="number" defaultValue={s.counterOffsets.sterilized} className={inputCls} /></Field>
           </div>
+          <div className="grid gap-4 sm:grid-cols-4">
+            <Field label="Начальный остаток, RSD" hint="Деньги на руках до первых записей. Не считается поступлением">
+              <input name="openingAmount" type="number" min={0} defaultValue={s.openingBalance.amountRsd} className={inputCls} />
+            </Field>
+            <Field label="На дату">
+              <input name="openingDate" type="date" defaultValue={s.openingBalance.date} className={inputCls} />
+            </Field>
+          </div>
         </Card>
         <Card title="Тексты главной">
           <LocalizedField name="heroText" label="Текст под заголовком (пусто = стандартный)" value={s.heroText} multiline rows={2} />

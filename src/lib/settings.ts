@@ -8,6 +8,9 @@ export type SiteSettings = {
   eurRate: number;
   // Cats helped before the site existed are added to the counters (decision 3.4).
   counterOffsets: { rescued: number; adopted: number; sterilized: number };
+  // Money on hand when the records start (e.g. 15 000 RSD on 1 September 2026).
+  // Not a donation: it is added to the balance only, never to "raised".
+  openingBalance: { amountRsd: number; date: string };
   // Counters on the home page; off until the numbers are filled in.
   showStats: boolean;
   heroText: LocalizedText;
@@ -29,6 +32,7 @@ export type SiteSettings = {
 export const defaultSettings: SiteSettings = {
   eurRate: 117,
   counterOffsets: { rescued: 27, adopted: 0, sterilized: 0 },
+  openingBalance: { amountRsd: 15000, date: "2026-09-01" },
   showStats: false,
   heroText: {},
   aboutText: {},

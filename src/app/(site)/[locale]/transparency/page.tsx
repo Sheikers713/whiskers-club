@@ -56,6 +56,7 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
       include: { cats: { include: { cat: { select: { slug: true, name: true, state: true } } } } },
     }),
   ]);
+  const showOpening = !categoryId && !catId && report.openingRsd > 0;
   const raised = await campaignRaised(campaigns.map((c) => c.id));
   const rate = settings.eurRate;
   const field = "mt-1 block w-full rounded-[var(--radius-card)] border border-line bg-paper px-3 py-2.5";
@@ -101,11 +102,14 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
         </button>
       </form>
 
-      <dl className="mt-6 grid gap-3 sm:grid-cols-3">
+      <dl className={`mt-6 grid gap-3 sm:grid-cols-2 ${showOpening ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
         {[
+          ...(showOpening && report.openingDate
+            ? [{ label: `${dict.report.opening} ${formatShortDate(report.openingDate, locale)}`, value: report.openingRsd }]
+            : []),
           { label: dict.report.income, value: report.incomeRsd },
           { label: dict.report.expenses, value: report.expenseRsd },
-          ...(categoryId || catId ? [] : [{ label: dict.report.balance, value: report.incomeRsd - report.expenseRsd }]),
+          ...(categoryId || catId ? [] : [{ label: dict.report.balance, value: report.balanceRsd }]),
         ].map((s) => (
           <div key={s.label} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line">
             <dt className="text-sm text-ink-soft">{s.label}</dt>

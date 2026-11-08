@@ -170,6 +170,7 @@ const en = {
       "All amounts are in Serbian dinars (RSD). Donations from other currencies are converted by hand when they are recorded. Euro amounts are approximate.",
     income: "Income",
     expenses: "Expenses",
+    opening: "Opening balance on",
     balance: "Balance",
     period: "Period",
     from: "From",
