@@ -56,7 +56,8 @@ export default async function Dashboard({ searchParams }: PageProps<"/admin">) {
         </p>
         <p>
           Собрано: <b>{formatRsd(stats.raisedRsd, "ru")}</b> · потрачено: <b>{formatRsd(stats.spentRsd, "ru")}</b> · остаток:{" "}
-          <b>{formatRsd(stats.raisedRsd - stats.spentRsd, "ru")}</b>
+          <b>{formatRsd(stats.balanceRsd, "ru")}</b>
+          {stats.openingRsd > 0 && <> (с начальным остатком {formatRsd(stats.openingRsd, "ru")})</>}
         </p>
       </Card>
       {myCats.length > 0 && (
