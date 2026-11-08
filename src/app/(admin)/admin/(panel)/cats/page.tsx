@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { PublicationState } from "@prisma/client";
 import { requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import { missingLocales, t } from "@/lib/i18n/localized";
+import { t, untranslatedLocales } from "@/lib/i18n/localized";
 import { photoUrl } from "@/lib/media-url";
 import { PageTitle, StateBadge, btnCls } from "@/components/admin/ui";
 
@@ -32,7 +32,7 @@ export default async function AdminCats({ searchParams }: PageProps<"/admin/cats
       ) : (
         <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
           {cats.map((c) => {
-            const missing = missingLocales(c.name).concat(missingLocales(c.summary));
+            const missing = untranslatedLocales(c.name).concat(untranslatedLocales(c.summary));
             return (
               <li key={c.id}>
                 <Link href={`/admin/cats/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-milk">

@@ -63,6 +63,15 @@ export function missingLocales(value: unknown): Locale[] {
   return locales.filter((l) => !v[l]);
 }
 
+/**
+ * Languages a text still needs a translation in. A text that is empty in every
+ * language (e.g. no summary yet) has nothing to translate, so it reports none.
+ */
+export function untranslatedLocales(value: unknown): Locale[] {
+  const v = asLocalized(value);
+  return Object.keys(v).length === 0 ? [] : missingLocales(v);
+}
+
 /** Joins two texts per language with a blank line, skipping empty parts. */
 export function mergeTexts(a: unknown, b: unknown): LocalizedText {
   const x = asLocalized(a);
