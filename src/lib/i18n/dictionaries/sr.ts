@@ -114,6 +114,7 @@ const sr: Dictionary = {
     anonymous: "Anonimno",
     expenses: "Troškovi",
     shareOf: "udeo od",
+    showAllExpenses: "Prikaži sve",
     sharedExpense: "zajednički trošak",
     history: "Hronologija",
     updates: "Novosti",

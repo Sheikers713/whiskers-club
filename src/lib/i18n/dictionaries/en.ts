@@ -111,6 +111,7 @@ const en = {
     anonymous: "Anonymous",
     expenses: "Expenses",
     shareOf: "share of",
+    showAllExpenses: "Show all",
     sharedExpense: "shared expense",
     history: "Timeline",
     updates: "Updates",
