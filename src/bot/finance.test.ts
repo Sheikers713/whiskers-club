@@ -72,7 +72,7 @@ describe("flow", () => {
       order.push(s);
       s = nextStep(d, s);
     }
-    expect(order).toEqual(["amount", "date", "cats", "category", "description", "receipt"]);
+    expect(order).toEqual(["amount", "date", "cats", "description", "receipt"]);
     d.noReceipt = true;
     expect(nextStep(d, "receipt")).toBe("reason");
   });
@@ -134,8 +134,23 @@ describe("flow", () => {
       noReceiptReason: "Рынок / частник, чек не дают",
     };
     const text = summary(d, look);
-    expect(text).toContain("Коты: общий расход, без кота");
-    expect(text).toContain("Категория: Корм");
+    expect(text).toContain("Коты: общий фонд");
     expect(text).toContain("Чек: без чека (Рынок / частник, чек не дают)");
+  });
+});
+
+import { guessCategoryKey } from "../lib/finance/category";
+
+describe("guessCategoryKey", () => {
+  it("files sheet descriptions under the right category", () => {
+    expect(guessCategoryKey("корм Monge 17 пакетиков")).toBe("food");
+    expect(guessCategoryKey("операция Джанин")).toBe("veterinary");
+    expect(guessCategoryKey("Марси анализ крови")).toBe("tests");
+    expect(guessCategoryKey("передержка Жуку на 3 дня")).toBe("foster");
+    expect(guessCategoryKey("капли для глаз вигамокс и тобрекс")).toBe("medication");
+    expect(guessCategoryKey("наполнитель 10 кг с рук")).toBe("litter");
+    expect(guessCategoryKey("реклама Нами в инсте")).toBe("administration");
+    expect(guessCategoryKey("бытовая химия на передержку")).toBe("foster");
+    expect(guessCategoryKey("что-то странное")).toBe("other");
   });
 });

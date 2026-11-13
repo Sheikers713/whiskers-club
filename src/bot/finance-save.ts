@@ -9,6 +9,7 @@ import { randomBytes } from "node:crypto";
 import { db } from "../lib/db";
 import { asLocalized } from "../lib/i18n/localized";
 import { compressReceipt, deleteFile, storePrivateFile } from "../lib/storage";
+import { guessCategoryKey } from "../lib/finance/category";
 import { rsd, splitEvenly, type Draft, type FlowCat, type Option } from "./finance";
 
 const ru = (v: unknown) => asLocalized(v).ru ?? asLocalized(v).en ?? "";
@@ -76,7 +77,9 @@ export async function saveDraft(d: Draft, who: Who): Promise<Saved> {
     return { entry, text: `💚 Донат ${rsd(d.amountRsd)} записан, он уже на сайте.`, adminUrl: `${site}/admin/donations/${rows[0].id}` };
   }
 
-  const category = await db.expenseCategory.findUnique({ where: { key: d.categoryKey ?? "other" } });
+  const category =
+    (await db.expenseCategory.findUnique({ where: { key: d.categoryKey ?? guessCategoryKey(d.description ?? "") } })) ??
+    (await db.expenseCategory.findUnique({ where: { key: "other" } }));
   if (!category) throw new Error("нет такой категории расходов");
   const fileIds: string[] = [];
   for (const r of d.receipts) {

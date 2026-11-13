@@ -8,6 +8,8 @@ import { BackLink, Card, Field, Flash, PageTitle, StateBadge, StateSelect, btnCl
 import { ActionForm } from "@/components/admin/ActionForm";
 import { AuditTrail } from "@/components/admin/AuditTrail";
 import { FileInput } from "@/components/admin/FileInput";
+import { CatPicker } from "@/components/admin/CatPicker";
+import { loadPickerCats } from "@/lib/queries/picker-cats";
 
 export const metadata = { title: "Поступление" };
 
@@ -17,10 +19,7 @@ export default async function DonationPage({ params, searchParams }: PageProps<"
   const sp = await searchParams;
   const d = id === "new" ? null : await db.donation.findUnique({ where: { id }, include: { files: { include: { file: true } } } });
   if (id !== "new" && !d) notFound();
-  const [campaigns, cats] = await Promise.all([
-    db.campaign.findMany({ where: { status: "ACTIVE" }, orderBy: { startDate: "desc" } }),
-    db.cat.findMany({ select: { id: true, name: true }, orderBy: { createdAt: "desc" } }),
-  ]);
+  const pickerCats = await loadPickerCats();
   // Donation channels come from the payment methods shown on the site, plus cash.
   const methods = await db.paymentMethod.findMany({ orderBy: { sortOrder: "asc" } });
   const methodOptions = [
@@ -31,9 +30,6 @@ export default async function DonationPage({ params, searchParams }: PageProps<"
       ...(d?.method ? [d.method] : []),
     ]),
   ];
-  const campaignOptions = d?.campaignId && !campaigns.some((c) => c.id === d.campaignId)
-    ? [...campaigns, await db.campaign.findUniqueOrThrow({ where: { id: d.campaignId } })]
-    : campaigns;
   return (
     <div className="max-w-3xl space-y-6">
       <BackLink href="/admin/donations">Поступления</BackLink>
@@ -80,29 +76,14 @@ export default async function DonationPage({ params, searchParams }: PageProps<"
             <input name="comment" defaultValue={d?.comment ?? ""} className={inputCls} />
           </Field>
         </Card>
-        <Card title="Назначение">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Сбор">
-              <select name="campaignId" defaultValue={d?.campaignId ?? ""} className={inputCls}>
-                <option value="">Нет</option>
-                {campaignOptions.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {t(c.title, "ru")}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Или конкретный кот (если без сбора)" hint="Пусто = общий фонд">
-              <select name="catId" defaultValue={d?.catId ?? ""} className={inputCls}>
-                <option value="">Общий фонд</option>
-                {cats.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {t(c.name, "ru")}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
+        <Card title="Для кого">
+          <fieldset>
+            <legend className="text-sm font-medium">Для кого</legend>
+            {d?.campaignId && !d.catId && (
+              <p className="mt-1 text-xs text-ink-soft">Сейчас привязано к сбору. Выберите кота, чтобы перепривязать.</p>
+            )}
+            <CatPicker cats={pickerCats} name="catId" multiple={false} defaultValue={d?.catId ? [d.catId] : []} />
+          </fieldset>
           <Field label="Внутренний комментарий">
             <textarea name="internalComment" defaultValue={d?.internalComment ?? ""} rows={2} className={inputCls} />
           </Field>

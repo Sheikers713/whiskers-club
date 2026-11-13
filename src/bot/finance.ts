@@ -43,7 +43,8 @@ export type Draft = {
 };
 
 export const STEPS: Record<Kind, Step[]> = {
-  expense: ["amount", "date", "cats", "category", "description", "receipt", "reason", "confirm"],
+  // No category step: it is guessed from the description (statistics only).
+  expense: ["amount", "date", "cats", "description", "receipt", "reason", "confirm"],
   donation: ["amount", "date", "cats", "method", "donor", "description", "confirm"],
 };
 
@@ -173,7 +174,7 @@ export function ruDate(isoDate: string): string {
 export type Lookup = { cats: FlowCat[]; categories: Option[] };
 
 export function catNames(d: Draft, look: Lookup): string {
-  if (!d.catIds.length) return d.kind === "expense" ? "общий расход, без кота" : "в общий фонд, без кота";
+  if (!d.catIds.length) return "общий фонд";
   return d.catIds.map((id) => look.cats.find((c) => c.id === id)?.name ?? "?").join(", ");
 }
 
@@ -192,10 +193,7 @@ export function summary(d: Draft, look: Lookup): string {
         : `  делится поровну: ${shares.map(rsd).join(" / ")}`,
     );
   }
-  if (d.kind === "expense") {
-    const cat = look.categories.find((c) => c.key === d.categoryKey);
-    if (cat) lines.push(`Категория: ${cat.label}`);
-  } else {
+  if (d.kind === "donation") {
     if (d.method) lines.push(`Способ оплаты: ${d.method}`);
     lines.push(`От кого: ${d.donorName || "не указано"}`);
   }
@@ -291,7 +289,7 @@ export function catButtons(d: Draft, flow: string, cats: FlowCat[]): Button[][] 
     ...rows(toggles, 3),
     [
       {
-        text: d.catIds.length ? `Готово (${d.catIds.length}) ➡️` : d.kind === "expense" ? "Общий, без кота ➡️" : "В общий фонд ➡️",
+        text: d.catIds.length ? `Готово (${d.catIds.length}) ➡️` : "Общий фонд ➡️",
         callback_data: cb(flow, "catsdone"),
       },
     ],
@@ -303,7 +301,7 @@ export function catButtons(d: Draft, flow: string, cats: FlowCat[]): Button[][] 
 export function fixButtons(d: Draft, flow: string): Button[][] {
   const fields: [Step, string][] =
     d.kind === "expense"
-      ? [["amount", "Сумма"], ["date", "Дата"], ["cats", "Коты"], ["category", "Категория"], ["description", "Описание"], ["receipt", "Чек"]]
+      ? [["amount", "Сумма"], ["date", "Дата"], ["cats", "Коты"], ["description", "Описание"], ["receipt", "Чек"]]
       : [["amount", "Сумма"], ["date", "Дата"], ["cats", "Коты"], ["method", "Способ оплаты"], ["donor", "От кого"], ["description", "Комментарий"]];
   return [...rows(fields.map(([s, label]) => ({ text: label, callback_data: cb(flow, "edit", s) })), 3), [{ text: "⬅️ Назад", callback_data: cb(flow, "back") }]];
 }

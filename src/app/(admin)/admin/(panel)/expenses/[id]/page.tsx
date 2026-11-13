@@ -4,10 +4,12 @@ import { db } from "@/lib/db";
 import { t } from "@/lib/i18n/localized";
 import { toDateInput } from "@/lib/admin/form";
 import { saveExpense } from "@/lib/actions/finance";
-import { BackLink, Card, Field, Flash, LocalizedField, PageTitle, StateBadge, StateSelect, btnCls, inputCls } from "@/components/admin/ui";
+import { BackLink, Card, Field, Flash, PageTitle, StateBadge, StateSelect, btnCls, inputCls } from "@/components/admin/ui";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { AuditTrail } from "@/components/admin/AuditTrail";
 import { FileInput } from "@/components/admin/FileInput";
+import { CatPicker } from "@/components/admin/CatPicker";
+import { loadPickerCats } from "@/lib/queries/picker-cats";
 
 export const metadata = { title: "Расход" };
 
@@ -20,12 +22,10 @@ export default async function ExpensePage({ params, searchParams }: PageProps<"/
       ? null
       : await db.expense.findUnique({ where: { id }, include: { cats: true, files: { include: { file: true } } } });
   if (id !== "new" && !e) notFound();
-  const [categories, cats, campaigns] = await Promise.all([
-    db.expenseCategory.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
-    db.cat.findMany({ select: { id: true, name: true, state: true }, orderBy: { createdAt: "desc" } }),
-    db.campaign.findMany({ orderBy: { startDate: "desc" } }),
+  const [category, pickerCats] = await Promise.all([
+    e ? db.expenseCategory.findUnique({ where: { id: e.categoryId } }) : null,
+    loadPickerCats(),
   ]);
-  const linked = new Set(e?.cats.map((c) => c.catId));
   return (
     <div className="max-w-3xl space-y-6">
       <BackLink href="/admin/expenses">Расходы</BackLink>
@@ -41,49 +41,15 @@ export default async function ExpensePage({ params, searchParams }: PageProps<"/
             <Field label="Сумма, RSD">
               <input name="amountRsd" inputMode="numeric" required defaultValue={e?.amountRsd ?? ""} className={inputCls} />
             </Field>
-            <Field label="Категория">
-              <select name="categoryId" required defaultValue={e?.categoryId ?? ""} className={inputCls}>
-                <option value="" disabled>
-                  Выберите
-                </option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {t(c.label, "ru")}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Продавец / получатель">
-              <input name="vendor" defaultValue={e?.vendor ?? ""} className={inputCls} />
-            </Field>
           </div>
-          <Field label="На что (как в таблице)">
+          <Field label="На что" hint="Так и будет на сайте. Категория для статистики определяется сама.">
             <input name="description" required defaultValue={e?.description ?? ""} className={inputCls} />
           </Field>
-          <LocalizedField name="publicSummary" label="Публичное описание по языкам (необязательно; иначе показывается «На что»)" value={e?.publicSummary} />
-        </Card>
-        <Card title="Коты и сбор">
+          {category && <p className="text-xs text-ink-soft">Категория: {t(category.label, "ru")}</p>}
           <fieldset>
-            <legend className="text-sm font-medium">Коты (если расход на нескольких, он всё равно учитывается один раз)</legend>
-            <div className="mt-2 flex max-h-56 flex-wrap gap-2 overflow-y-auto">
-              {cats.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 rounded-md bg-milk px-3 py-1.5">
-                  <input type="checkbox" name="cats" value={c.id} defaultChecked={linked.has(c.id)} />
-                  {t(c.name, "ru")}
-                </label>
-              ))}
-            </div>
+            <legend className="text-sm font-medium">Для кого</legend>
+            <CatPicker cats={pickerCats} name="cats" defaultValue={e?.cats.map((c) => c.catId) ?? []} />
           </fieldset>
-          <Field label="Сбор">
-            <select name="campaignId" defaultValue={e?.campaignId ?? ""} className={inputCls}>
-              <option value="">Нет (общий фонд)</option>
-              {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {t(c.title, "ru")}
-                </option>
-              ))}
-            </select>
-          </Field>
         </Card>
         <Card title="Подтверждение">
           <Field label="Тип подтверждения">
