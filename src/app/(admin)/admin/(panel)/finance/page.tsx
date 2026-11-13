@@ -46,6 +46,12 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
     }),
   ]);
 
+  // Who added each row: the admin account, or the Telegram name the bot noted.
+  const userIds = [...new Set([...expensesAll, ...donationsAll].map((r) => r.createdById).filter((v): v is string => !!v))];
+  const users = new Map((await db.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true } })).map((u) => [u.id, u.name]));
+  const addedBy = (r: { createdById: string | null; internalComment: string | null }) =>
+    (r.createdById && users.get(r.createdById)) || r.internalComment?.match(/^Внесено через Telegram: ([^.]+)/)?.[1] || "";
+
   // Tabs: every cat that has money records, like the sheet's tabs per cat group.
   const tabs = new Map<string, string>();
   for (const e of expensesAll) for (const c of e.cats) tabs.set(c.cat.id, t(c.cat.name, "ru"));
@@ -102,6 +108,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
                 <th className={head}>На что</th>
                 {showCats && <th className={head}>Коты</th>}
                 <th className={head}>Чеки</th>
+                <th className={head}>Внёс</th>
               </tr>
             </thead>
             <tbody>
@@ -128,17 +135,18 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
                         ))
                       : <span className="text-ink-soft">{e.noReceiptReason || (e.proof === "NONE" ? "без чека" : "")}</span>}
                   </td>
+                  <td className={`${cell} text-ink-soft`}>{addedBy(e)}</td>
                 </tr>
               ))}
               {expenses.length === 0 && (
-                <tr><td colSpan={showCats ? 5 : 4} className={`${cell} text-ink-soft`}>Расходов нет.</td></tr>
+                <tr><td colSpan={showCats ? 6 : 5} className={`${cell} text-ink-soft`}>Расходов нет.</td></tr>
               )}
             </tbody>
             <tfoot>
               <tr className="font-semibold">
                 <td className={cell}>Итого</td>
                 <td className={num}>{n(spent)}</td>
-                <td className={cell} colSpan={showCats ? 3 : 2} />
+                <td className={cell} colSpan={showCats ? 4 : 3} />
               </tr>
             </tfoot>
           </table>
@@ -153,6 +161,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
                 <th className={head}>Сумма (RSD)</th>
                 <th className={head}>От кого</th>
                 {showCats && <th className={head}>Кот</th>}
+                <th className={head}>Внёс</th>
               </tr>
             </thead>
             <tbody>
@@ -168,17 +177,18 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
                     <DraftMark state={d.state} />
                   </td>
                   {showCats && <td className={cell}>{d.cat ? t(d.cat.name, "ru") : d.campaign ? t(d.campaign.title, "ru") : ""}</td>}
+                  <td className={`${cell} text-ink-soft`}>{addedBy(d)}</td>
                 </tr>
               ))}
               {donations.length === 0 && (
-                <tr><td colSpan={showCats ? 4 : 3} className={`${cell} text-ink-soft`}>Донатов нет.</td></tr>
+                <tr><td colSpan={showCats ? 5 : 4} className={`${cell} text-ink-soft`}>Донатов нет.</td></tr>
               )}
             </tbody>
             <tfoot>
               <tr className="font-semibold">
                 <td className={cell}>Итого</td>
                 <td className={num}>{n(raised)}</td>
-                <td className={cell} colSpan={showCats ? 2 : 1} />
+                <td className={cell} colSpan={showCats ? 3 : 2} />
               </tr>
             </tfoot>
           </table>

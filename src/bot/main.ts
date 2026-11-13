@@ -11,7 +11,6 @@
  * ids), DATABASE_URL, STORAGE_DIR, OLLAMA_URL, OLLAMA_MODEL, AI_ENABLED, APP_URL.
  */
 import { randomBytes } from "node:crypto";
-import { db } from "../lib/db";
 import { actorFor, applyPlan, loadContext, type Upload } from "./apply";
 import { parseMessage } from "./llm";
 import { transcribe } from "./voice";
@@ -45,6 +44,9 @@ const volunteers = allowList(process.env.TELEGRAM_VOLUNTEER_IDS);
 const adminEntries = admins.entries;
 const isAdmin = (user: TgUser | undefined) => admins.has(user, "admin");
 const isVolunteer = (user: TgUser | undefined) => isAdmin(user) || volunteers.has(user, "volunteer");
+
+const LINK_HINT = (id: number) =>
+  `Чтобы на сайте было видно, кто внёс запись, впишите ваш Telegram id ${id} в админке: «Профиль» → «Telegram chat id для уведомлений».`;
 
 const FINANCE_KEYBOARD = [[EXPENSE_BUTTON, DONATION_BUTTON]];
 const VOLUNTEER_HELP = `Здесь записываются расходы и донаты Whiskers Club, сразу на сайт.
@@ -178,7 +180,7 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
   }
 
   if (text.startsWith("/")) {
-    const [cmd, ...args] = text.split(/\s+/);
+    const [cmd] = text.split(/\s+/);
     if (cmd === "/start" || cmd === "/help") {
       return void (await tg.sendWithKeyboard(chatId, admin ? `${HELP}\n\n${VOLUNTEER_HELP}` : VOLUNTEER_HELP, FINANCE_KEYBOARD));
     }
@@ -188,13 +190,9 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
       cancelFlow(chatId);
       return void (await tg.sendMessage(chatId, "Отменил."));
     }
-    if (cmd === "/link") {
-      const email = args[0]?.toLowerCase();
-      const user = email ? await db.user.findUnique({ where: { email } }) : null;
-      if (!user) return void (await tg.sendMessage(chatId, "Напишите /link и email, с которым вы входите в админку сайта."));
-      await db.user.update({ where: { id: user.id }, data: { telegramChatId: String(userId) } });
-      return void (await tg.sendMessage(chatId, `Готово: изменения из Telegram будут записаны от имени ${user.name}, и сюда будут приходить уведомления сайта.`));
-    }
+    // Linking is done only in the admin (Профиль → Telegram chat id): a bot command
+    // could not prove that the email belongs to the person typing it.
+    if (cmd === "/link") return void (await tg.sendMessage(chatId, LINK_HINT(userId)));
     return void (await tg.sendWithKeyboard(chatId, admin ? HELP : VOLUNTEER_HELP, FINANCE_KEYBOARD));
   }
 
@@ -288,7 +286,7 @@ async function onCallback(tg: Telegram, q: NonNullable<TgUpdate["callback_query"
   const actor = await actorFor(q.from.id);
   const result = await applyPlan(p.plan, p.ctx, p.uploads, actor?.id ?? null);
   const lines = [...result.done.map((d) => `✅ ${d}`), ...result.notes.map((n) => `⚠️ ${n}`)];
-  if (!actor) lines.push("", "Подсказка: /link ваш@email свяжет Telegram с вашим аккаунтом в админке.");
+  if (!actor) lines.push("", LINK_HINT(q.from.id));
   await tg.editMessage(chatId, p.previewId, `${describe(p.plan, p.ctx, p.uploads.length)}\n\n${lines.join("\n")}`);
 }
 
@@ -309,7 +307,6 @@ async function main() {
       { command: "expense", description: "Записать расход" },
       { command: "donation", description: "Записать донат" },
       { command: "help", description: "Как пользоваться" },
-      { command: "link", description: "Связать с аккаунтом админки: /link email" },
       { command: "cancel", description: "Отменить текущее предложение" },
       { command: "id", description: "Мой Telegram id" },
     ],

@@ -256,7 +256,11 @@ export async function onFlowCallback(tg: Telegram, q: TgCallbackQuery, who: Who)
         await tg.editMessage(
           chatId,
           flow.messageId,
-          `${summary(d, flow.look)}\n\n${saved.text}\nВ админке: ${saved.adminUrl}\n\nОшиблись? Отменить можно в течение суток.`,
+          `${summary(d, flow.look)}\n\n${saved.text}\nВ админке: ${saved.adminUrl}\n\nОшиблись? Отменить можно в течение суток.${
+            who.actorId
+              ? ""
+              : `\n\nЧтобы на сайте было видно, кто внёс, впишите ваш Telegram id ${who.telegramId} в админке: «Профиль» → «Telegram chat id для уведомлений».`
+          }`,
           [[{ text: "↩️ Отменить запись", callback_data: `u:${saved.entry}` }]],
         );
       } catch (e) {
