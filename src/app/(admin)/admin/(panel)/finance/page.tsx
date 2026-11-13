@@ -25,6 +25,15 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   await requireUser(["FINANCE"]);
   const sp = await searchParams;
   const tab = typeof sp.cat === "string" ? sp.cat : "all";
+  // One table at a time: expenses (default) or donations.
+  const view = sp.view === "donations" ? "donations" : "expenses";
+  const href = (cat: string, v: string = view) => {
+    const q = new URLSearchParams();
+    if (cat !== "all") q.set("cat", cat);
+    if (v === "donations") q.set("view", v);
+    const qs = q.toString();
+    return `/admin/finance${qs ? `?${qs}` : ""}`;
+  };
 
   const [expensesAll, donationsAll] = await Promise.all([
     db.expense.findMany({
@@ -126,16 +135,33 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
       <p className="-mt-4 mb-6 text-xs text-ink-soft">В итогах только опубликованные записи. Переводы между сборами здесь не учитываются.</p>
 
       <nav className="-mb-px flex gap-1 overflow-x-auto">
-        <Link href="/admin/finance" className={tabCls(tab === "all")}>Все</Link>
+        <Link href={href("all")} className={tabCls(tab === "all")}>Все</Link>
         {catTabs.map(([id, name]) => (
-          <Link key={id} href={`/admin/finance?cat=${id}`} className={tabCls(tab === id)}>{name}</Link>
+          <Link key={id} href={href(id)} className={tabCls(tab === id)}>{name}</Link>
         ))}
-        <Link href="/admin/finance?cat=general" className={tabCls(tab === "general")}>Без кота</Link>
+        <Link href={href("general")} className={tabCls(tab === "general")}>Без кота</Link>
       </nav>
 
-      <div className="grid gap-8 rounded-b-[var(--radius-card)] rounded-tr-[var(--radius-card)] bg-paper p-3 ring-1 ring-line min-[1900px]:grid-cols-[3fr_2fr]">
+      <div className="rounded-b-[var(--radius-card)] rounded-tr-[var(--radius-card)] bg-paper p-3 ring-1 ring-line">
+        <div className="mb-3 flex justify-center gap-3">
+          <Link
+            href={href(tab, "expenses")}
+            aria-current={view === "expenses" ? "page" : undefined}
+            className={`rounded-lg px-6 py-2 text-lg font-bold text-white shadow-sm transition ${view === "expenses" ? "bg-red-600 ring-4 ring-red-600/30" : "bg-red-600/45 hover:bg-red-600/80"}`}
+          >
+            Расходы · {n(spent)}
+          </Link>
+          <Link
+            href={href(tab, "donations")}
+            aria-current={view === "donations" ? "page" : undefined}
+            className={`rounded-lg px-6 py-2 text-lg font-bold text-white shadow-sm transition ${view === "donations" ? "bg-green-600 ring-4 ring-green-600/30" : "bg-green-600/45 hover:bg-green-600/80"}`}
+          >
+            Донаты · {n(raised)}
+          </Link>
+        </div>
+
+        {view === "expenses" ? (
         <section className="min-w-0">
-          <h2 className="mb-2 text-center text-lg font-bold">Расходы</h2>
           <ExpenseSheet
             rows={expenses.map((e) => ({
               id: e.id,
@@ -156,9 +182,8 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
           />
           <p className="mt-1 text-right text-sm font-semibold">Итого: {n(spent)}</p>
         </section>
-
+        ) : (
         <section className="min-w-0">
-          <h2 className="mb-2 text-center text-lg font-bold">Донаты</h2>
           <DonationSheet
             rows={donations.map((d) => ({
               id: d.id,
@@ -177,6 +202,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
           />
           <p className="mt-1 text-right text-sm font-semibold">Итого: {n(raised)}</p>
         </section>
+        )}
       </div>
     </div>
   );
