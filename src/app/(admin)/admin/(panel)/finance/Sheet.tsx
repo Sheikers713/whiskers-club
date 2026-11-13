@@ -8,6 +8,8 @@ import {
   addDonationRow,
   addExpenseReceipt,
   addExpenseRow,
+  deleteDonationRow,
+  deleteExpenseRow,
   updateDonationField,
   updateExpenseCats,
   updateExpenseField,
@@ -162,6 +164,24 @@ function ReceiptCell({ e }: { e: SheetExpense }) {
   );
 }
 
+/** «Удалить» with a confirmation; the audit log keeps what was deleted. */
+function DeleteButton({ what, run }: { what: string; run: () => Promise<SheetResult> }) {
+  const { pending, error, run: go } = useSave();
+  return (
+    <>
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => window.confirm(`Удалить ${what}? Это нельзя отменить.`) && go(run)}
+        className="block text-xs text-ink-soft underline decoration-dotted hover:text-brick disabled:opacity-50"
+      >
+        {pending ? "удаляю…" : "удалить"}
+      </button>
+      {error && <span className="block text-xs text-brick">{error}</span>}
+    </>
+  );
+}
+
 function AddForm({ id, action, children }: { id: string; action: (fd: FormData) => Promise<SheetResult>; children: React.ReactNode }) {
   const { pending, error, run } = useSave();
   // Bumped after a save so the add row (including its cat choice) starts clean.
@@ -249,7 +269,10 @@ export function ExpenseSheet({
                   <Cell value={e.noReceiptReason ?? ""} placeholder="почему без чека" save={(v) => updateExpenseField(e.id, "noReceiptReason", v)} />
                 )}
               </td>
-              <td className={`${cell} px-2 py-1.5 text-ink-soft`}>{e.addedBy}</td>
+              <td className={`${cell} px-2 py-1.5 text-ink-soft`}>
+                {e.addedBy}
+                <DeleteButton what={`расход ${n(e.amountRsd)} RSD «${e.description}»`} run={() => deleteExpenseRow(e.id)} />
+              </td>
             </tr>
           ))}
           {rows.length === 0 && <tr><td colSpan={6} className={`${cell} px-2 py-1.5 text-ink-soft`}>Расходов нет.</td></tr>}
@@ -330,7 +353,10 @@ export function DonationSheet({
                   />
                 )}
               </td>
-              <td className={`${cell} px-2 py-1.5 text-ink-soft`}>{d.addedBy}</td>
+              <td className={`${cell} px-2 py-1.5 text-ink-soft`}>
+                {d.addedBy}
+                <DeleteButton what={`донат ${n(d.amountRsd)} RSD${d.donorName ? ` от ${d.donorName}` : ""}`} run={() => deleteDonationRow(d.id)} />
+              </td>
             </tr>
           ))}
           {rows.length === 0 && <tr><td colSpan={5} className={`${cell} px-2 py-1.5 text-ink-soft`}>Донатов нет.</td></tr>}
