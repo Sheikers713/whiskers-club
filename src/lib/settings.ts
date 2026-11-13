@@ -10,8 +10,8 @@ export type SiteSettings = {
   counterOffsets: { rescued: number; adopted: number; sterilized: number };
   // Money on hand when the records start (e.g. 15 000 RSD on 1 September 2026).
   // Not a donation: it is added to the balance only, never to "raised".
-  // `cats`: parts of it spent on particular cats (e.g. Nami's first expenses), so
-  // the money table can show those cats as covered.
+  // It is the Whiskers Club general fund, tied to no cat. `cats`: cats whose
+  // expenses were covered from it (Nami), shown as such in the money table.
   openingBalance: { amountRsd: number; date: string; cats?: { catId: string; amountRsd: number }[] };
   // Counters on the home page; off until the numbers are filled in.
   showStats: boolean;

@@ -72,12 +72,21 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const published = <T extends { state: string }>(rows: T[]) => rows.filter((r) => r.state === "PUBLISHED");
   const spent = published(expenses).reduce((s, e) => s + e.share, 0);
   const raised = published(donations).reduce((s, d) => s + d.amountRsd, 0);
-  // The opening balance (money on hand before the records start) counts for the
-  // whole fund; the part spent on particular cats counts in their tabs.
+  // The opening balance is the Whiskers Club general fund, tied to no cat. Some
+  // cats are covered from it (Nami): their tab shows that cover as income, and
+  // the «Без кота» tab shows the fund minus what it gave away.
   const opening = (await getSettings()).openingBalance;
-  const openingRsd =
-    tab === "all" ? opening.amountRsd : tab === "general" ? 0 : (opening.cats?.find((c) => c.catId === tab)?.amountRsd ?? 0);
-  const balance = openingRsd + raised - spent;
+  const coveredTotal = (opening.cats ?? []).reduce((s, c) => s + c.amountRsd, 0);
+  const fundRows: { label: string; hint?: string; amount: number }[] =
+    tab === "all"
+      ? [{ label: "Общий фонд Whiskers Club", hint: `начальный остаток${opening.date ? ` на ${formatShortDate(opening.date, "ru")}` : ""}`, amount: opening.amountRsd }]
+      : tab === "general"
+        ? [
+            { label: "Общий фонд Whiskers Club", hint: `начальный остаток${opening.date ? ` на ${formatShortDate(opening.date, "ru")}` : ""}`, amount: opening.amountRsd },
+            ...(coveredTotal ? [{ label: "Покрыто котам из общего фонда", amount: -coveredTotal }] : []),
+          ]
+        : (opening.cats ?? []).filter((c) => c.catId === tab).map((c) => ({ label: "Покрыто из общего фонда Whiskers Club", amount: c.amountRsd }));
+  const balance = fundRows.reduce((s, r) => s + r.amount, 0) + raised - spent;
   const since = [expenses[0]?.date, donations[0]?.date].filter(Boolean).sort((a, b) => +a! - +b!)[0];
 
   const tabCls = (active: boolean) =>
@@ -98,15 +107,15 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
 
       <table className="mb-6 w-full max-w-md border-collapse text-sm font-semibold">
         <tbody>
-          {openingRsd > 0 && (
-            <tr>
+          {fundRows.filter((r) => r.amount !== 0).map((r) => (
+            <tr key={r.label}>
               <td className={cell}>
-                Начальный остаток{opening.date ? ` на ${formatShortDate(opening.date, "ru")}` : ""}
-                {tab !== "all" && <span className="block text-xs font-normal text-ink-soft">часть, потраченная на этого кота</span>}
+                {r.label}
+                {r.hint && <span className="block text-xs font-normal text-ink-soft">{r.hint}</span>}
               </td>
-              <td className={num}>{n(openingRsd)}</td>
+              <td className={num}>{n(r.amount)}</td>
             </tr>
-          )}
+          ))}
           <tr><td className={cell}>Итого донаты</td><td className={num}>{n(raised)}</td></tr>
           <tr><td className={cell}>Итого расходы</td><td className={num}>{n(spent)}</td></tr>
           <tr><td className={cell}>Остаток</td><td className={`${num} ${balance < 0 ? "text-brick" : ""}`}>{n(balance)}</td></tr>
