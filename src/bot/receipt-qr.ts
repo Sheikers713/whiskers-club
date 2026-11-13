@@ -7,7 +7,9 @@
  * The volunteer always sees the result in the summary and can fix it.
  */
 import { createHash } from "node:crypto";
-import jsQR from "jsqr";
+import { readFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { prepareZXingModule, readBarcodes } from "zxing-wasm/reader";
 import sharp, { type Sharp } from "sharp";
 
 export type ReceiptInfo = {
@@ -25,14 +27,32 @@ const HOST = "suf.purs.gov.rs";
 // ---------------------------------------------------------------------------
 // QR in a photo
 
-// Plain, then contrast-stretched, then sharpened black-and-white (blurry phone photos).
+// Plain, then contrast-stretched, then sharpened black-and-white (pale thermal paper).
 const PREPS: ((s: Sharp) => Sharp)[] = [
   (s) => s,
   (s) => s.grayscale().normalise(),
-  (s) => s.grayscale().normalise().sharpen({ sigma: 1.5 }).threshold(128),
+  (s) => s.grayscale().normalise().sharpen({ sigma: 1.5 }).threshold(140),
 ];
 
-/** The receipt link from a photo, or null when there is no readable QR code. */
+let ready: Promise<void> | null = null;
+
+/** Loads the ZXing decoder from node_modules (not from a CDN). */
+function loadZxing(): Promise<void> {
+  ready ??= (async () => {
+    const wasm = await readFile(createRequire(import.meta.url).resolve("zxing-wasm/reader/zxing_reader.wasm"));
+    await prepareZXingModule({
+      overrides: { wasmBinary: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength) as ArrayBuffer },
+      fireImmediately: true,
+    });
+  })();
+  return ready;
+}
+
+/**
+ * The receipt link from a photo, or null when there is no readable QR code.
+ * Receipt codes are big and dense (up to ~850 characters), so ZXing gets the
+ * photo at a few sizes and contrasts and stops at the first hit.
+ */
 export async function findReceiptUrl(image: Buffer): Promise<string | null> {
   let base: Sharp;
   try {
@@ -42,34 +62,39 @@ export async function findReceiptUrl(image: Buffer): Promise<string | null> {
   } catch {
     return null; // not an image (a PDF, for example)
   }
-  // A QR code reads best at a few different sizes; stop at the first hit.
+  await loadZxing();
   const seen = new Set<string>();
-  for (const width of [1600, 1100, 800, 2400]) {
+  for (const width of [2000, 1200, 800, 3000]) {
     for (const prep of PREPS) {
-      const { data, info } = await prep(base.clone().resize({ width, height: width, fit: "inside", withoutEnlargement: true }))
-        .removeAlpha()
+      const { data, info } = await prep(base.clone().resize({ width, height: width, fit: "inside", withoutEnlargement: width < 3000 }))
+        .ensureAlpha()
         .raw()
         .toBuffer({ resolveWithObject: true });
       const key = `${info.width}:${PREPS.indexOf(prep)}`;
       if (seen.has(key)) continue; // a small photo is not enlarged, so sizes repeat
       seen.add(key);
-      const code = jsQR(toRgba(data, info.channels), info.width, info.height, { inversionAttempts: "attemptBoth" });
-      if (code?.data && isReceiptUrl(code.data)) return code.data.trim();
-      if (code?.data) return null; // a QR code, but not a fiscal receipt
+      const found = await readBarcodes(
+        { data: toRgba(data, info.channels), width: info.width, height: info.height, colorSpace: "srgb" },
+        { formats: ["QRCode"], tryHarder: true, tryRotate: true, tryInvert: true, tryDownscale: true, maxNumberOfSymbols: 4 },
+      );
+      const hit = found.find((r) => r.isValid && isReceiptUrl(r.text));
+      if (hit) return hit.text.trim();
     }
   }
   return null;
 }
 
-/** jsQR wants RGBA pixels; sharp gives 1 (gray) or 3 (RGB) channels here. */
-function toRgba(data: Buffer, channels: number): Uint8ClampedArray {
+/** RGBA pixels for ZXing; after grayscale sharp gives 2 channels (gray + alpha). */
+function toRgba(data: Buffer, channels: number): Uint8ClampedArray<ArrayBuffer> {
+  if (channels === 4) return new Uint8ClampedArray(data);
   const n = data.length / channels;
   const out = new Uint8ClampedArray(n * 4);
   for (let i = 0; i < n; i++) {
     const p = i * channels;
+    const gray = channels <= 2;
     out[i * 4] = data[p];
-    out[i * 4 + 1] = data[channels === 1 ? p : p + 1];
-    out[i * 4 + 2] = data[channels === 1 ? p : p + 2];
+    out[i * 4 + 1] = data[gray ? p : p + 1];
+    out[i * 4 + 2] = data[gray ? p : p + 2];
     out[i * 4 + 3] = 255;
   }
   return out;
