@@ -9,7 +9,7 @@ import { requireUser } from "../auth/session";
 import { hashToken, newToken } from "../auth/tokens";
 import { createResetLink } from "../auth/reset";
 import { appUrl, sendMail } from "../mailer";
-import { setSetting, type SiteSettings } from "../settings";
+import { getSettings, setSetting, type SiteSettings } from "../settings";
 import { bool, int, localized, optStr, str } from "../admin/form";
 
 const roles: Role[] = ["SUPERADMIN", "EDITOR", "FINANCE"];
@@ -200,6 +200,7 @@ export async function saveCategory(fd: FormData) {
 
 export async function saveSettings(fd: FormData) {
   const me = await requireUser(["SUPERADMIN"]);
+  const previous = await getSettings();
   const rate = Number(str(fd, "eurRate").replace(",", "."));
   const values: Partial<SiteSettings> = {
     eurRate: Number.isFinite(rate) && rate > 0 ? rate : 117,
@@ -209,6 +210,8 @@ export async function saveSettings(fd: FormData) {
       sterilized: int(fd, "offsetSterilized") ?? 0,
     },
     openingBalance: {
+      // Not on the form: keep the per-cat split as it is.
+      ...(previous.openingBalance.cats ? { cats: previous.openingBalance.cats } : {}),
       amountRsd: int(fd, "openingAmount") ?? 0,
       date: /^\d{4}-\d{2}-\d{2}$/.test(str(fd, "openingDate", 10)) ? str(fd, "openingDate", 10) : "",
     },
