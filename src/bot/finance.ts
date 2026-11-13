@@ -40,6 +40,8 @@ export type Draft = {
   noReceiptReason?: string;
   method?: string;
   donorName?: string;
+  /** Filled from the receipt QR code; `verified` = confirmed by the tax office. */
+  scanned?: { verified: boolean };
 };
 
 export const STEPS: Record<Kind, Step[]> = {
@@ -54,6 +56,8 @@ export function nextStep(d: Draft, step?: Step): Step {
   const from = step ? steps.indexOf(step) + 1 : 0;
   for (const s of steps.slice(from)) {
     if (s === "reason" && !d.noReceipt) continue;
+    // What the receipt QR code filled in is shown in the summary, not asked again.
+    if (d.scanned && ((s === "date" && d.date) || (s === "description" && d.description) || (s === "receipt" && d.receipts.length))) continue;
     return s;
   }
   return "confirm";
@@ -195,11 +199,14 @@ export function summary(d: Draft, look: Lookup): string {
   }
   if (d.kind === "donation") {
     if (d.method) lines.push(`Способ оплаты: ${d.method}`);
-    lines.push(`От кого: ${d.donorName || "не указано"}`);
+    lines.push(`От кого: ${d.donorName || "Аноним"}`);
   }
   if (d.description) lines.push(`${d.kind === "expense" ? "Описание" : "Комментарий"}: ${d.description}`);
   if (d.kind === "expense") {
-    if (d.receipts.length) lines.push(`Чек: ${d.receipts.length === 1 ? "есть" : `${d.receipts.length} файла`}`);
+    if (d.receipts.length) {
+      const qr = d.scanned ? (d.scanned.verified ? ", QR сверен с налоговой" : ", QR прочитан") : "";
+      lines.push(`Чек: ${d.receipts.length === 1 ? "есть" : `${d.receipts.length} файла`}${qr}`);
+    }
     else if (d.noReceipt) lines.push(`Чек: без чека${d.noReceiptReason ? ` (${d.noReceiptReason})` : ""}`);
   }
   return lines.join("\n");
@@ -211,14 +218,17 @@ export type Button = { text: string; callback_data: string };
 const cb = (flow: string, action: string, arg: string | number = "") => `f:${flow}:${action}:${arg}`;
 
 export const NO_RECEIPT_REASONS = ["Рынок / частник, чек не дают", "Чек потерялся", "Перевод на карту"];
-export const DONOR_SKIP = "Не указывать";
+export const DONOR_SKIP = "Аноним";
 
 export function question(step: Step, d: Draft, flow: string, look: Lookup & { methods: string[] }): { text: string; buttons: Button[][] } {
   const back: Button[] = [{ text: "✖️ Отменить", callback_data: cb(flow, "cancel") }];
   switch (step) {
     case "amount":
       return {
-        text: `${d.kind === "expense" ? "🧾 Новый расход." : "💚 Новый донат."} Сколько? Напишите сумму, например 1500 или 20 eur.`,
+        text:
+          d.kind === "expense"
+            ? "🧾 Новый расход. Сколько? Напишите сумму, например 1500 или 20 eur.\nИли пришлите фото фискального чека с QR-кодом, я заполню сумму, дату и что куплено сам."
+            : "💚 Новый донат. Сколько? Напишите сумму, например 1500 или 20 eur.",
         buttons: [back],
       };
     case "date":
@@ -262,7 +272,7 @@ export function question(step: Step, d: Draft, flow: string, look: Lookup & { me
       };
     case "donor":
       return {
-        text: "От кого? Напишите имя. Оно видно только админам, на сайте донат будет анонимным.",
+        text: "От кого? Напишите имя, оно будет на сайте. Если человек хочет остаться анонимным, нажмите «Аноним».",
         buttons: [[{ text: DONOR_SKIP, callback_data: cb(flow, "nodonor") }], back],
       };
     case "confirm":

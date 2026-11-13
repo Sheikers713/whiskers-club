@@ -53,9 +53,10 @@ export async function saveDonation(fd: FormData): Promise<ActionResult> {
   const data = {
     date: day,
     amountRsd,
+    // One name: the site shows it unless «Скрыть имя» is ticked.
     donorName: optStr(fd, "donorName", 200),
-    publicName: optStr(fd, "publicName", 120),
-    showName: bool(fd, "showName"),
+    publicName: optStr(fd, "donorName", 120),
+    showName: !!optStr(fd, "donorName") && !bool(fd, "hideName"),
     method: optStr(fd, "method", 120),
     comment: optStr(fd, "comment", 300),
     internalComment: optStr(fd, "internalComment", 2000),

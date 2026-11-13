@@ -15,6 +15,7 @@ import {
   parseDate,
   question,
   rsd,
+  ruDate,
   shiftDays,
   summary,
   type Draft,
@@ -22,6 +23,7 @@ import {
   type ReceiptUpload,
   type Step,
 } from "./finance";
+import { describeReceipt, findReceiptUrl, readReceipt, type ReceiptInfo } from "./receipt-qr";
 import { loadFlowLookup, saveDraft, undoEntry, type FlowLookup, type Who } from "./finance-save";
 import type { Telegram, TgCallbackQuery, TgUser } from "./telegram";
 
@@ -88,15 +90,33 @@ export async function onFlowMessage(tg: Telegram, chatId: number, text: string, 
   const today = belgradeToday();
 
   if (uploads.length) {
-    if (d.kind !== "expense" || !["receipt", "reason", "confirm"].includes(flow.step)) {
+    if (d.kind !== "expense" || !["amount", "receipt", "reason", "confirm"].includes(flow.step)) {
       await ask(tg, chatId, flow, "Фото сейчас не нужно.");
       return true;
     }
+    const scan = await scanReceipt(uploads);
     d.receipts.push(...uploads);
     d.noReceipt = false;
     d.noReceiptReason = undefined;
+    if (flow.step === "amount") {
+      if (!scan) {
+        await ask(tg, chatId, flow, "📎 Фото сохранил как чек, но QR-код не прочитал. Можно прислать ещё одно фото, где QR-код крупно и ровно, или просто написать сумму.");
+        return true;
+      }
+      d.amountRsd = scan.amountRsd;
+      d.original = undefined;
+      d.date = scan.date;
+      d.description = describeReceipt(scan) || undefined;
+      d.scanned = { verified: scan.verified };
+      await advance(tg, chatId, flow, `📷 Прочитал чек: ${[scan.shop, ruDate(scan.date), rsd(scan.amountRsd)].filter(Boolean).join(", ")}.${
+        scan.verified ? "" : "\nНалоговая сейчас не отвечает, поэтому что куплено, напишу с ваших слов."
+      }\nВсё проверите в конце.`);
+      return true;
+    }
+    const mismatch =
+      scan && d.amountRsd != null && scan.amountRsd !== d.amountRsd ? `\n⚠️ В чеке ${rsd(scan.amountRsd)}, а записано ${rsd(d.amountRsd)}. Если нужно, поправьте сумму.` : "";
     flow.step = "receipt";
-    await advance(tg, chatId, flow, `📎 Чек получен (${d.receipts.length}).`);
+    await advance(tg, chatId, flow, `📎 Чек получен (${d.receipts.length}).${mismatch}`);
     return true;
   }
   if (!text) {
@@ -149,6 +169,19 @@ export async function onFlowMessage(tg: Telegram, chatId: number, text: string, 
       await ask(tg, chatId, flow, "Нажмите одну из кнопок.");
       return true;
   }
+}
+
+/** The first fiscal receipt QR code among the photos, read and looked up. */
+async function scanReceipt(uploads: ReceiptUpload[]): Promise<ReceiptInfo | null> {
+  for (const u of uploads) {
+    try {
+      const url = await findReceiptUrl(u.data);
+      if (url) return await readReceipt(url);
+    } catch (e) {
+      console.warn("[bot] receipt QR failed:", e);
+    }
+  }
+  return null;
 }
 
 export function whoFrom(user: TgUser, actor: { id: string; name: string } | null): Who {

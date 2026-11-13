@@ -61,16 +61,11 @@ export default async function DonationPage({ params, searchParams }: PageProps<"
           </div>
         </Card>
         <Card title="Донор">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Имя донора (видят только админы)">
-              <input name="donorName" defaultValue={d?.donorName ?? ""} className={inputCls} />
-            </Field>
-            <Field label="Публичное имя">
-              <input name="publicName" defaultValue={d?.publicName ?? ""} className={inputCls} />
-            </Field>
-          </div>
+          <Field label="Имя">
+            <input name="donorName" defaultValue={d?.donorName ?? d?.publicName ?? ""} className={inputCls} />
+          </Field>
           <label className="flex items-center gap-2">
-            <input type="checkbox" name="showName" defaultChecked={d?.showName} /> Донор согласен показать имя. Без галочки на сайте будет «Аноним».
+            <input type="checkbox" name="hideName" defaultChecked={d ? !d.showName : false} /> Скрыть имя человека на сайте (будет «Аноним»)
           </label>
           <Field label="Публичный комментарий">
             <input name="comment" defaultValue={d?.comment ?? ""} className={inputCls} />
@@ -78,7 +73,7 @@ export default async function DonationPage({ params, searchParams }: PageProps<"
         </Card>
         <Card title="Для кого">
           <fieldset>
-            <legend className="text-sm font-medium">Для кого</legend>
+            <legend className="sr-only">Для кого</legend>
             {d?.campaignId && !d.catId && (
               <p className="mt-1 text-xs text-ink-soft">Сейчас привязано к сбору. Выберите кота, чтобы перепривязать.</p>
             )}

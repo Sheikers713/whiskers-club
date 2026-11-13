@@ -202,7 +202,8 @@ export async function updateDonationField(id: string, field: DonationField, valu
       break;
     }
     case "donorName":
-      data = { donorName: v.slice(0, 200) || null };
+      // One name for admins and the site; hiding it stays as it was (new names are shown).
+      data = { donorName: v.slice(0, 200) || null, publicName: v.slice(0, 120) || null, ...(before.donorName || before.publicName ? {} : { showName: !!v }) };
       break;
     case "method":
       data = { method: v.slice(0, 120) || null };
@@ -228,13 +229,15 @@ export async function addDonationRow(fd: FormData): Promise<SheetResult> {
   if (!day) return { error: "Укажите дату." };
   if (!amountRsd) return { error: "Укажите сумму в динарах." };
   const catId = String(fd.get("catId") ?? "");
+  const name = String(fd.get("donorName") ?? "").trim();
   const data = {
     date: day,
     amountRsd,
-    donorName: String(fd.get("donorName") ?? "").trim().slice(0, 200) || null,
+    donorName: name.slice(0, 200) || null,
+    publicName: name.slice(0, 120) || null,
     method: String(fd.get("method") ?? "").trim().slice(0, 120) || null,
     catId: isId(catId) ? catId : null,
-    showName: false,
+    showName: !!name,
     state: "PUBLISHED" as const,
     createdById: user.id,
   };
