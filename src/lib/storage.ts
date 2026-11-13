@@ -135,3 +135,32 @@ export async function storePrivateFile(data: Buffer, originalName: string, allow
     originalName: originalName.slice(0, 200),
   };
 }
+
+/** Longest side of a stored receipt photo; fiscal receipts stay readable, QR codes scannable. */
+const RECEIPT_MAX_SIDE = 2000;
+
+/**
+ * Shrinks a receipt photo before it is stored: phone photos of 3–6 MB become
+ * a ~200–400 KB WebP. EXIF (including GPS) is dropped. PDFs, and images sharp
+ * cannot decode (some HEIC), are returned untouched.
+ */
+export async function compressReceipt(data: Buffer, originalName: string): Promise<{ data: Buffer; name: string }> {
+  const mime = sniffMime(data);
+  if (!mime || !IMAGE_MIME.includes(mime)) return { data, name: originalName };
+  try {
+    const out = await sharp(data, { failOn: "error" })
+      .rotate()
+      .resize({ width: RECEIPT_MAX_SIDE, height: RECEIPT_MAX_SIDE, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 75 })
+      .toBuffer();
+    if (out.length >= data.length) return { data, name: originalName };
+    return { data: out, name: originalName.replace(/\.[^.]+$/, "") + ".webp" };
+  } catch {
+    return { data, name: originalName };
+  }
+}
+
+/** Removes a private file (used when a just-made entry is undone). */
+export async function deleteFile(storageKey: string) {
+  await rm(resolveKey(storageKey), { force: true });
+}

@@ -64,6 +64,20 @@ export class Telegram {
     });
   }
 
+  /** Sends with the persistent keyboard under the input field (buttons that type text). */
+  sendWithKeyboard(chatId: number, text: string, keyboard: string[][]) {
+    return this.call<TgMessage>("sendMessage", {
+      chat_id: chatId,
+      text: text.slice(0, 4000),
+      disable_web_page_preview: true,
+      reply_markup: { keyboard: keyboard.map((row) => row.map((t) => ({ text: t }))), resize_keyboard: true, is_persistent: true },
+    });
+  }
+
+  editButtons(chatId: number, messageId: number, buttons: InlineButton[][]) {
+    return this.call("editMessageReplyMarkup", { chat_id: chatId, message_id: messageId, reply_markup: { inline_keyboard: buttons } });
+  }
+
   editMessage(chatId: number, messageId: number, text: string, buttons?: InlineButton[][]) {
     return this.call<TgMessage>("editMessageText", {
       chat_id: chatId,

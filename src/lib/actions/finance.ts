@@ -7,7 +7,7 @@ import { db } from "../db";
 import { audit } from "../audit";
 import { requireUser } from "../auth/session";
 import { bool, date, ids, int, localized, optStr, str } from "../admin/form";
-import { storePrivateFile } from "../storage";
+import { compressReceipt, storePrivateFile } from "../storage";
 
 // Two-step workflow (decision 5.5): draft -> published. Whoever entered a
 // record may publish it; every change keeps the previous values in the audit.
@@ -23,7 +23,8 @@ async function attachFiles(fd: FormData, userId: string) {
   const files = fd.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
   const stored: string[] = [];
   for (const file of files) {
-    const meta = await storePrivateFile(Buffer.from(await file.arrayBuffer()), file.name);
+    const small = await compressReceipt(Buffer.from(await file.arrayBuffer()), file.name);
+    const meta = await storePrivateFile(small.data, small.name);
     const row = await db.storedFile.create({ data: { ...meta, createdById: userId } });
     stored.push(row.id);
   }

@@ -17,7 +17,7 @@ export function belgradeToday(): string {
 }
 
 /** Rates for foreign-currency amounts: BOT_RATES="EUR=117.2,USD=100". */
-function rates(): Record<string, number> {
+export function rates(): Record<string, number> {
   const out: Record<string, number> = {};
   for (const pair of (process.env.BOT_RATES || "EUR=117.2").split(",")) {
     const [k, v] = pair.split("=");
