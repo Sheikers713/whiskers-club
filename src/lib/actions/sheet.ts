@@ -8,7 +8,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "../db";
 import { audit } from "../audit";
 import { requireUser } from "../auth/session";
-import { compressReceipt, storePrivateFile } from "../storage";
+import { compressReceipt, deleteFile, storePrivateFile } from "../storage";
 import { guessCategoryKey } from "../finance/category";
 
 export type SheetResult = { error: string } | { ok: true };
@@ -243,6 +243,52 @@ export async function addDonationRow(fd: FormData): Promise<SheetResult> {
   };
   const saved = await db.donation.create({ data });
   await audit({ actorId: user.id, action: "donation.create", entityType: "Donation", entityId: saved.id, after: { ...data, via: "sheet" } });
+  refresh();
+  return { ok: true };
+}
+
+// ---------------------------------------------------------------------------
+// Deleting a row (with its receipt files). The audit log keeps the full record.
+
+export async function deleteExpenseRow(id: string): Promise<SheetResult> {
+  const user = await requireUser(["FINANCE"]);
+  if (!isId(id)) return { error: "Нет такой записи." };
+  const before = await db.expense.findUnique({ where: { id }, include: { cats: true, files: { include: { file: true } } } });
+  if (!before) return { error: "Запись уже удалена." };
+  const files = before.files.map((f) => f.file);
+  await db.$transaction(async (tx) => {
+    await tx.expense.delete({ where: { id } }); // cat and file links cascade
+    // A file shared with another record stays.
+    for (const f of files) {
+      const used = (await tx.expenseFile.count({ where: { fileId: f.id } })) + (await tx.donationFile.count({ where: { fileId: f.id } }));
+      if (!used) await tx.storedFile.delete({ where: { id: f.id } });
+    }
+  });
+  for (const f of files) {
+    if (!(await db.storedFile.findUnique({ where: { id: f.id } }))) await deleteFile(f.storageKey).catch(() => undefined);
+  }
+  await audit({ actorId: user.id, action: "expense.delete", entityType: "Expense", entityId: id, before, after: { via: "sheet" } });
+  refresh();
+  return { ok: true };
+}
+
+export async function deleteDonationRow(id: string): Promise<SheetResult> {
+  const user = await requireUser(["FINANCE"]);
+  if (!isId(id)) return { error: "Нет такой записи." };
+  const before = await db.donation.findUnique({ where: { id }, include: { files: { include: { file: true } } } });
+  if (!before) return { error: "Запись уже удалена." };
+  const files = before.files.map((f) => f.file);
+  await db.$transaction(async (tx) => {
+    await tx.donation.delete({ where: { id } });
+    for (const f of files) {
+      const used = (await tx.expenseFile.count({ where: { fileId: f.id } })) + (await tx.donationFile.count({ where: { fileId: f.id } }));
+      if (!used) await tx.storedFile.delete({ where: { id: f.id } });
+    }
+  });
+  for (const f of files) {
+    if (!(await db.storedFile.findUnique({ where: { id: f.id } }))) await deleteFile(f.storageKey).catch(() => undefined);
+  }
+  await audit({ actorId: user.id, action: "donation.delete", entityType: "Donation", entityId: id, before, after: { via: "sheet" } });
   refresh();
   return { ok: true };
 }

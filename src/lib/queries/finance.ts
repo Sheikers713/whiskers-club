@@ -125,8 +125,8 @@ export async function getPublicReport(f: ReportFilters) {
 }
 
 /**
- * All-time totals for the home page counters. "Raised" counts donations only;
- * the opening balance is added to the balance, not to what was raised.
+ * All-time totals for the home page counters. The opening balance counts as
+ * raised: it was donations too, from before the books were kept here.
  */
 export async function getFinanceTotals() {
   const [inc, exp, settings] = await Promise.all([
@@ -137,5 +137,5 @@ export async function getFinanceTotals() {
   const raisedRsd = inc._sum.amountRsd ?? 0;
   const spentRsd = exp._sum.amountRsd ?? 0;
   const openingRsd = settings.openingBalance?.amountRsd ?? 0;
-  return { raisedRsd, spentRsd, openingRsd, balanceRsd: openingRsd + raisedRsd - spentRsd };
+  return { raisedRsd: openingRsd + raisedRsd, spentRsd, openingRsd, balanceRsd: openingRsd + raisedRsd - spentRsd };
 }

@@ -10,6 +10,8 @@ import { AuditTrail } from "@/components/admin/AuditTrail";
 import { FileInput } from "@/components/admin/FileInput";
 import { CatPicker } from "@/components/admin/CatPicker";
 import { loadPickerCats } from "@/lib/queries/picker-cats";
+import { DeleteRecord } from "@/components/admin/DeleteRecord";
+import { deleteDonationRow } from "@/lib/actions/sheet";
 
 export const metadata = { title: "Поступление" };
 
@@ -97,6 +99,7 @@ export default async function DonationPage({ params, searchParams }: PageProps<"
         </Card>
         <button className={btnCls}>{d ? "Сохранить" : "Внести"}</button>
       </ActionForm>
+      {d && <DeleteRecord what={`донат ${d.amountRsd} RSD`} action={deleteDonationRow.bind(null, d.id)} back="/admin/donations" />}
       {d && <AuditTrail entityType="Donation" entityId={d.id} />}
     </div>
   );

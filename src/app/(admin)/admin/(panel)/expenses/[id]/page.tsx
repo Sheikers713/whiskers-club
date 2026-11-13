@@ -10,6 +10,8 @@ import { AuditTrail } from "@/components/admin/AuditTrail";
 import { FileInput } from "@/components/admin/FileInput";
 import { CatPicker } from "@/components/admin/CatPicker";
 import { loadPickerCats } from "@/lib/queries/picker-cats";
+import { DeleteRecord } from "@/components/admin/DeleteRecord";
+import { deleteExpenseRow } from "@/lib/actions/sheet";
 
 export const metadata = { title: "Расход" };
 
@@ -103,6 +105,7 @@ export default async function ExpensePage({ params, searchParams }: PageProps<"/
         </Card>
         <button className={btnCls}>{e ? "Сохранить" : "Внести"}</button>
       </ActionForm>
+      {e && <DeleteRecord what={`расход ${e.amountRsd} RSD «${e.description}»`} action={deleteExpenseRow.bind(null, e.id)} back="/admin/expenses" />}
       {e && <AuditTrail entityType="Expense" entityId={e.id} />}
     </div>
   );
