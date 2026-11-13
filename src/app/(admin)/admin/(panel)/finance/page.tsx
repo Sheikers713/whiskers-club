@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { t } from "@/lib/i18n/localized";
 import { formatNumber, formatShortDate } from "@/lib/format";
+import { getSettings } from "@/lib/settings";
 import { PageTitle, btnCls, btnSecondaryCls } from "@/components/admin/ui";
 
 export const metadata = { title: "Таблица расходов и донатов" };
@@ -71,6 +72,12 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const published = <T extends { state: string }>(rows: T[]) => rows.filter((r) => r.state === "PUBLISHED");
   const spent = published(expenses).reduce((s, e) => s + e.share, 0);
   const raised = published(donations).reduce((s, d) => s + d.amountRsd, 0);
+  // The opening balance (money on hand before the records start) counts for the
+  // whole fund; the part spent on particular cats counts in their tabs.
+  const opening = (await getSettings()).openingBalance;
+  const openingRsd =
+    tab === "all" ? opening.amountRsd : tab === "general" ? 0 : (opening.cats?.find((c) => c.catId === tab)?.amountRsd ?? 0);
+  const balance = openingRsd + raised - spent;
   const since = [expenses[0]?.date, donations[0]?.date].filter(Boolean).sort((a, b) => +a! - +b!)[0];
 
   const tabCls = (active: boolean) =>
@@ -88,6 +95,24 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
       >
         Расходы и донаты
       </PageTitle>
+
+      <table className="mb-6 w-full max-w-md border-collapse text-sm font-semibold">
+        <tbody>
+          {openingRsd > 0 && (
+            <tr>
+              <td className={cell}>
+                Начальный остаток{opening.date ? ` на ${formatShortDate(opening.date, "ru")}` : ""}
+                {tab !== "all" && <span className="block text-xs font-normal text-ink-soft">часть, потраченная на этого кота</span>}
+              </td>
+              <td className={num}>{n(openingRsd)}</td>
+            </tr>
+          )}
+          <tr><td className={cell}>Итого донаты</td><td className={num}>{n(raised)}</td></tr>
+          <tr><td className={cell}>Итого расходы</td><td className={num}>{n(spent)}</td></tr>
+          <tr><td className={cell}>Остаток</td><td className={`${num} ${balance < 0 ? "text-brick" : ""}`}>{n(balance)}</td></tr>
+        </tbody>
+      </table>
+      <p className="-mt-4 mb-6 text-xs text-ink-soft">В итогах только опубликованные записи. Переводы между сборами здесь не учитываются.</p>
 
       <nav className="-mb-px flex gap-1 overflow-x-auto">
         <Link href="/admin/finance" className={tabCls(tab === "all")}>Все</Link>
@@ -193,16 +218,6 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
             </tfoot>
           </table>
 
-          <table className="mt-6 w-full border-collapse text-sm font-semibold">
-            <tbody>
-              <tr><td className={cell}>Итого донаты</td><td className={num}>{n(raised)}</td></tr>
-              <tr><td className={cell}>Итого расходы</td><td className={num}>{n(spent)}</td></tr>
-              <tr><td className={cell}>Остаток</td><td className={`${num} ${raised - spent < 0 ? "text-brick" : ""}`}>{n(raised - spent)}</td></tr>
-            </tbody>
-          </table>
-          <p className="mt-2 text-xs text-ink-soft">
-            В итогах только опубликованные записи. Начальный остаток и переводы между сборами здесь не учитываются, полный баланс на странице «Прозрачность».
-          </p>
         </section>
       </div>
     </div>
