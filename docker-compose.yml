@@ -73,6 +73,8 @@ services:
       STORAGE_DIR: /data/uploads
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_ADMIN_IDS: ${TELEGRAM_ADMIN_IDS:-}
+      # Volunteers: may only add expenses and donations (/expense, /donation).
+      TELEGRAM_VOLUNTEER_IDS: ${TELEGRAM_VOLUNTEER_IDS:-}
       # RSD per unit for donations/expenses written in other currencies.
       BOT_RATES: ${BOT_RATES:-EUR=117.2}
       AI_ENABLED: ${AI_ENABLED:-false}

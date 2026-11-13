@@ -11,28 +11,50 @@
  * ids), DATABASE_URL, STORAGE_DIR, OLLAMA_URL, OLLAMA_MODEL, AI_ENABLED, APP_URL.
  */
 import { randomBytes } from "node:crypto";
-import { db } from "../lib/db";
 import { actorFor, applyPlan, loadContext, type Upload } from "./apply";
 import { parseMessage } from "./llm";
 import { transcribe } from "./voice";
 import { describe, normalize, type Plan, type SiteContext } from "./plan";
 import { Telegram, type TgMessage, type TgUpdate, type TgUser } from "./telegram";
+import { DONATION_BUTTON, EXPENSE_BUTTON, flowCommand } from "./finance";
+import { cancelFlow, hasFlow, onFlowCallback, onFlowMessage, startFlow, whoFrom } from "./finance-flow";
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
-// Numeric ids, or @usernames (case-insensitive) for admins whose id is not known yet.
-const adminEntries = (process.env.TELEGRAM_ADMIN_IDS || "").split(/[\s,]+/).filter(Boolean);
-const adminIds = new Set(adminEntries.filter((e) => /^\d+$/.test(e)).map(Number));
-const adminNames = new Set(adminEntries.filter((e) => !/^\d+$/.test(e)).map((e) => e.replace(/^@/, "").toLowerCase()));
-
-function isAdmin(user: TgUser | undefined): boolean {
-  if (!user) return false;
-  if (adminIds.has(user.id)) return true;
-  if (user.username && adminNames.has(user.username.toLowerCase())) {
-    console.log(`[bot] admin @${user.username} has id ${user.id}`);
-    return true;
-  }
-  return false;
+// Numeric ids, or @usernames (case-insensitive) for people whose id is not known yet.
+function allowList(env: string | undefined) {
+  const entries = (env || "").split(/[\s,]+/).filter(Boolean);
+  const ids = new Set(entries.filter((e) => /^\d+$/.test(e)).map(Number));
+  const names = new Set(entries.filter((e) => !/^\d+$/.test(e)).map((e) => e.replace(/^@/, "").toLowerCase()));
+  return {
+    entries,
+    has(user: TgUser | undefined, role: string): boolean {
+      if (!user) return false;
+      if (ids.has(user.id)) return true;
+      if (user.username && names.has(user.username.toLowerCase())) {
+        console.log(`[bot] ${role} @${user.username} has id ${user.id}`);
+        return true;
+      }
+      return false;
+    },
+  };
 }
+// Admins may change anything on the site; volunteers only add expenses and donations.
+const admins = allowList(process.env.TELEGRAM_ADMIN_IDS);
+const volunteers = allowList(process.env.TELEGRAM_VOLUNTEER_IDS);
+const adminEntries = admins.entries;
+const isAdmin = (user: TgUser | undefined) => admins.has(user, "admin");
+const isVolunteer = (user: TgUser | undefined) => isAdmin(user) || volunteers.has(user, "volunteer");
+
+const LINK_HINT = (id: number) =>
+  `Чтобы на сайте было видно, кто внёс запись, впишите ваш Telegram id ${id} в админке: «Профиль» → «Telegram chat id для уведомлений».`;
+
+const FINANCE_KEYBOARD = [[EXPENSE_BUTTON, DONATION_BUTTON]];
+const VOLUNTEER_HELP = `Здесь записываются расходы и донаты Whiskers Club, сразу на сайт.
+
+• «${EXPENSE_BUTTON}» или /expense: сумма, дата, коты, категория, описание и фото чека (или «Без чека»).
+• «${DONATION_BUTTON}» или /donation: сумма, дата, коты, способ оплаты, от кого.
+
+Если выбрать несколько котов, сумма разделится поровну. Перед записью я покажу сводку, а после записи её можно отменить в течение суток. /cancel прерывает ввод.`;
 
 type Proposal = {
   id: string;
@@ -143,28 +165,35 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
 
   console.log(`[bot] message from ${userId} in ${first.chat.type}: ${messages.map(messageKind).join(", ")}`);
   if (first.chat.type !== "private") return;
-  if (!isAdmin(first.from)) {
-    await tg.sendMessage(chatId, `Этот бот только для админов Whiskers Club. Ваш Telegram id: ${userId}. Перешлите его администратору, чтобы получить доступ.`);
-    console.log(`[bot] message from non-admin ${userId} (@${first.from?.username ?? "-"})`);
+  if (!isVolunteer(first.from)) {
+    await tg.sendMessage(chatId, `Этот бот только для волонтёров Whiskers Club. Ваш Telegram id: ${userId}. Перешлите его администратору, чтобы получить доступ.`);
+    console.log(`[bot] message from stranger ${userId} (@${first.from?.username ?? "-"})`);
     return;
+  }
+  const admin = isAdmin(first.from);
+
+  // /расход, /донат and the keyboard buttons start a step-by-step entry.
+  const kind = flowCommand(text);
+  if (kind) {
+    proposals.delete(chatId);
+    return void (await startFlow(tg, chatId, kind));
   }
 
   if (text.startsWith("/")) {
-    const [cmd, ...args] = text.split(/\s+/);
-    if (cmd === "/start" || cmd === "/help") return void (await tg.sendMessage(chatId, HELP));
+    const [cmd] = text.split(/\s+/);
+    if (cmd === "/start" || cmd === "/help") {
+      return void (await tg.sendWithKeyboard(chatId, admin ? `${HELP}\n\n${VOLUNTEER_HELP}` : VOLUNTEER_HELP, FINANCE_KEYBOARD));
+    }
     if (cmd === "/id") return void (await tg.sendMessage(chatId, `Ваш Telegram id: ${userId}`));
     if (cmd === "/cancel") {
       proposals.delete(chatId);
+      cancelFlow(chatId);
       return void (await tg.sendMessage(chatId, "Отменил."));
     }
-    if (cmd === "/link") {
-      const email = args[0]?.toLowerCase();
-      const user = email ? await db.user.findUnique({ where: { email } }) : null;
-      if (!user) return void (await tg.sendMessage(chatId, "Напишите /link и email, с которым вы входите в админку сайта."));
-      await db.user.update({ where: { id: user.id }, data: { telegramChatId: String(userId) } });
-      return void (await tg.sendMessage(chatId, `Готово: изменения из Telegram будут записаны от имени ${user.name}, и сюда будут приходить уведомления сайта.`));
-    }
-    return void (await tg.sendMessage(chatId, HELP));
+    // Linking is done only in the admin (Профиль → Telegram chat id): a bot command
+    // could not prove that the email belongs to the person typing it.
+    if (cmd === "/link") return void (await tg.sendMessage(chatId, LINK_HINT(userId)));
+    return void (await tg.sendWithKeyboard(chatId, admin ? HELP : VOLUNTEER_HELP, FINANCE_KEYBOARD));
   }
 
   // Voice messages (and round videos) become text first, then go the same way as typed ones.
@@ -186,6 +215,15 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
   }
 
   const { uploads, errors } = await collectUploads(tg, messages);
+  if (hasFlow(chatId)) {
+    if (errors.length) await tg.sendMessage(chatId, errors.join("\n"));
+    await onFlowMessage(tg, chatId, text, uploads);
+    return;
+  }
+  if (!admin) {
+    await tg.sendWithKeyboard(chatId, `Чтобы записать расход или донат, нажмите кнопку внизу.\n\n${VOLUNTEER_HELP}`, FINANCE_KEYBOARD);
+    return;
+  }
   if (!text && !uploads.length) {
     await tg.sendMessage(chatId, errors.join("\n") || "Такое сообщение я прочитать не могу. Напишите текстом, голосовым или пришлите фото.");
     return;
@@ -225,7 +263,12 @@ async function onMessages(tg: Telegram, messages: TgMessage[]) {
 async function onCallback(tg: Telegram, q: NonNullable<TgUpdate["callback_query"]>) {
   const [action, id] = (q.data ?? "").split(":");
   const chatId = q.message?.chat.id;
-  if (!chatId || !isAdmin(q.from)) return void (await tg.answerCallback(q.id));
+  if (!chatId || !isVolunteer(q.from)) return void (await tg.answerCallback(q.id));
+  if (/^[fu]:/.test(q.data ?? "")) {
+    await onFlowCallback(tg, q, whoFrom(q.from, await actorFor(q.from.id)));
+    return;
+  }
+  if (!isAdmin(q.from)) return void (await tg.answerCallback(q.id));
   const p = proposals.get(chatId);
   if (!p || p.id !== id) {
     await tg.answerCallback(q.id, "Это предложение уже неактуально");
@@ -243,7 +286,7 @@ async function onCallback(tg: Telegram, q: NonNullable<TgUpdate["callback_query"
   const actor = await actorFor(q.from.id);
   const result = await applyPlan(p.plan, p.ctx, p.uploads, actor?.id ?? null);
   const lines = [...result.done.map((d) => `✅ ${d}`), ...result.notes.map((n) => `⚠️ ${n}`)];
-  if (!actor) lines.push("", "Подсказка: /link ваш@email свяжет Telegram с вашим аккаунтом в админке.");
+  if (!actor) lines.push("", LINK_HINT(q.from.id));
   await tg.editMessage(chatId, p.previewId, `${describe(p.plan, p.ctx, p.uploads.length)}\n\n${lines.join("\n")}`);
 }
 
@@ -258,11 +301,12 @@ async function main() {
   }
   const tg = new Telegram(token);
   const me = await tg.call<{ username: string }>("getMe");
-  console.log(`[bot] @${me.username} started; admins: ${adminEntries.join(", ") || "none"}`);
+  console.log(`[bot] @${me.username} started; admins: ${adminEntries.join(", ") || "none"}; volunteers: ${volunteers.entries.length}`);
   await tg.call("setMyCommands", {
     commands: [
+      { command: "expense", description: "Записать расход" },
+      { command: "donation", description: "Записать донат" },
       { command: "help", description: "Как пользоваться" },
-      { command: "link", description: "Связать с аккаунтом админки: /link email" },
       { command: "cancel", description: "Отменить текущее предложение" },
       { command: "id", description: "Мой Telegram id" },
     ],

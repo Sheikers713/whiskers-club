@@ -8,6 +8,7 @@ const nav: Array<{ href: string; label: string; roles: Role[] }> = [
   { href: "/admin", label: "Главная", roles: ["EDITOR", "FINANCE"] },
   { href: "/admin/cats", label: "Коты", roles: ["EDITOR"] },
   { href: "/admin/applications", label: "Заявки", roles: ["EDITOR"] },
+  { href: "/admin/finance", label: "Таблица денег", roles: ["FINANCE"] },
   { href: "/admin/donations", label: "Поступления", roles: ["FINANCE"] },
   { href: "/admin/expenses", label: "Расходы", roles: ["FINANCE"] },
   { href: "/admin/campaigns", label: "Сборы", roles: ["FINANCE"] },
