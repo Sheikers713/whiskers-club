@@ -4,27 +4,22 @@ import { db } from "@/lib/db";
 import { t } from "@/lib/i18n/localized";
 import { formatNumber, formatShortDate } from "@/lib/format";
 import { getSettings } from "@/lib/settings";
-import { PageTitle, btnCls, btnSecondaryCls } from "@/components/admin/ui";
+import { toDateInput } from "@/lib/admin/form";
+import { PageTitle } from "@/components/admin/ui";
+import { DonationSheet, ExpenseSheet } from "./Sheet";
 
 export const metadata = { title: "Таблица расходов и донатов" };
 
 /**
  * Expenses and donations laid out like the volunteers' Google Sheet: expenses
  * on the left (Дата, Сумма, На что, Чеки), donations on the right (Дата,
- * Сумма, От кого), oldest first, a tab per cat. A shared expense shows the
+ * Сумма, От кого), newest first, a tab per cat, every cell editable (Sheet.tsx). A shared expense shows the
  * cat's equal share in that cat's tab, as on the cat's public page.
  */
 
 const cell = "border border-line px-2 py-1.5 align-top";
 const num = `${cell} text-right tabular-nums whitespace-nowrap`;
-const head = "whitespace-nowrap border border-line bg-milk px-2 py-1.5 text-left text-sm font-semibold";
-const dm = (d: Date) => formatShortDate(d, "ru").slice(0, 5);
 const n = (v: number) => formatNumber(v, "ru");
-
-function DraftMark({ state }: { state: string }) {
-  if (state === "PUBLISHED") return null;
-  return <span className="ml-1 rounded bg-line px-1 text-xs text-ink-soft">{state === "DRAFT" ? "черновик" : "скрыто"}</span>;
-}
 
 export default async function FinanceSheet({ searchParams }: PageProps<"/admin/finance">) {
   await requireUser(["FINANCE"]);
@@ -34,15 +29,15 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const [expensesAll, donationsAll] = await Promise.all([
     db.expense.findMany({
       where: { state: { not: "ARCHIVED" } },
-      orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
       include: {
         cats: { include: { cat: { select: { id: true, name: true } } } },
-        files: { select: { fileId: true }, take: 3 },
+        files: { select: { fileId: true } },
       },
     }),
     db.donation.findMany({
       where: { state: { not: "ARCHIVED" } },
-      orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
       include: { cat: { select: { id: true, name: true } }, campaign: { select: { title: true } } },
     }),
   ]);
@@ -68,7 +63,15 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const donations = donationsAll.filter((d) =>
     tab === "all" ? true : tab === "general" ? !d.catId : d.catId === tab,
   );
-  const showCats = tab === "all";
+  // Cats to pick from: everyone in our care now, plus any cat already on a record.
+  const [allCats, paymentMethods] = await Promise.all([
+    db.cat.findMany({ select: { id: true, name: true, state: true, status: { select: { group: true } } } }),
+    db.paymentMethod.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
+  ]);
+  const catOptions = allCats
+    .map((c) => ({ id: c.id, name: t(c.name, "ru"), active: c.state !== "ARCHIVED" && c.status.group === "ACTIVE" }))
+    .sort((a, b) => Number(b.active) - Number(a.active) || a.name.localeCompare(b.name, "ru"));
+  const methods = [...new Set([...paymentMethods.map((m) => t(m.title, "ru")).filter(Boolean), "Наличные", "Другое"])];
   const published = <T extends { state: string }>(rows: T[]) => rows.filter((r) => r.state === "PUBLISHED");
   const spent = published(expenses).reduce((s, e) => s + e.share, 0);
   const raised = published(donations).reduce((s, d) => s + d.amountRsd, 0);
@@ -87,19 +90,18 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
           ]
         : (opening.cats ?? []).filter((c) => c.catId === tab).map((c) => ({ label: "Покрыто из общего фонда Whiskers Club", amount: c.amountRsd }));
   const balance = fundRows.reduce((s, r) => s + r.amount, 0) + raised - spent;
-  const since = [expenses[0]?.date, donations[0]?.date].filter(Boolean).sort((a, b) => +a! - +b!)[0];
 
   const tabCls = (active: boolean) =>
     `whitespace-nowrap rounded-t-lg border border-b-0 border-line px-3 py-1.5 text-sm ${active ? "bg-paper font-semibold" : "bg-milk text-ink-soft hover:text-ink"}`;
 
   return (
-    <div className="max-w-[90rem]">
+    <div className="max-w-[120rem]">
       <PageTitle
         action={
-          <div className="flex flex-wrap gap-2">
-            <Link href="/admin/expenses/new" className={btnCls}>+ Расход</Link>
-            <Link href="/admin/donations/new" className={btnSecondaryCls}>+ Донат</Link>
-          </div>
+          <p className="text-sm text-ink-soft">
+            Нажмите на ячейку, чтобы изменить. Полные формы:{" "}
+            <Link href="/admin/expenses/new" className="underline">расход</Link>, <Link href="/admin/donations/new" className="underline">донат</Link>
+          </p>
         }
       >
         Расходы и донаты
@@ -131,102 +133,49 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
         <Link href="/admin/finance?cat=general" className={tabCls(tab === "general")}>Без кота</Link>
       </nav>
 
-      <div className="grid gap-6 rounded-b-[var(--radius-card)] rounded-tr-[var(--radius-card)] bg-paper p-3 ring-1 ring-line xl:grid-cols-[3fr_2fr]">
-        <section className="min-w-0 overflow-x-auto">
-          <h2 className="mb-2 text-center text-lg font-bold">Расходы{since ? ` с ${formatShortDate(since, "ru")}` : ""}</h2>
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className={head}>Дата</th>
-                <th className={head}>Сумма (RSD)</th>
-                <th className={head}>На что</th>
-                {showCats && <th className={head}>Коты</th>}
-                <th className={head}>Чеки</th>
-                <th className={head}>Внёс</th>
-              </tr>
-            </thead>
-            <tbody>
-              {expenses.map((e) => (
-                <tr key={e.id} className="hover:bg-milk">
-                  <td className={num}>
-                    <Link href={`/admin/expenses/${e.id}`} className="hover:underline">{dm(e.date)}</Link>
-                  </td>
-                  <td className={num} title={e.share !== e.amountRsd ? `Доля из ${n(e.amountRsd)} на ${e.cats.length} котов` : undefined}>
-                    {n(e.share)}
-                    {e.share !== e.amountRsd && <span className="block text-xs text-ink-soft">из {n(e.amountRsd)}</span>}
-                  </td>
-                  <td className={cell}>
-                    <Link href={`/admin/expenses/${e.id}`} className="hover:underline">{e.description}</Link>
-                    <DraftMark state={e.state} />
-                  </td>
-                  {showCats && <td className={cell}>{e.cats.map((c) => t(c.cat.name, "ru")).join(", ")}</td>}
-                  <td className={cell}>
-                    {e.files.length > 0
-                      ? e.files.map((f, i) => (
-                          <a key={f.fileId} href={`/admin/files/${f.fileId}`} target="_blank" className="mr-2 text-brick underline">
-                            чек{e.files.length > 1 ? ` ${i + 1}` : ""}
-                          </a>
-                        ))
-                      : <span className="text-ink-soft">{e.noReceiptReason || (e.proof === "NONE" ? "без чека" : "")}</span>}
-                  </td>
-                  <td className={`${cell} text-ink-soft`}>{addedBy(e)}</td>
-                </tr>
-              ))}
-              {expenses.length === 0 && (
-                <tr><td colSpan={showCats ? 6 : 5} className={`${cell} text-ink-soft`}>Расходов нет.</td></tr>
-              )}
-            </tbody>
-            <tfoot>
-              <tr className="font-semibold">
-                <td className={cell}>Итого</td>
-                <td className={num}>{n(spent)}</td>
-                <td className={cell} colSpan={showCats ? 4 : 3} />
-              </tr>
-            </tfoot>
-          </table>
+      <div className="grid gap-8 rounded-b-[var(--radius-card)] rounded-tr-[var(--radius-card)] bg-paper p-3 ring-1 ring-line min-[1900px]:grid-cols-[3fr_2fr]">
+        <section className="min-w-0">
+          <h2 className="mb-2 text-center text-lg font-bold">Расходы</h2>
+          <ExpenseSheet
+            rows={expenses.map((e) => ({
+              id: e.id,
+              date: toDateInput(e.date),
+              amountRsd: e.amountRsd,
+              share: e.share,
+              description: e.description,
+              catIds: e.cats.map((c) => c.cat.id),
+              fileIds: e.files.map((f) => f.fileId),
+              driveUrl: e.files.length ? null : (e.internalComment?.match(/Чек: (https:\/\/\S+)/)?.[1] ?? null),
+              proof: e.proof,
+              noReceiptReason: e.noReceiptReason,
+              state: e.state,
+              addedBy: addedBy(e),
+            }))}
+            cats={catOptions}
+            defaultCatIds={tab !== "all" && tab !== "general" ? [tab] : []}
+          />
+          <p className="mt-1 text-right text-sm font-semibold">Итого: {n(spent)}</p>
         </section>
 
-        <section className="min-w-0 overflow-x-auto">
-          <h2 className="mb-2 text-center text-lg font-bold">Донаты{since ? ` с ${formatShortDate(since, "ru")}` : ""}</h2>
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr>
-                <th className={head}>Дата</th>
-                <th className={head}>Сумма (RSD)</th>
-                <th className={head}>От кого</th>
-                {showCats && <th className={head}>Кот</th>}
-                <th className={head}>Внёс</th>
-              </tr>
-            </thead>
-            <tbody>
-              {donations.map((d) => (
-                <tr key={d.id} className="hover:bg-milk">
-                  <td className={num}>
-                    <Link href={`/admin/donations/${d.id}`} className="hover:underline">{formatShortDate(d.date, "ru")}</Link>
-                  </td>
-                  <td className={num}>{n(d.amountRsd)}</td>
-                  <td className={cell}>
-                    <Link href={`/admin/donations/${d.id}`} className="hover:underline">{d.donorName || d.publicName || "Аноним"}</Link>
-                    {d.method && <span className="block text-xs text-ink-soft">{d.method}</span>}
-                    <DraftMark state={d.state} />
-                  </td>
-                  {showCats && <td className={cell}>{d.cat ? t(d.cat.name, "ru") : d.campaign ? t(d.campaign.title, "ru") : ""}</td>}
-                  <td className={`${cell} text-ink-soft`}>{addedBy(d)}</td>
-                </tr>
-              ))}
-              {donations.length === 0 && (
-                <tr><td colSpan={showCats ? 5 : 4} className={`${cell} text-ink-soft`}>Донатов нет.</td></tr>
-              )}
-            </tbody>
-            <tfoot>
-              <tr className="font-semibold">
-                <td className={cell}>Итого</td>
-                <td className={num}>{n(raised)}</td>
-                <td className={cell} colSpan={showCats ? 3 : 2} />
-              </tr>
-            </tfoot>
-          </table>
-
+        <section className="min-w-0">
+          <h2 className="mb-2 text-center text-lg font-bold">Донаты</h2>
+          <DonationSheet
+            rows={donations.map((d) => ({
+              id: d.id,
+              date: toDateInput(d.date),
+              amountRsd: d.amountRsd,
+              donorName: d.donorName ?? d.publicName,
+              method: d.method,
+              catId: d.catId,
+              campaign: d.campaign ? t(d.campaign.title, "ru") : null,
+              state: d.state,
+              addedBy: addedBy(d),
+            }))}
+            cats={catOptions}
+            methods={methods}
+            defaultCatId={tab !== "all" && tab !== "general" ? tab : ""}
+          />
+          <p className="mt-1 text-right text-sm font-semibold">Итого: {n(raised)}</p>
         </section>
       </div>
     </div>

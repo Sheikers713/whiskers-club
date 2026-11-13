@@ -312,8 +312,9 @@ export function normalize(raw: RawPlan, ctx: SiteContext, opts: { photoCount: nu
           date: isoDate(a.date) ?? ctx.today,
           money: m,
           donorName: clean(a.donorName, 200),
-          publicName: clean(a.publicName, 120),
-          showName: a.showName ?? false,
+          publicName: clean(a.publicName ?? a.donorName, 120),
+          // Names are shown unless the donor asked to stay anonymous.
+          showName: a.showName ?? true,
           method: clean(a.method, 120),
           comment: clean(a.comment, 300),
           cat: campaign ? undefined : cat,
@@ -453,8 +454,7 @@ export function describe(plan: Plan, ctx: SiteContext, photoCount: number): stri
       case "donation": {
         out.push(`${n} 💚 Пожертвование ${rsd(ch.money.amountRsd)} (${ch.date})`);
         if (ch.money.original) out.push(`  Пересчёт: ${ch.money.original}`);
-        if (ch.donorName) out.push(`  От: ${ch.donorName} (видно только админам)`);
-        out.push(`  На сайте: ${ch.showName && ch.publicName ? ch.publicName : "Аноним"}`);
+        out.push(`  От: ${ch.showName && ch.publicName ? ch.publicName : ch.donorName ? `${ch.donorName} (на сайте «Аноним»)` : "Аноним"}`);
         if (ch.method) out.push(`  Способ: ${ch.method}`);
         if (ch.comment) out.push(`  Комментарий: ${ch.comment}`);
         out.push(`  Куда: ${ch.campaign ? `сбор «${ch.campaign.title}»` : ch.cat ? `на ${catName(ch.cat)}` : "общий фонд"}`);

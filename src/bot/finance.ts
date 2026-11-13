@@ -40,10 +40,13 @@ export type Draft = {
   noReceiptReason?: string;
   method?: string;
   donorName?: string;
+  /** Filled from the receipt QR code; `verified` = confirmed by the tax office. */
+  scanned?: { verified: boolean };
 };
 
 export const STEPS: Record<Kind, Step[]> = {
-  expense: ["amount", "date", "cats", "category", "description", "receipt", "reason", "confirm"],
+  // No category step: it is guessed from the description (statistics only).
+  expense: ["amount", "date", "cats", "description", "receipt", "reason", "confirm"],
   donation: ["amount", "date", "cats", "method", "donor", "description", "confirm"],
 };
 
@@ -53,6 +56,8 @@ export function nextStep(d: Draft, step?: Step): Step {
   const from = step ? steps.indexOf(step) + 1 : 0;
   for (const s of steps.slice(from)) {
     if (s === "reason" && !d.noReceipt) continue;
+    // What the receipt QR code filled in is shown in the summary, not asked again.
+    if (d.scanned && ((s === "date" && d.date) || (s === "description" && d.description) || (s === "receipt" && d.receipts.length))) continue;
     return s;
   }
   return "confirm";
@@ -173,7 +178,7 @@ export function ruDate(isoDate: string): string {
 export type Lookup = { cats: FlowCat[]; categories: Option[] };
 
 export function catNames(d: Draft, look: Lookup): string {
-  if (!d.catIds.length) return d.kind === "expense" ? "общий расход, без кота" : "в общий фонд, без кота";
+  if (!d.catIds.length) return "общий фонд";
   return d.catIds.map((id) => look.cats.find((c) => c.id === id)?.name ?? "?").join(", ");
 }
 
@@ -192,16 +197,16 @@ export function summary(d: Draft, look: Lookup): string {
         : `  делится поровну: ${shares.map(rsd).join(" / ")}`,
     );
   }
-  if (d.kind === "expense") {
-    const cat = look.categories.find((c) => c.key === d.categoryKey);
-    if (cat) lines.push(`Категория: ${cat.label}`);
-  } else {
+  if (d.kind === "donation") {
     if (d.method) lines.push(`Способ оплаты: ${d.method}`);
-    lines.push(`От кого: ${d.donorName || "не указано"}`);
+    lines.push(`От кого: ${d.donorName || "Аноним"}`);
   }
   if (d.description) lines.push(`${d.kind === "expense" ? "Описание" : "Комментарий"}: ${d.description}`);
   if (d.kind === "expense") {
-    if (d.receipts.length) lines.push(`Чек: ${d.receipts.length === 1 ? "есть" : `${d.receipts.length} файла`}`);
+    if (d.receipts.length) {
+      const qr = d.scanned ? (d.scanned.verified ? ", QR сверен с налоговой" : ", QR прочитан") : "";
+      lines.push(`Чек: ${d.receipts.length === 1 ? "есть" : `${d.receipts.length} файла`}${qr}`);
+    }
     else if (d.noReceipt) lines.push(`Чек: без чека${d.noReceiptReason ? ` (${d.noReceiptReason})` : ""}`);
   }
   return lines.join("\n");
@@ -213,14 +218,17 @@ export type Button = { text: string; callback_data: string };
 const cb = (flow: string, action: string, arg: string | number = "") => `f:${flow}:${action}:${arg}`;
 
 export const NO_RECEIPT_REASONS = ["Рынок / частник, чек не дают", "Чек потерялся", "Перевод на карту"];
-export const DONOR_SKIP = "Не указывать";
+export const DONOR_SKIP = "Аноним";
 
 export function question(step: Step, d: Draft, flow: string, look: Lookup & { methods: string[] }): { text: string; buttons: Button[][] } {
   const back: Button[] = [{ text: "✖️ Отменить", callback_data: cb(flow, "cancel") }];
   switch (step) {
     case "amount":
       return {
-        text: `${d.kind === "expense" ? "🧾 Новый расход." : "💚 Новый донат."} Сколько? Напишите сумму, например 1500 или 20 eur.`,
+        text:
+          d.kind === "expense"
+            ? "🧾 Новый расход. Сколько? Напишите сумму, например 1500 или 20 eur.\nИли пришлите фото фискального чека с QR-кодом, я заполню сумму, дату и что куплено сам."
+            : "💚 Новый донат. Сколько? Напишите сумму, например 1500 или 20 eur.",
         buttons: [back],
       };
     case "date":
@@ -264,7 +272,7 @@ export function question(step: Step, d: Draft, flow: string, look: Lookup & { me
       };
     case "donor":
       return {
-        text: "От кого? Напишите имя. Оно видно только админам, на сайте донат будет анонимным.",
+        text: "От кого? Напишите имя, оно будет на сайте. Если человек хочет остаться анонимным, нажмите «Аноним».",
         buttons: [[{ text: DONOR_SKIP, callback_data: cb(flow, "nodonor") }], back],
       };
     case "confirm":
@@ -291,7 +299,7 @@ export function catButtons(d: Draft, flow: string, cats: FlowCat[]): Button[][] 
     ...rows(toggles, 3),
     [
       {
-        text: d.catIds.length ? `Готово (${d.catIds.length}) ➡️` : d.kind === "expense" ? "Общий, без кота ➡️" : "В общий фонд ➡️",
+        text: d.catIds.length ? `Готово (${d.catIds.length}) ➡️` : "Общий фонд ➡️",
         callback_data: cb(flow, "catsdone"),
       },
     ],
@@ -303,7 +311,7 @@ export function catButtons(d: Draft, flow: string, cats: FlowCat[]): Button[][] 
 export function fixButtons(d: Draft, flow: string): Button[][] {
   const fields: [Step, string][] =
     d.kind === "expense"
-      ? [["amount", "Сумма"], ["date", "Дата"], ["cats", "Коты"], ["category", "Категория"], ["description", "Описание"], ["receipt", "Чек"]]
+      ? [["amount", "Сумма"], ["date", "Дата"], ["cats", "Коты"], ["description", "Описание"], ["receipt", "Чек"]]
       : [["amount", "Сумма"], ["date", "Дата"], ["cats", "Коты"], ["method", "Способ оплаты"], ["donor", "От кого"], ["description", "Комментарий"]];
   return [...rows(fields.map(([s, label]) => ({ text: label, callback_data: cb(flow, "edit", s) })), 3), [{ text: "⬅️ Назад", callback_data: cb(flow, "back") }]];
 }

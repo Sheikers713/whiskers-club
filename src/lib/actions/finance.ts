@@ -8,6 +8,7 @@ import { audit } from "../audit";
 import { requireUser } from "../auth/session";
 import { bool, date, ids, int, localized, optStr, str } from "../admin/form";
 import { compressReceipt, storePrivateFile } from "../storage";
+import { guessCategoryKey } from "../finance/category";
 
 // Two-step workflow (decision 5.5): draft -> published. Whoever entered a
 // record may publish it; every change keeps the previous values in the audit.
@@ -45,14 +46,17 @@ export async function saveDonation(fd: FormData): Promise<ActionResult> {
   const day = date(fd, "date");
   if (!amountRsd || amountRsd <= 0) return { error: "Укажите сумму в динарах." };
   if (!day) return { error: "Укажите дату." };
-  const campaignId = optStr(fd, "campaignId");
+  const before0 = optStr(fd, "id") ? await db.donation.findUnique({ where: { id: optStr(fd, "id")! }, select: { campaignId: true } }) : null;
+  // The simplified form has no campaign field: an existing campaign link stays.
   const catId = optStr(fd, "catId");
+  const campaignId = fd.has("campaignId") ? optStr(fd, "campaignId") : catId ? null : (before0?.campaignId ?? null);
   const data = {
     date: day,
     amountRsd,
+    // One name: the site shows it unless «Скрыть имя» is ticked.
     donorName: optStr(fd, "donorName", 200),
-    publicName: optStr(fd, "publicName", 120),
-    showName: bool(fd, "showName"),
+    publicName: optStr(fd, "donorName", 120),
+    showName: !!optStr(fd, "donorName") && !bool(fd, "hideName"),
     method: optStr(fd, "method", 120),
     comment: optStr(fd, "comment", 300),
     internalComment: optStr(fd, "internalComment", 2000),
@@ -95,11 +99,16 @@ export async function saveExpense(fd: FormData): Promise<ActionResult> {
   const amountRsd = int(fd, "amountRsd");
   const day = date(fd, "date");
   const description = str(fd, "description", 1000);
-  const categoryId = str(fd, "categoryId");
   if (!amountRsd || amountRsd <= 0) return { error: "Укажите сумму в динарах." };
   if (!day) return { error: "Укажите дату." };
   if (!description) return { error: "Опишите, на что потрачено." };
-  if (!(await db.expenseCategory.findUnique({ where: { id: categoryId } }))) return { error: "Выберите категорию." };
+  // The category is guessed from «На что» (statistics only), unless a form still sends one.
+  const category =
+    (fd.has("categoryId") ? await db.expenseCategory.findUnique({ where: { id: str(fd, "categoryId") } }).catch(() => null) : null) ??
+    (await db.expenseCategory.findUnique({ where: { key: guessCategoryKey(description) } })) ??
+    (await db.expenseCategory.findUnique({ where: { key: "other" } }));
+  if (!category) return { error: "Нет категорий расходов." };
+  const categoryId = category.id;
 
   const before = id ? await db.expense.findUnique({ where: { id }, include: { cats: true, files: true } }) : null;
   if (id && !before) redirect("/admin/expenses");
@@ -117,17 +126,22 @@ export async function saveExpense(fd: FormData): Promise<ActionResult> {
   const data = {
     date: day,
     amountRsd,
-    vendor: optStr(fd, "vendor", 200),
+    // Fields the simplified form no longer shows are kept as they are.
+    ...(fd.has("vendor") ? { vendor: optStr(fd, "vendor", 200) } : {}),
     categoryId,
     description,
-    publicSummary: localized(fd, "publicSummary", 500),
+    ...(fd.has("publicSummary.ru") || fd.has("publicSummary.en")
+      ? { publicSummary: localized(fd, "publicSummary", 500) }
+      : before && before.description !== description
+        ? { publicSummary: {} } // a new «На что» replaces an old public text
+        : {}),
     paymentMethod: optStr(fd, "paymentMethod", 120),
     proof,
     noReceiptReason,
     fiscalId: optStr(fd, "fiscalId", 200),
     payer: optStr(fd, "payer", 120),
     internalComment: optStr(fd, "internalComment", 2000),
-    campaignId: optStr(fd, "campaignId"),
+    ...(fd.has("campaignId") ? { campaignId: optStr(fd, "campaignId") } : {}),
     state: pick(str(fd, "state"), states, "DRAFT"),
   };
 
