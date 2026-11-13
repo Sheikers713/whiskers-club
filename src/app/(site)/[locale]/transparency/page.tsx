@@ -102,12 +102,10 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
         </button>
       </form>
 
-      <dl className={`mt-6 grid gap-3 sm:grid-cols-2 ${showOpening ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+      <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[
-          ...(showOpening && report.openingDate
-            ? [{ label: `${dict.report.opening} ${formatShortDate(report.openingDate, locale)}`, value: report.openingRsd }]
-            : []),
-          { label: dict.report.income, value: report.incomeRsd },
+          // The opening balance was donations too (before the books were kept here).
+          { label: dict.report.income, value: report.incomeRsd + (showOpening ? report.openingRsd : 0) },
           { label: dict.report.expenses, value: report.expenseRsd },
           ...(categoryId || catId ? [] : [{ label: dict.report.balance, value: report.balanceRsd }]),
         ].map((s) => (
