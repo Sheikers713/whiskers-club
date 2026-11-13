@@ -6,12 +6,13 @@ import { useEffect, useRef } from "react";
 const SUN_COLORS = ["#efc766", "#e39a46", "#cf6437", "#c82424", "#f5dcd5", "#f8f3eb"];
 const CATS = ["black", "blue", "calico", "ginger", "mackerel", "point", "tortie", "tuxedo"];
 
-const HOLD_MS = 4500; // the sun rests at its peak
-const SET_MS = 1800; // the old sun leaves along the arc...
-const RISE_MS = 2200; // ...and only then the new one rises
+// A full sun cycle is 6.07 s (hold + set + rise), 40% faster than the first 8.5 s.
+const HOLD_MS = 3200; // the sun rests at its peak
+const SET_MS = 1300; // the old sun leaves along the arc...
+const RISE_MS = 1570; // ...and only then the new one rises
 const CAT_DOWN_MS = 650;
 const CAT_UP_MS = 1100;
-const SUNS_PER_CAT = 3;
+const SUNS_PER_CAT = 2;
 
 // Setting accelerates away; rising decelerates and settles with a slight overshoot.
 // The cat never overshoots upwards: that would lift its cropped bottom edge into view.

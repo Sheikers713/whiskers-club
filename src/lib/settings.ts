@@ -43,7 +43,7 @@ export const defaultSettings: SiteSettings = {
   instagramUrl: "https://www.instagram.com/whiskers_club.rs/",
   facebookUrl: "https://www.facebook.com/whiskersclub.rs/",
   youtubeUrl: "https://www.youtube.com/@whiskers_club",
-  tiktokUrl: "",
+  tiktokUrl: "https://www.tiktok.com/@whiskers_club.rs",
   telegramUrl: "",
   paypalUrl: "https://paypal.me/natashuko",
   reportsUrl: "https://docs.google.com/spreadsheets/d/1VcEOPmK-3-YhS6kpLkc3LMb6lw5ahFy0QA55CFb-AsA/edit?usp=drivesdk",
