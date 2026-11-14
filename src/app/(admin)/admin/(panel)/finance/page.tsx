@@ -69,6 +69,21 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
       const share = tab !== "all" && tab !== "general" && e.cats.length > 1 ? Math.round(e.amountRsd / e.cats.length) : e.amountRsd;
       return { ...e, share };
     });
+  // A donation for several cats is stored as one row per cat (an equal share).
+  // Rows of one donation share an import key: "tg:<user>:<entry>:<n>" from the
+  // bot, "xlsx1:<sheet>:D<row>" plus ":2" from the sheet import.
+  const groupOf = (k: string | null) => (k ? (k.startsWith("tg:") ? k.replace(/:\d+$/, "") : k.replace(/:2$/, "")) : null);
+  const groups = new Map<string, typeof donationsAll>();
+  for (const d of donationsAll) {
+    const g = groupOf(d.importKey);
+    if (g) groups.set(g, [...(groups.get(g) ?? []), d]);
+  }
+  const splitOf = (d: (typeof donationsAll)[number]) => {
+    const rows = groups.get(groupOf(d.importKey) ?? "") ?? [];
+    return rows.length > 1
+      ? { total: rows.reduce((s, r) => s + r.amountRsd, 0), cats: rows.map((r) => (r.cat ? t(r.cat.name, "ru") : "общий фонд")) }
+      : null;
+  };
   const donations = donationsAll.filter((d) =>
     tab === "all" ? true : tab === "general" ? !d.catId : d.catId === tab,
   );
@@ -192,6 +207,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
               donorName: d.donorName ?? d.publicName,
               method: d.method,
               catId: d.catId,
+              split: splitOf(d),
               campaign: d.campaign ? t(d.campaign.title, "ru") : null,
               state: d.state,
               addedBy: addedBy(d),

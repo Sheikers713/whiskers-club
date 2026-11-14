@@ -49,6 +49,8 @@ export type SheetDonation = {
   method: string | null;
   catId: string | null;
   campaign: string | null;
+  /** Part of one donation split between several cats (one row per cat). */
+  split?: { total: number; cats: string[] } | null;
   state: string;
   addedBy: string;
 };
@@ -336,7 +338,10 @@ export function DonationSheet({
                   открыть{d.state !== "PUBLISHED" ? (d.state === "DRAFT" ? " · черновик" : " · скрыто") : ""}
                 </Link>
               </td>
-              <td className={cell}><Cell align="right" value={String(d.amountRsd)} save={(v) => updateDonationField(d.id, "amountRsd", v)} /></td>
+              <td className={cell}>
+                <Cell align="right" value={String(d.amountRsd)} save={(v) => updateDonationField(d.id, "amountRsd", v)} />
+                {d.split && <span className="block px-2 pb-1 text-right text-xs text-ink-soft">доля из {n(d.split.total)}</span>}
+              </td>
               <td className={cell}>
                 <Cell value={d.donorName ?? ""} placeholder="Аноним" save={(v) => updateDonationField(d.id, "donorName", v)} />
                 <div className="text-xs text-ink-soft">
@@ -355,6 +360,7 @@ export function DonationSheet({
                     onClose={(ids) => save.run(() => updateDonationField(d.id, "catId" as DonationField, ids[0] ?? ""))}
                   />
                 )}
+                {d.split && <span className="block px-2 pb-1 text-xs text-ink-soft">донат на: {d.split.cats.join(", ")}</span>}
               </td>
               <td className={`${cell} px-2 py-1.5 text-ink-soft`}>
                 {d.addedBy}
