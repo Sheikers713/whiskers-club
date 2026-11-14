@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "./db";
 import type { LocalizedText } from "./i18n/localized";
+import { defaultTheme, normalizeTheme, type Theme } from "./theme";
 
 /** Site-wide settings editable by the superadmin. */
 export type SiteSettings = {
@@ -29,6 +30,8 @@ export type SiteSettings = {
   reportsUrl: string;
   contactEmail: string;
   contactText: LocalizedText;
+  // Colours, fonts, radii and background of the public site («Оформление»).
+  theme: Theme;
 };
 
 export const defaultSettings: SiteSettings = {
@@ -49,6 +52,7 @@ export const defaultSettings: SiteSettings = {
   reportsUrl: "https://docs.google.com/spreadsheets/d/1VcEOPmK-3-YhS6kpLkc3LMb6lw5ahFy0QA55CFb-AsA/edit?usp=drivesdk",
   contactEmail: "",
   contactText: {},
+  theme: defaultTheme,
 };
 
 export async function getSettings(): Promise<SiteSettings> {
@@ -59,6 +63,7 @@ export async function getSettings(): Promise<SiteSettings> {
   }
   // The first default pointed at a wrong account; saved copies of it are fixed here.
   if (out.instagramUrl === "https://www.instagram.com/whiskersclub.rs/") out.instagramUrl = defaultSettings.instagramUrl;
+  out.theme = normalizeTheme(out.theme);
   return out as SiteSettings;
 }
 

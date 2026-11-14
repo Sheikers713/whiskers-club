@@ -16,6 +16,7 @@ const nav: Array<{ href: string; label: string; roles: Role[] }> = [
   { href: "/admin/users", label: "Пользователи", roles: ["SUPERADMIN"] },
   { href: "/admin/taxonomies", label: "Справочники", roles: ["SUPERADMIN"] },
   { href: "/admin/settings", label: "Настройки сайта", roles: ["SUPERADMIN"] },
+  { href: "/admin/design", label: "Оформление", roles: ["SUPERADMIN"] },
   { href: "/admin/audit", label: "Журнал", roles: ["SUPERADMIN"] },
 ];
 

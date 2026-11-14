@@ -4,6 +4,7 @@ import "../../globals.css";
 import { isLocale, locales } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { getSettings } from "@/lib/settings";
+import { themeCss } from "@/lib/theme";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 
@@ -33,6 +34,8 @@ export default async function SiteLayout({ children, params }: LayoutProps<"/[lo
   return (
     <html lang={locale === "sr" ? "sr-Latn" : locale}>
       <body className="min-h-screen antialiased">
+        {/* Theme from «Оформление»: only validated hex colours, whitelisted fonts and numbers. */}
+        <style dangerouslySetInnerHTML={{ __html: themeCss(settings.theme) }} />
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-paper focus:px-4 focus:py-2">
           Skip to content
         </a>
