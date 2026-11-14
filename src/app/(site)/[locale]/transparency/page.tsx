@@ -75,7 +75,7 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
       <h1 className="font-display text-4xl uppercase md:text-6xl">{dict.report.title}</h1>
       <p className="mt-3 max-w-3xl text-ink-soft">{dict.report.intro}</p>
 
-      <form method="get" className="mt-8 grid gap-4 rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line sm:grid-cols-2 lg:grid-cols-4">
+      <form method="get" className="mt-8 grid gap-4 rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line card-shadow sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-sm font-medium">
           {dict.report.from}
           <input type="date" name="from" defaultValue={typeof sp.from === "string" ? sp.from : ""} className={field} />
@@ -107,7 +107,7 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
           { label: dict.report.expenses, value: report.expenseRsd },
           ...(catId ? [] : [{ label: dict.report.balance, value: report.balanceRsd }]),
         ].map((s) => (
-          <div key={s.label} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line">
+          <div key={s.label} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow">
             <dt className="text-sm text-ink-soft">{s.label}</dt>
             <dd className="mt-1 text-2xl font-bold">
               <Money amount={s.value} locale={locale} eurRate={rate} />
@@ -123,7 +123,7 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
             {campaigns.map((c) => {
               const value = raised.get(c.id) ?? 0;
               return (
-                <li key={c.id} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line">
+                <li key={c.id} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow">
                   <div className="flex items-start justify-between gap-3">
                     <h3 className="font-bold">{t(c.title, locale)}</h3>
                     <span className={`shrink-0 rounded-md px-3 py-1 text-xs font-semibold ${c.status === "ACTIVE" ? "bg-brick-soft text-brick-dark" : "bg-milk text-ink-soft"}`}>
@@ -154,7 +154,7 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
         {entries.length === 0 ? (
           <p className="mt-3 text-ink-soft">{dict.report.noRecords}</p>
         ) : (
-          <ul className="mt-4 divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
+          <ul className="mt-4 divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line card-shadow">
             {entries.map((x) => {
               if (x.kind === "in") {
                 const d = x.d;

@@ -77,6 +77,8 @@ export type Theme = {
   radiusCard: number;
   radiusControl: number;
   gradient: { enabled: boolean; from: string; to: string; angle: number };
+  // Soft drop shadow under cards: px, and opacity in percent.
+  shadow: { enabled: boolean; color: string; blur: number; offsetY: number; opacity: number };
 };
 
 /** The brand book look the site has today. Saving nothing keeps exactly this. */
@@ -101,6 +103,7 @@ export const defaultTheme: Theme = {
   radiusCard: 10,
   radiusControl: 7,
   gradient: { enabled: false, from: "#e4e9d8", to: "#ebdfc8", angle: 160 },
+  shadow: { enabled: true, color: "#3b4a2a", blur: 24, offsetY: 8, opacity: 18 },
 };
 
 export const themePresets: { key: string; label: string; note: string; theme: Theme }[] = [
@@ -130,6 +133,7 @@ export const themePresets: { key: string; label: string; note: string; theme: Th
       radiusCard: 22,
       radiusControl: 999,
       gradient: { enabled: true, from: "#e3e9d6", to: "#e9dcc2", angle: 160 },
+      shadow: { enabled: true, color: "#33402c", blur: 28, offsetY: 10, opacity: 20 },
     },
   },
   {
@@ -157,6 +161,7 @@ export const themePresets: { key: string; label: string; note: string; theme: Th
       radiusCard: 16,
       radiusControl: 12,
       gradient: { enabled: true, from: "#e2e9da", to: "#efe3cd", angle: 165 },
+      shadow: { enabled: true, color: "#2f3d2b", blur: 22, offsetY: 8, opacity: 16 },
     },
   },
 ];
@@ -174,6 +179,7 @@ export function normalizeTheme(raw: unknown): Theme {
   const r = (raw && typeof raw === "object" ? raw : {}) as Partial<Record<keyof Theme, unknown>>;
   const c = (r.colors && typeof r.colors === "object" ? r.colors : {}) as Record<string, unknown>;
   const g = (r.gradient && typeof r.gradient === "object" ? r.gradient : {}) as Record<string, unknown>;
+  const sh = (r.shadow && typeof r.shadow === "object" ? r.shadow : {}) as Record<string, unknown>;
   const d = defaultTheme;
   return {
     colors: Object.fromEntries(colorKeys.map((k) => [k, hex(c[k], d.colors[k])])) as Theme["colors"],
@@ -188,6 +194,14 @@ export function normalizeTheme(raw: unknown): Theme {
       from: hex(g.from, d.gradient.from),
       to: hex(g.to, d.gradient.to),
       angle: clamp(g.angle, 0, 360, d.gradient.angle),
+    },
+    shadow: {
+      // Themes saved before the shadow existed get it switched on, as the default has it.
+      enabled: typeof sh.enabled === "boolean" ? sh.enabled : d.shadow.enabled,
+      color: hex(sh.color, d.shadow.color),
+      blur: clamp(sh.blur, 0, 80, d.shadow.blur),
+      offsetY: clamp(sh.offsetY, 0, 40, d.shadow.offsetY),
+      opacity: clamp(sh.opacity, 0, 60, d.shadow.opacity),
     },
   };
 }
@@ -215,6 +229,12 @@ export function themeVars(theme: Theme): Record<string, string> {
     ? `radial-gradient(ellipse 70% 55% at 62% 38%, color-mix(in oklab, ${g.from} 45%, white 55%) 0%, transparent 70%), ` +
       `linear-gradient(${g.angle}deg, ${g.from} 0%, color-mix(in oklab, ${g.from} 55%, ${g.to}) 50%, ${g.to} 100%)`
     : "var(--color-milk)";
+  const sh = t.shadow;
+  const [r, gr, b] = [1, 3, 5].map((i) => parseInt(sh.color.slice(i, i + 2), 16));
+  // A negative spread keeps the blur under the card instead of a halo around it.
+  vars["--card-shadow"] = sh.enabled && sh.opacity > 0
+    ? `0 ${sh.offsetY}px ${sh.blur}px -${Math.round(sh.blur / 4)}px rgb(${r} ${gr} ${b} / ${sh.opacity / 100})`
+    : "0 0 #0000";
   return vars;
 }
 

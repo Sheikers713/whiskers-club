@@ -53,6 +53,15 @@
   --display-weight: 800;
   --display-tracking: -0.045em;
   --page-bg: var(--color-milk);
+  /* Card shadow (soft dark olive by default); the theme sets it. */
+  --card-shadow: 0 8px 24px -6px rgb(59 74 42 / 0.18);
+}
+
+/* Cards: a soft drop shadow under the ring. Through --tw-shadow, so it
+   stacks with Tailwind's ring-1 (also a box-shadow) instead of replacing it. */
+.card-shadow {
+  --tw-shadow: var(--card-shadow);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
 html {

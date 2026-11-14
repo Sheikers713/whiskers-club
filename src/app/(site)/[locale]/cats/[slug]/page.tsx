@@ -259,7 +259,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
           {expenses.length > 0 && (
             <section>
               <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-soft">{dict.cat.expenses}</h2>
-              <ul className="mt-2 divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
+              <ul className="mt-2 divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line card-shadow">
                 {expenses.slice(0, EXPENSES_SHOWN).map(expenseRow)}
               </ul>
               {expenses.length > EXPENSES_SHOWN && (
@@ -267,7 +267,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                   <summary className="cursor-pointer list-none text-sm font-semibold text-brick hover:underline group-open:hidden">
                     {dict.cat.showAllExpenses} ({expenses.length})
                   </summary>
-                  <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line">
+                  <ul className="divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line card-shadow">
                     {expenses.slice(EXPENSES_SHOWN).map(expenseRow)}
                   </ul>
                 </details>
