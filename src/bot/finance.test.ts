@@ -134,7 +134,7 @@ describe("flow", () => {
       noReceiptReason: "Рынок / частник, чек не дают",
     };
     const text = summary(d, look);
-    expect(text).toContain("Коты: общий фонд");
+    expect(text).toContain("Коты: фонд Whiskers Club");
     expect(text).toContain("Чек: без чека (Рынок / частник, чек не дают)");
   });
 });

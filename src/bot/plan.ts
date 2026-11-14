@@ -305,7 +305,7 @@ export function normalize(raw: RawPlan, ctx: SiteContext, opts: { photoCount: nu
               const c = findCat(ctx, a.cat);
               return c && { kind: "existing" as const, cat: c };
             })();
-        if (a.cat && !cat) problems.push(`Пожертвование: не нашёл кота «${a.cat}», запишу в общий фонд.`);
+        if (a.cat && !cat) problems.push(`Пожертвование: не нашёл кота «${a.cat}», запишу в фонд Whiskers Club.`);
         const campaign = a.campaign ? ctx.campaigns.find((c) => c.key === a.campaign) : undefined;
         changes.push({
           type: "donation",
@@ -457,7 +457,7 @@ export function describe(plan: Plan, ctx: SiteContext, photoCount: number): stri
         out.push(`  От: ${ch.showName && ch.publicName ? ch.publicName : ch.donorName ? `${ch.donorName} (на сайте «Аноним»)` : "Аноним"}`);
         if (ch.method) out.push(`  Способ: ${ch.method}`);
         if (ch.comment) out.push(`  Комментарий: ${ch.comment}`);
-        out.push(`  Куда: ${ch.campaign ? `сбор «${ch.campaign.title}»` : ch.cat ? `на ${catName(ch.cat)}` : "общий фонд"}`);
+        out.push(`  Куда: ${ch.campaign ? `сбор «${ch.campaign.title}»` : ch.cat ? `на ${catName(ch.cat)}` : "фонд Whiskers Club"}`);
         break;
       }
       case "expense": {

@@ -376,7 +376,7 @@ export function DonationSheet({
                 {f.label}
                 {f.hint && <span className="block text-xs text-ink-soft">{f.hint}</span>}
               </td>
-              <td className={`${cell} px-2 py-1.5 text-ink-soft`}>Общий фонд</td>
+              <td className={`${cell} px-2 py-1.5 text-ink-soft`}>Фонд Whiskers Club</td>
               <td className={`${cell} px-2 py-1.5 text-xs text-ink-soft`}>меняется в настройках сайта</td>
             </tr>
           ))}

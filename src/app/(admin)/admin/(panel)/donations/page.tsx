@@ -31,7 +31,7 @@ export default async function Donations({ searchParams }: PageProps<"/admin/dona
               <span className="min-w-0">
                 <span className="font-medium">{d.donorName ?? d.publicName ?? "Аноним"}</span>
                 <span className="block truncate text-sm text-ink-soft">
-                  {d.campaign ? t(d.campaign.title, "ru") : d.cat ? t(d.cat.name, "ru") : "Общий фонд"}
+                  {d.campaign ? t(d.campaign.title, "ru") : d.cat ? t(d.cat.name, "ru") : "Фонд Whiskers Club"}
                   {d.showName ? "" : " · имя скрыто"}
                 </span>
               </span>
