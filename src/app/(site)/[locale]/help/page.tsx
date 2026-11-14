@@ -29,7 +29,7 @@ export default async function HelpPage({ params }: PageProps<"/[locale]/help">) 
           { href: "foster", title: dict.help.fosterTitle, text: dict.help.fosterText },
           { href: "partnership", title: dict.help.partnerTitle, text: dict.help.partnerText },
         ].map((c) => (
-          <section key={c.href} className="flex flex-col rounded-[var(--radius-card)] bg-paper p-6 ring-1 ring-line">
+          <section key={c.href} className="flex flex-col rounded-[var(--radius-card)] bg-paper p-6 ring-1 ring-line card-shadow">
             <h2 className="text-xl font-bold">{c.title}</h2>
             <p className="mt-2 flex-1 text-ink-soft">{c.text}</p>
             <Link href={`/${locale}/${c.href}`} className="mt-4 self-start rounded-[var(--radius-control)] bg-ink px-5 py-2.5 font-semibold text-milk hover:bg-brick">

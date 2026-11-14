@@ -13,7 +13,7 @@ export async function PaymentMethods({ locale, dict }: { locale: Locale; dict: D
       {methods.map((m) => {
         const instructions = t(m.instructions, locale);
         return (
-          <li key={m.id} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line">
+          <li key={m.id} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow">
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-lg font-bold">{t(m.title, locale)}</h3>
               {m.currencyNote && <span className="rounded-md bg-milk px-3 py-1 text-xs font-semibold">{m.currencyNote}</span>}
