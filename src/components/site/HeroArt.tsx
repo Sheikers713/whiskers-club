@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react";
 
 // Brand book palette and cats. The sun is never olive: it would vanish into Olive Dot.
-const SUN_COLORS = ["#efc766", "#e39a46", "#cf6437", "#c82424", "#f5dcd5", "#f8f3eb"];
+// Theme tokens, so the suns follow the colours chosen in «Оформление».
+const SUN_COLORS = ["var(--color-sun)", "var(--color-ginger)", "var(--color-orange)", "var(--color-brick)", "var(--color-brick-soft)", "var(--color-paper)"];
 const CATS = ["black", "blue", "calico", "ginger", "mackerel", "point", "tortie", "tuxedo"];
 
 // A full sun cycle is 6.07 s (hold + set + rise), 40% faster than the first 8.5 s.

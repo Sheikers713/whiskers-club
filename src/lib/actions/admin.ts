@@ -11,6 +11,7 @@ import { createResetLink } from "../auth/reset";
 import { appUrl, sendMail } from "../mailer";
 import { getSettings, setSetting, type SiteSettings } from "../settings";
 import { bool, int, localized, optStr, str } from "../admin/form";
+import { normalizeTheme } from "../theme";
 
 const roles: Role[] = ["SUPERADMIN", "EDITOR", "FINANCE"];
 
@@ -234,6 +235,17 @@ export async function saveSettings(fd: FormData) {
   await audit({ actorId: me.id, action: "settings.update", entityType: "SiteSetting", after: values });
   revalidatePath("/", "layout");
   redirect("/admin/settings?saved=1");
+}
+
+/** «Оформление»: colours, fonts, radii and background of the public site. */
+export async function saveTheme(raw: unknown): Promise<{ ok: true }> {
+  const me = await requireUser(["SUPERADMIN"]);
+  const before = (await getSettings()).theme;
+  const theme = normalizeTheme(raw);
+  await setSetting("theme", theme);
+  await audit({ actorId: me.id, action: "settings.theme", entityType: "SiteSetting", before, after: theme });
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 export async function savePartner(fd: FormData) {

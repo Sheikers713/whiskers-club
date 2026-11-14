@@ -1,12 +1,25 @@
 @import "tailwindcss";
 /* Manrope, self-hosted: Cyrillic + Latin Extended (č ć š ž đ), no build-time network. */
 @import "@fontsource-variable/manrope";
+/* Fonts to choose from in «Оформление» (src/lib/theme.ts). All carry Cyrillic and Serbian Latin;
+   unicode-range + font-display mean a browser downloads only the font the theme actually uses. */
+@import "@fontsource-variable/onest";
+@import "@fontsource-variable/golos-text";
+@import "@fontsource-variable/rubik";
+@import "@fontsource-variable/montserrat";
+@import "@fontsource-variable/unbounded";
+@import "@fontsource-variable/comfortaa";
+@import "@fontsource-variable/lora";
+@import "@fontsource-variable/playfair-display";
 
 /*
  * Design tokens from the Whiskers Club brand book (15.10.2026):
  * warm cream + editorial geometry + poster headings, Olive Dot as the
  * signature background, Whiskers Red as the main accent.
  * Token names are kept from the placeholder set so components did not change.
+ *
+ * These are the defaults. A theme saved in the admin («Оформление», src/lib/theme.ts)
+ * overrides the same custom properties on <html> for the public site.
  */
 @theme {
   --color-milk: #f4eee4; /* Warm Paper, page background */
@@ -35,20 +48,43 @@
   --radius-control: 7px;
 }
 
+:root {
+  /* Poster heading style and page background, also overridable by the theme. */
+  --display-weight: 800;
+  --display-tracking: -0.045em;
+  --page-bg: var(--color-milk);
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--color-milk);
+  background-color: var(--color-milk);
   color: var(--color-ink);
   font-family: var(--font-sans);
 }
 
+/* The page background (flat or a soft gradient) stays put while the page scrolls.
+   A fixed layer instead of background-attachment: fixed, which iOS ignores. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--page-bg);
+  pointer-events: none;
+}
+
+/* Sticky site header: see-through enough to let the gradient show. */
+.site-header {
+  background-color: color-mix(in oklab, var(--color-milk) 72%, transparent);
+}
+
 /* Poster headings: dense heavy Manrope with tight tracking. */
 .font-display {
-  font-weight: 800;
-  letter-spacing: -0.045em;
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
   line-height: 1.02;
 }
 
