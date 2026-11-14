@@ -81,6 +81,7 @@ export async function getPublicReport(f: ReportFilters) {
             showName: true,
             publicName: true,
             comment: true,
+            createdAt: true,
             cat: { select: { slug: true, name: true } },
             campaign: { select: { id: true, title: true } },
           },

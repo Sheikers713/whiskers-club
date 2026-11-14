@@ -197,6 +197,9 @@ const ru: Dictionary = {
     campaigns: "Сборы",
     active: "Активные",
     closed: "Завершённые",
+    operations: "Все операции",
+    incomeOne: "Поступление",
+    expenseOne: "Расход",
     receipt: "Чек",
   },
   about: {

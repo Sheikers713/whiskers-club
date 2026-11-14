@@ -43,20 +43,29 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
   const from = parseDate(sp.from);
   const to = parseDate(sp.to);
   const catId = typeof sp.cat === "string" && /^[0-9a-f-]{36}$/.test(sp.cat) ? sp.cat : undefined;
-  const categoryId = typeof sp.category === "string" && /^[0-9a-f-]{36}$/.test(sp.category) ? sp.category : undefined;
 
-  const [settings, report, cats, categories, campaigns] = await Promise.all([
+  const [settings, report, cats, campaigns] = await Promise.all([
     getSettings(),
-    getPublicReport({ from, to, catId, categoryId }),
+    getPublicReport({ from, to, catId }),
     db.cat.findMany({ where: publicCatWhere, select: { id: true, name: true, originalLocale: true }, orderBy: { createdAt: "desc" } }),
-    db.expenseCategory.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
     db.campaign.findMany({
       where: { state: "PUBLISHED", ...(catId ? { cats: { some: { catId } } } : {}) },
       orderBy: [{ status: "asc" }, { startDate: "desc" }],
       include: { cats: { include: { cat: { select: { slug: true, name: true, state: true } } } } },
     }),
   ]);
-  const showOpening = !categoryId && !catId && report.openingRsd > 0;
+  const showOpening = !catId && report.openingRsd > 0;
+  // Income and expenses in one list, newest first (ties: newest entry first).
+  type Entry = { kind: "in"; d: (typeof report.donations)[number] } | { kind: "out"; e: (typeof report.expenses)[number] };
+  const entryKey = (x: Entry) => (x.kind === "in" ? x.d : x.e);
+  const entries: Entry[] = [
+    ...report.donations.map((d) => ({ kind: "in" as const, d })),
+    ...report.expenses.map((e) => ({ kind: "out" as const, e })),
+  ].sort((a, b) => {
+    const ka = entryKey(a);
+    const kb = entryKey(b);
+    return kb.date.getTime() - ka.date.getTime() || kb.createdAt.getTime() - ka.createdAt.getTime();
+  });
   const raised = await campaignRaised(campaigns.map((c) => c.id));
   const rate = settings.eurRate;
   const field = "mt-1 block w-full rounded-[var(--radius-card)] border border-line bg-paper px-3 py-2.5";
@@ -66,7 +75,7 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
       <h1 className="font-display text-4xl uppercase md:text-6xl">{dict.report.title}</h1>
       <p className="mt-3 max-w-3xl text-ink-soft">{dict.report.intro}</p>
 
-      <form method="get" className="mt-8 grid gap-4 rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line card-shadow sm:grid-cols-2 lg:grid-cols-5">
+      <form method="get" className="mt-8 grid gap-4 rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line card-shadow sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-sm font-medium">
           {dict.report.from}
           <input type="date" name="from" defaultValue={typeof sp.from === "string" ? sp.from : ""} className={field} />
@@ -86,17 +95,6 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
             ))}
           </select>
         </label>
-        <label className="text-sm font-medium">
-          {dict.report.category}
-          <select name="category" defaultValue={categoryId ?? ""} className={field}>
-            <option value="">{dict.report.all}</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {t(c.label, locale)}
-              </option>
-            ))}
-          </select>
-        </label>
         <button type="submit" className="self-end rounded-[var(--radius-control)] bg-ink px-5 py-2.5 font-semibold text-milk">
           {dict.report.apply}
         </button>
@@ -107,7 +105,7 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
           // The opening balance was donations too (before the books were kept here).
           { label: dict.report.income, value: report.incomeRsd + (showOpening ? report.openingRsd : 0) },
           { label: dict.report.expenses, value: report.expenseRsd },
-          ...(categoryId || catId ? [] : [{ label: dict.report.balance, value: report.balanceRsd }]),
+          ...(catId ? [] : [{ label: dict.report.balance, value: report.balanceRsd }]),
         ].map((s) => (
           <div key={s.label} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow">
             <dt className="text-sm text-ink-soft">{s.label}</dt>
@@ -151,41 +149,36 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
         </section>
       )}
 
-      {!categoryId && (
-        <section className="mt-12">
-          <h2 className="text-2xl font-bold">{dict.report.income}</h2>
-          {report.donations.length === 0 ? (
-            <p className="mt-3 text-ink-soft">{dict.report.noRecords}</p>
-          ) : (
-            <ul className="mt-4 divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line card-shadow">
-              {report.donations.map((d) => (
-                <li key={d.id} className="grid gap-1 px-4 py-3 sm:grid-cols-[7rem_1fr_auto] sm:gap-4">
-                  <span className="text-sm text-ink-soft">{formatShortDate(d.date, locale)}</span>
-                  <div>
-                    <p className="font-medium">{d.showName && d.publicName ? d.publicName : dict.cat.anonymous}</p>
-                    <p className="text-sm text-ink-soft">
-                      {d.campaign ? t(d.campaign.title, locale) : d.cat ? t(d.cat.name, locale) : dict.report.generalFund}
-                      {d.comment ? ` · «${d.comment}»` : ""}
-                    </p>
-                  </div>
-                  <span className="font-semibold sm:text-right">{formatRsd(d.amountRsd, locale)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
-
       <section className="mt-12">
-        <h2 className="text-2xl font-bold">{dict.report.expenses}</h2>
-        {report.expenses.length === 0 ? (
+        <h2 className="text-2xl font-bold">{dict.report.operations}</h2>
+        {entries.length === 0 ? (
           <p className="mt-3 text-ink-soft">{dict.report.noRecords}</p>
         ) : (
           <ul className="mt-4 divide-y divide-line rounded-[var(--radius-card)] bg-paper ring-1 ring-line card-shadow">
-            {report.expenses.map((e) => {
+            {entries.map((x) => {
+              if (x.kind === "in") {
+                const d = x.d;
+                return (
+                  <li key={`d-${d.id}`} className="grid gap-1 px-4 py-3 sm:grid-cols-[7rem_1fr_auto] sm:gap-4">
+                    <span className="text-sm text-ink-soft">{formatShortDate(d.date, locale)}</span>
+                    <div>
+                      <p className="font-medium">{d.showName && d.publicName ? d.publicName : dict.cat.anonymous}</p>
+                      <p className="text-sm text-ink-soft">
+                        {d.campaign ? t(d.campaign.title, locale) : d.cat ? t(d.cat.name, locale) : dict.report.generalFund}
+                        {d.comment ? ` · «${d.comment}»` : ""}
+                      </p>
+                      <div className="mt-1">
+                        <span className="rounded-md bg-sage-soft px-2.5 py-0.5 text-xs font-semibold text-sage">{dict.report.incomeOne}</span>
+                      </div>
+                    </div>
+                    <span className="font-semibold text-sage sm:text-right">+{formatRsd(d.amountRsd, locale)}</span>
+                  </li>
+                );
+              }
+              const e = x.e;
               const linked = e.cats.filter((c) => c.cat.state === "PUBLISHED");
               return (
-                <li key={e.id} className="grid gap-1 px-4 py-3 sm:grid-cols-[7rem_1fr_auto] sm:gap-4">
+                <li key={`e-${e.id}`} className="grid gap-1 px-4 py-3 sm:grid-cols-[7rem_1fr_auto] sm:gap-4">
                   <span className="text-sm text-ink-soft">{formatShortDate(e.date, locale)}</span>
                   <div>
                     <p className="font-medium">{t(e.publicSummary, locale) || e.description}</p>
@@ -204,6 +197,7 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
                       {linked.length > 1 && ` (${dict.cat.sharedExpense})`}
                     </p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <span className="rounded-md bg-brick-soft px-2.5 py-0.5 text-xs font-semibold text-brick-dark">{dict.report.expenseOne}</span>
                       <span className={`rounded-md px-2.5 py-0.5 text-xs font-semibold ${proofStyle[e.proof]}`}>{proofLabel(e.proof, dict)}</span>
                       {e.files.map((f, i) => (
                         <a key={f.fileId} href={`/files/expenses/${e.id}/${f.fileId}`} target="_blank" className="text-xs underline">
@@ -216,13 +210,13 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
                   <span className="font-semibold sm:text-right">
                     {catId && e.cats.length > 1 ? (
                       <>
-                        {formatRsd(Math.round(expenseShare(e.amountRsd, e.cats.length)), locale)}
+                        −{formatRsd(Math.round(expenseShare(e.amountRsd, e.cats.length)), locale)}
                         <span className="block text-xs font-normal text-ink-soft">
                           {dict.cat.shareOf} {formatRsd(e.amountRsd, locale)}
                         </span>
                       </>
                     ) : (
-                      formatRsd(e.amountRsd, locale)
+                      <>−{formatRsd(e.amountRsd, locale)}</>
                     )}
                   </span>
                 </li>

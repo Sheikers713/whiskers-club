@@ -198,6 +198,9 @@ const sr: Dictionary = {
     campaigns: "Akcije",
     active: "Aktivne",
     closed: "Završene",
+    operations: "Sve transakcije",
+    incomeOne: "Prihod",
+    expenseOne: "Trošak",
     receipt: "Račun",
   },
   about: {
