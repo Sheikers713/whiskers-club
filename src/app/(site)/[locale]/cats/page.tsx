@@ -19,12 +19,12 @@ export default async function CatsPage({ params, searchParams }: PageProps<"/[lo
   const dict = getDictionary(locale);
   const sp = await searchParams;
   const filterKey = typeof sp.filter === "string" ? sp.filter : undefined;
-  const { filters, active, total, cats } = await getCatalog(filterKey);
+  const { filters, active, waiting, cats } = await getCatalog(filterKey);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-display text-4xl uppercase md:text-6xl">{dict.cats.title}</h1>
-      <p className="mt-1 text-ink-soft">{fmt(dict.cats.waiting, { count: total })}</p>
+      <p className="mt-1 text-ink-soft">{fmt(dict.cats.waiting, { count: waiting })}</p>
       <nav className="-mx-4 mt-6 overflow-x-auto px-4" aria-label={dict.cats.title}>
         <ul className="flex w-max gap-2">
           {filters.map((f) => {
