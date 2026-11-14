@@ -155,6 +155,7 @@ export function ThemeEditor({ saved }: { saved: Theme }) {
   };
   const setColor = (k: ColorKey, v: string) => set({ colors: { ...theme.colors, [k]: v } });
   const setGradient = (patch: Partial<Theme["gradient"]>) => set({ gradient: { ...theme.gradient, ...patch } });
+  const setShadow = (patch: Partial<Theme["shadow"]>) => set({ shadow: { ...theme.shadow, ...patch } });
 
   const save = () =>
     start(async () => {
@@ -229,6 +230,31 @@ export function ThemeEditor({ saved }: { saved: Theme }) {
             <input type="checkbox" checked={theme.radiusControl >= 999} onChange={(e) => set({ radiusControl: e.target.checked ? 999 : 8 })} />
             Кнопки-пилюли
           </label>
+        </Section>
+
+        <Section title="Тень карточек">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <input type="checkbox" checked={theme.shadow.enabled} onChange={(e) => setShadow({ enabled: e.target.checked })} />
+            Мягкая тень под карточками
+          </label>
+          {theme.shadow.enabled && (
+            <>
+              <div className="flex justify-center rounded-lg p-5" style={{ background: themeVars(theme)["--page-bg"] }} aria-hidden>
+                <div
+                  className="h-14 w-32"
+                  style={{
+                    background: theme.colors.paper,
+                    borderRadius: theme.radiusCard,
+                    boxShadow: `${themeVars(theme)["--card-shadow"]}, 0 0 0 1px ${theme.colors.line}`,
+                  }}
+                />
+              </div>
+              <ColorField label="Цвет тени" value={theme.shadow.color} onChange={(v) => setShadow({ color: v })} />
+              <Range label="Размытие" value={theme.shadow.blur} min={0} max={80} unit="px" onChange={(v) => setShadow({ blur: v })} />
+              <Range label="Смещение вниз" value={theme.shadow.offsetY} min={0} max={40} unit="px" onChange={(v) => setShadow({ offsetY: v })} />
+              <Range label="Плотность" value={theme.shadow.opacity} min={0} max={60} unit="%" onChange={(v) => setShadow({ opacity: v })} />
+            </>
+          )}
         </Section>
 
         <div className="sticky bottom-0 -mx-1 space-y-2 border-t border-line bg-milk px-1 py-3">

@@ -15,7 +15,7 @@ export function CatCard({ cat, locale, dict }: { cat: CatCardData; locale: Local
   const age = formatAge(cat.birthDate, dict);
   const camp = cat.activeCampaign;
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-paper ring-1 ring-line transition hover:-translate-y-0.5 hover:ring-ink">
+    <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-paper ring-1 ring-line card-shadow transition hover:-translate-y-0.5 hover:ring-ink">
       {/* The whole card opens the cat; the name stays the link's accessible text. */}
       <Link href={`/${locale}/cats/${cat.slug}`} aria-label={name} className="absolute inset-0 z-10" />
       {/* Covers are shot vertical (3:4), so the card keeps that shape instead of cropping them flat. */}

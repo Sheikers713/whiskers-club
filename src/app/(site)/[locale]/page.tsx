@@ -95,18 +95,18 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <h2 id="stats" className="sr-only">{dict.home.statsTitle}</h2>
         <dl className="grid grid-cols-2 gap-3 md:grid-cols-6">
           {statItems.map((s) => (
-            <div key={s.label} className="rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line">
+            <div key={s.label} className="rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line card-shadow">
               <dt className="text-xs font-bold uppercase tracking-wider text-ink-soft">{s.label}</dt>
               <dd className="mt-1 font-display text-4xl">{s.value}</dd>
             </div>
           ))}
-          <div className="col-span-2 rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line md:col-span-1">
+          <div className="col-span-2 rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line card-shadow md:col-span-1">
             <dt className="text-xs font-bold uppercase tracking-wider text-ink-soft">{dict.home.statRaised}</dt>
             <dd className="text-xl font-bold">
               <Money amount={stats.raisedRsd} locale={locale} eurRate={stats.eurRate} showEur={false} />
             </dd>
           </div>
-          <div className="col-span-2 rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line md:col-span-1">
+          <div className="col-span-2 rounded-[var(--radius-card)] bg-paper p-4 ring-1 ring-line card-shadow md:col-span-1">
             <dt className="text-xs font-bold uppercase tracking-wider text-ink-soft">{dict.home.statSpent}</dt>
             <dd className="text-xl font-bold">
               <Money amount={stats.spentRsd} locale={locale} eurRate={stats.eurRate} showEur={false} />
@@ -118,7 +118,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
 
       {story && (
         <section className="mx-auto max-w-6xl px-4 py-8">
-          <div className="rounded-[var(--radius-card)] bg-paper p-6 ring-1 ring-line md:p-10">
+          <div className="rounded-[var(--radius-card)] bg-paper p-6 ring-1 ring-line card-shadow md:p-10">
             <h2 className="font-display text-3xl md:text-4xl">{dict.home.storyTitle}</h2>
             <div className="prose-text mt-4 max-w-3xl whitespace-pre-line text-lg">{story}</div>
           </div>
@@ -139,7 +139,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
           <h2 className="font-display text-3xl md:text-4xl">{dict.home.partnersTitle}</h2>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {partners.map((p) => (
-              <li key={p.id} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line">
+              <li key={p.id} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow">
                 {p.url ? (
                   <a href={p.url} target="_blank" rel="noopener" className="font-bold hover:text-brick">{p.name}</a>
                 ) : (
