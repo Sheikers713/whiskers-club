@@ -195,6 +195,9 @@ const en = {
     campaigns: "Fundraisers",
     active: "Active",
     closed: "Closed",
+    operations: "All transactions",
+    incomeOne: "Income",
+    expenseOne: "Expense",
     receipt: "Receipt",
   },
   about: {
