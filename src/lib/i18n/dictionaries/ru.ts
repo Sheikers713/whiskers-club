@@ -189,7 +189,7 @@ const ru: Dictionary = {
     purpose: "Назначение",
     description: "На что",
     proof: "Подтверждение",
-    generalFund: "Общий фонд",
+    generalFund: "Фонд Whiskers Club",
     proofFiscal: "Фискальный чек проверен",
     proofDocument: "Приложен подтверждающий документ",
     proofNone: "Расход без фискального чека",

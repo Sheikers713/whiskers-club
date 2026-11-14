@@ -187,7 +187,7 @@ const en = {
     purpose: "Purpose",
     description: "What for",
     proof: "Proof",
-    generalFund: "General fund",
+    generalFund: "Whiskers Club fund",
     proofFiscal: "Fiscal receipt verified",
     proofDocument: "Supporting document attached",
     proofNone: "Expense without fiscal receipt",

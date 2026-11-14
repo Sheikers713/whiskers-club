@@ -5,7 +5,7 @@ import { useState } from "react";
 export type PickerCat = { id: string; name: string; active: boolean };
 
 /**
- * Who the money is for: «Общий фонд» or one or more cats. The general fund is
+ * Who the money is for: «Фонд Whiskers Club» or one or more cats. The fund is
  * exclusive (it is never split with a cat). Only cats in our care right now are
  * offered; «показать всех» also lists adopted and archived ones. Cats already
  * chosen are always shown.
@@ -43,7 +43,7 @@ export function CatPicker({
   const hiddenCount = cats.length - shown.length;
   const toggle = (id: string) =>
     setSel(multiple ? (sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id]) : sel.includes(id) ? [] : [id]);
-  const label = sel.length ? cats.filter((c) => sel.includes(c.id)).map((c) => c.name).join(", ") : "Общий фонд";
+  const label = sel.length ? cats.filter((c) => sel.includes(c.id)).map((c) => c.name).join(", ") : "Фонд Whiskers Club";
 
   const hidden = name ? (
     sel.length ? sel.map((id) => <input key={id} type="hidden" name={name} value={id} form={form} />) : <input type="hidden" name={name} value="" form={form} />
@@ -55,7 +55,7 @@ export function CatPicker({
     <>
       <label className={chip(sel.length === 0)}>
         <input type="checkbox" className="sr-only" checked={sel.length === 0} onChange={() => setSel([])} />
-        Общий фонд
+        Фонд Whiskers Club
       </label>
       {shown.map((c) => (
         <label key={c.id} className={chip(sel.includes(c.id))}>

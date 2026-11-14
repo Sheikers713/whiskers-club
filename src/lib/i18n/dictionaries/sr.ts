@@ -190,7 +190,7 @@ const sr: Dictionary = {
     purpose: "Namena",
     description: "Za šta",
     proof: "Dokaz",
-    generalFund: "Opšti fond",
+    generalFund: "Fond Whiskers Club",
     proofFiscal: "Fiskalni račun proveren",
     proofDocument: "Priložen prateći dokument",
     proofNone: "Trošak bez fiskalnog računa",

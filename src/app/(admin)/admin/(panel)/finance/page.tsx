@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { t } from "@/lib/i18n/localized";
 import { formatNumber, formatShortDate } from "@/lib/format";
+import { settlements } from "@/lib/finance/settle";
 import { getSettings } from "@/lib/settings";
 import { toDateInput } from "@/lib/admin/form";
 import { PageTitle } from "@/components/admin/ui";
@@ -81,7 +82,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const splitOf = (d: (typeof donationsAll)[number]) => {
     const rows = groups.get(groupOf(d.importKey) ?? "") ?? [];
     return rows.length > 1
-      ? { total: rows.reduce((s, r) => s + r.amountRsd, 0), cats: rows.map((r) => (r.cat ? t(r.cat.name, "ru") : "общий фонд")) }
+      ? { total: rows.reduce((s, r) => s + r.amountRsd, 0), cats: rows.map((r) => (r.cat ? t(r.cat.name, "ru") : "фонд Whiskers Club")) }
       : null;
   };
   const donations = donationsAll.filter((d) =>
@@ -89,7 +90,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   );
   // Cats to pick from: everyone in our care now, plus any cat already on a record.
   const [allCats, paymentMethods] = await Promise.all([
-    db.cat.findMany({ select: { id: true, name: true, state: true, status: { select: { group: true } } } }),
+    db.cat.findMany({ select: { id: true, name: true, state: true, adoptedAt: true, updatedAt: true, status: { select: { group: true, label: true } } } }),
     db.paymentMethod.findMany({ where: { isActive: true }, orderBy: { sortOrder: "asc" } }),
   ]);
   const catOptions = allCats
@@ -99,24 +100,52 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const published = <T extends { state: string }>(rows: T[]) => rows.filter((r) => r.state === "PUBLISHED");
   const spent = published(expenses).reduce((s, e) => s + e.share, 0);
   const raised = published(donations).reduce((s, d) => s + d.amountRsd, 0);
-  // The opening balance is the Whiskers Club general fund, tied to no cat. Some
-  // cats are covered from it (Nami): their tab shows that cover as income, and
-  // the «Без кота» tab shows the fund minus what it gave away.
+  // The 15 000 opening balance is a donation without a cat, dated in settings.
+  // Money without a cat is only used when a cat leaves our care: its balance is
+  // then brought to zero from it (or its surplus goes back). See settle.ts.
   const opening = (await getSettings()).openingBalance;
-  const coveredTotal = (opening.cats ?? []).reduce((s, c) => s + c.amountRsd, 0);
-  const fundRows: { label: string; hint?: string; amount: number }[] =
+  const openingRow = opening.amountRsd ? { label: "Начальный остаток", hint: "в фонд Whiskers Club, до учёта на сайте", amount: opening.amountRsd, date: opening.date } : null;
+  const perCat = new Map<string, { income: number; spent: number }>();
+  const add = (id: string, k: "income" | "spent", v: number) => {
+    const m = perCat.get(id) ?? { income: 0, spent: 0 };
+    m[k] += v;
+    perCat.set(id, m);
+  };
+  for (const d of published(donationsAll)) if (d.catId) add(d.catId, "income", d.amountRsd);
+  for (const e of published(expensesAll)) for (const c of e.cats) add(c.cat.id, "spent", e.amountRsd / e.cats.length);
+  const settled = settlements(
+    allCats.map((c) => ({
+      id: c.id,
+      name: t(c.name, "ru"),
+      closed: c.state === "ARCHIVED" || c.status.group !== "ACTIVE",
+      closedOn: toDateInput(c.adoptedAt ?? c.updatedAt),
+      income: perCat.get(c.id)?.income ?? 0,
+      spent: perCat.get(c.id)?.spent ?? 0,
+    })),
+  );
+  const fmtDay = (d: string | null) => (d ? formatShortDate(d, "ru") : "");
+  const statusOf = new Map(allCats.map((c) => [c.id, t(c.status.label, "ru").toLowerCase()]));
+  const closedHint = (x: { catId: string; closedOn: string | null }) => [statusOf.get(x.catId), fmtDay(x.closedOn)].filter(Boolean).join(", ");
+  // Extra lines between «Итого расходы» and «Остаток» on a tab.
+  const settleRows: { label: string; hint?: string; amount: number }[] =
     tab === "all"
-      ? [{ label: "Общий фонд Whiskers Club", hint: `начальный остаток${opening.date ? ` на ${formatShortDate(opening.date, "ru")}` : ""}`, amount: opening.amountRsd }]
+      ? []
       : tab === "general"
-        ? [
-            { label: "Общий фонд Whiskers Club", hint: `начальный остаток${opening.date ? ` на ${formatShortDate(opening.date, "ru")}` : ""}`, amount: opening.amountRsd },
-            ...(coveredTotal ? [{ label: "Покрыто котам из общего фонда", amount: -coveredTotal }] : []),
-          ]
-        : (opening.cats ?? []).filter((c) => c.catId === tab).map((c) => ({ label: "Покрыто из общего фонда Whiskers Club", amount: c.amountRsd }));
-  // The opening balance counts as a «zeroth donation»: it is in «Итого донаты».
-  const fundTotal = fundRows.reduce((s, r) => s + r.amount, 0);
-  const raisedAll = raised + fundTotal;
-  const balance = raisedAll - spent;
+        ? settled.map((x) => ({
+            label: x.amount > 0 ? `Закрыли долг: ${x.name}` : `Вернулся излишек: ${x.name}`,
+            hint: closedHint(x),
+            amount: -x.amount,
+          }))
+        : settled
+            .filter((x) => x.catId === tab)
+            .map((x) => ({
+              label: x.amount > 0 ? "Закрыто из фонда Whiskers Club" : "Излишек ушёл в фонд Whiskers Club",
+              hint: closedHint(x),
+              amount: x.amount,
+            }));
+  const withOpening = (tab === "all" || tab === "general") && openingRow ? openingRow.amount : 0;
+  const raisedAll = raised + withOpening;
+  const balance = raisedAll - spent + settleRows.reduce((sum, r) => sum + r.amount, 0);
 
   const tabCls = (active: boolean) =>
     `whitespace-nowrap rounded-t-lg border border-b-0 border-line px-3 py-1.5 text-sm ${active ? "bg-paper font-semibold" : "bg-milk text-ink-soft hover:text-ink"}`;
@@ -139,11 +168,20 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
           <tr>
             <td className={cell}>
               Итого донаты
-              {fundTotal !== 0 && <span className="block text-xs font-normal text-ink-soft">с начальным остатком общего фонда {n(fundTotal)}</span>}
+              {withOpening !== 0 && <span className="block text-xs font-normal text-ink-soft">с начальным остатком {n(withOpening)} (фонд Whiskers Club, {fmtDay(opening.date)})</span>}
             </td>
             <td className={num}>{n(raisedAll)}</td>
           </tr>
           <tr><td className={cell}>Итого расходы</td><td className={num}>{n(spent)}</td></tr>
+          {settleRows.map((r) => (
+            <tr key={r.label}>
+              <td className={cell}>
+                {r.label}
+                {r.hint && <span className="block text-xs font-normal text-ink-soft">{r.hint}</span>}
+              </td>
+              <td className={num}>{r.amount > 0 ? "+" : ""}{n(r.amount)}</td>
+            </tr>
+          ))}
           <tr><td className={cell}>Остаток</td><td className={`${num} ${balance < 0 ? "text-brick" : ""}`}>{n(balance)}</td></tr>
         </tbody>
       </table>
@@ -154,7 +192,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
         {catTabs.map(([id, name]) => (
           <Link key={id} href={href(id)} className={tabCls(tab === id)}>{name}</Link>
         ))}
-        <Link href={href("general")} className={tabCls(tab === "general")}>Без кота</Link>
+        <Link href={href("general")} className={tabCls(tab === "general")}>Фонд Whiskers Club</Link>
       </nav>
 
       <div className="rounded-b-[var(--radius-card)] rounded-tr-[var(--radius-card)] bg-paper p-3 ring-1 ring-line">
@@ -214,7 +252,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
             }))}
             cats={catOptions}
             methods={methods}
-            fundRows={fundRows.filter((r) => r.amount !== 0).map((r) => ({ ...r, date: opening.date }))}
+            fundRows={withOpening && openingRow ? [openingRow] : []}
             defaultCatId={tab !== "all" && tab !== "general" ? tab : ""}
           />
           <p className="mt-1 text-right text-sm font-semibold">Итого: {n(raisedAll)}</p>

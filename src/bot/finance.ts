@@ -178,7 +178,7 @@ export function ruDate(isoDate: string): string {
 export type Lookup = { cats: FlowCat[]; categories: Option[] };
 
 export function catNames(d: Draft, look: Lookup): string {
-  if (!d.catIds.length) return "общий фонд";
+  if (!d.catIds.length) return "фонд Whiskers Club";
   return d.catIds.map((id) => look.cats.find((c) => c.id === id)?.name ?? "?").join(", ");
 }
 
@@ -299,7 +299,7 @@ export function catButtons(d: Draft, flow: string, cats: FlowCat[]): Button[][] 
     ...rows(toggles, 3),
     [
       {
-        text: d.catIds.length ? `Готово (${d.catIds.length}) ➡️` : "Общий фонд ➡️",
+        text: d.catIds.length ? `Готово (${d.catIds.length}) ➡️` : "Фонд Whiskers Club ➡️",
         callback_data: cb(flow, "catsdone"),
       },
     ],
