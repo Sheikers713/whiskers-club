@@ -288,11 +288,14 @@ export function DonationSheet({
   cats,
   methods,
   defaultCatId,
+  fundRows = [],
 }: {
   rows: SheetDonation[];
   cats: Option[];
   methods: string[];
   defaultCatId: string;
+  /** The opening balance (and cover from it), shown as fixed «zeroth donations» at the bottom. */
+  fundRows?: { label: string; hint?: string; amount: number; date: string }[];
 }) {
   const save = useSave();
   return (
@@ -359,7 +362,19 @@ export function DonationSheet({
               </td>
             </tr>
           ))}
-          {rows.length === 0 && <tr><td colSpan={5} className={`${cell} px-2 py-1.5 text-ink-soft`}>Донатов нет.</td></tr>}
+          {fundRows.map((f) => (
+            <tr key={f.label} className="bg-milk/60">
+              <td className={`${cell} px-2 py-1.5`}>{f.date.split("-").reverse().join(".")}</td>
+              <td className={`${cell} px-2 py-1.5 text-right`}>{n(f.amount)}</td>
+              <td className={`${cell} px-2 py-1.5`}>
+                {f.label}
+                {f.hint && <span className="block text-xs text-ink-soft">{f.hint}</span>}
+              </td>
+              <td className={`${cell} px-2 py-1.5 text-ink-soft`}>Общий фонд</td>
+              <td className={`${cell} px-2 py-1.5 text-xs text-ink-soft`}>меняется в настройках сайта</td>
+            </tr>
+          ))}
+          {rows.length === 0 && fundRows.length === 0 && <tr><td colSpan={5} className={`${cell} px-2 py-1.5 text-ink-soft`}>Донатов нет.</td></tr>}
         </tbody>
       </table>
       {save.error && <p className="mt-1 text-sm text-brick">{save.error}</p>}

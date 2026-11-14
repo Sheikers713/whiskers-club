@@ -98,7 +98,10 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
             ...(coveredTotal ? [{ label: "Покрыто котам из общего фонда", amount: -coveredTotal }] : []),
           ]
         : (opening.cats ?? []).filter((c) => c.catId === tab).map((c) => ({ label: "Покрыто из общего фонда Whiskers Club", amount: c.amountRsd }));
-  const balance = fundRows.reduce((s, r) => s + r.amount, 0) + raised - spent;
+  // The opening balance counts as a «zeroth donation»: it is in «Итого донаты».
+  const fundTotal = fundRows.reduce((s, r) => s + r.amount, 0);
+  const raisedAll = raised + fundTotal;
+  const balance = raisedAll - spent;
 
   const tabCls = (active: boolean) =>
     `whitespace-nowrap rounded-t-lg border border-b-0 border-line px-3 py-1.5 text-sm ${active ? "bg-paper font-semibold" : "bg-milk text-ink-soft hover:text-ink"}`;
@@ -118,16 +121,13 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
 
       <table className="mb-6 w-full max-w-md border-collapse text-sm font-semibold">
         <tbody>
-          {fundRows.filter((r) => r.amount !== 0).map((r) => (
-            <tr key={r.label}>
-              <td className={cell}>
-                {r.label}
-                {r.hint && <span className="block text-xs font-normal text-ink-soft">{r.hint}</span>}
-              </td>
-              <td className={num}>{n(r.amount)}</td>
-            </tr>
-          ))}
-          <tr><td className={cell}>Итого донаты</td><td className={num}>{n(raised)}</td></tr>
+          <tr>
+            <td className={cell}>
+              Итого донаты
+              {fundTotal !== 0 && <span className="block text-xs font-normal text-ink-soft">с начальным остатком общего фонда {n(fundTotal)}</span>}
+            </td>
+            <td className={num}>{n(raisedAll)}</td>
+          </tr>
           <tr><td className={cell}>Итого расходы</td><td className={num}>{n(spent)}</td></tr>
           <tr><td className={cell}>Остаток</td><td className={`${num} ${balance < 0 ? "text-brick" : ""}`}>{n(balance)}</td></tr>
         </tbody>
@@ -156,7 +156,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
             aria-current={view === "donations" ? "page" : undefined}
             className={`rounded-lg px-6 py-2 text-lg font-bold text-white shadow-sm transition ${view === "donations" ? "bg-green-600 ring-4 ring-green-600/30" : "bg-green-600/45 hover:bg-green-600/80"}`}
           >
-            Донаты · {n(raised)}
+            Донаты · {n(raisedAll)}
           </Link>
         </div>
 
@@ -198,9 +198,10 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
             }))}
             cats={catOptions}
             methods={methods}
+            fundRows={fundRows.filter((r) => r.amount !== 0).map((r) => ({ ...r, date: opening.date }))}
             defaultCatId={tab !== "all" && tab !== "general" ? tab : ""}
           />
-          <p className="mt-1 text-right text-sm font-semibold">Итого: {n(raised)}</p>
+          <p className="mt-1 text-right text-sm font-semibold">Итого: {n(raisedAll)}</p>
         </section>
         )}
       </div>
