@@ -77,10 +77,22 @@ async function withCampaigns<T extends { campaigns: Array<{ campaign: { id: stri
 export async function getCatalog(filterKey: string | undefined, take?: number) {
   const filters = await getPublicFilters();
   const active = filters.find((f) => f.key === filterKey) ?? filters[0] ?? null;
-  const cats = await db.cat.findMany({ where: filterWhere(active), include: cardInclude });
+  const [cats, waiting] = await Promise.all([
+    db.cat.findMany({ where: filterWhere(active), include: cardInclude }),
+    countWaitingCats(),
+  ]);
   const sorted = sortCats(cats);
   const page = take ? sorted.slice(0, take) : sorted;
-  return { filters, active, total: cats.length, cats: await withCampaigns(page) };
+  return { filters, active, waiting, cats: await withCampaigns(page) };
+}
+
+/**
+ * Cats still waiting for a home: public cats whose status is in the ACTIVE
+ * group. Adopted (ADOPTED) and memorial/deceased (ARCHIVE) cats are not
+ * counted, whatever catalog filter is selected.
+ */
+export function countWaitingCats() {
+  return db.cat.count({ where: { ...publicCatWhere, status: { isPublic: true, group: "ACTIVE" } } });
 }
 
 /** Home feed: every public cat, regardless of flags. */
