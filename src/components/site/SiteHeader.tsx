@@ -12,7 +12,7 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
   ];
   const langLinks = <LangLinks locale={locale} label={dict.nav.language} />;
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-milk/95 backdrop-blur">
+    <header className="sticky top-0 z-30 site-header border-b border-line backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link href={`/${locale}`} className="flex shrink-0 items-center gap-2.5" aria-label="Whiskers Club">
           {/* eslint-disable-next-line @next/next/no-img-element */}
