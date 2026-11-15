@@ -106,6 +106,42 @@ export const defaultTheme: Theme = {
   shadow: { enabled: true, color: "#3b4a2a", blur: 24, offsetY: 8, opacity: 18 },
 };
 
+type PresetStyle = {
+  body: FontKey;
+  display: FontKey;
+  weight: number;
+  tracking: number;
+  radius: [card: number, control: number];
+  // [from, to, angle], or none for a flat background.
+  gradient?: [string, string, number];
+  // [colour, blur, offsetY, opacity %], or none for no card shadow.
+  shadow?: [string, number, number, number];
+};
+
+/**
+ * A compact preset. Colours in colorKeys order:
+ * page, cards, blocks, text, soft text, lines, main accent, second accent, success, hero, sun.
+ */
+function preset(key: string, label: string, note: string, c: string[], st: PresetStyle) {
+  const colors = Object.fromEntries(colorKeys.map((k, i) => [k, c[i]])) as Theme["colors"];
+  const theme: Theme = {
+    colors,
+    bodyFont: st.body,
+    displayFont: st.display,
+    displayWeight: st.weight,
+    displayTracking: st.tracking,
+    radiusCard: st.radius[0],
+    radiusControl: st.radius[1],
+    gradient: st.gradient
+      ? { enabled: true, from: st.gradient[0], to: st.gradient[1], angle: st.gradient[2] }
+      : { ...defaultTheme.gradient, enabled: false },
+    shadow: st.shadow
+      ? { enabled: true, color: st.shadow[0], blur: st.shadow[1], offsetY: st.shadow[2], opacity: st.shadow[3] }
+      : { ...defaultTheme.shadow, enabled: false },
+  };
+  return { key, label, note, theme };
+}
+
 export const themePresets: { key: string; label: string; note: string; theme: Theme }[] = [
   { key: "brand", label: "Бренд-бук (сейчас)", note: "Как сайт выглядит сейчас", theme: defaultTheme },
   {
@@ -121,7 +157,7 @@ export const themePresets: { key: string; label: string; note: string; theme: Th
         inkSoft: "#575d4f",
         line: "#d5d8c4",
         brick: "#33402c",
-        orange: "#c9862b",
+        orange: "#b5741d",
         sage: "#56704c",
         olive: "#b7c2a0",
         sun: "#e6b43f",
@@ -164,6 +200,68 @@ export const themePresets: { key: string; label: string; note: string; theme: Th
       shadow: { enabled: true, color: "#2f3d2b", blur: 22, offsetY: 8, opacity: 16 },
     },
   },
+  // Bolder and more contrasting sets. Every one keeps body text and white-on-accent
+  // buttons readable (WCAG AA); theme.test.ts checks that.
+  preset("newspaper", "Газета", "Чёрное на белом, красный акцент и красное солнце, заголовки с засечками, прямые углы",
+    ["#f7f5f0", "#ffffff", "#e8e4da", "#111111", "#4a4a4a", "#cfcac0", "#d7261e", "#c2410c", "#2f7a3b", "#d9d4c7", "#d7261e"],
+    { body: "golos", display: "playfair", weight: 900, tracking: -20, radius: [0, 0] }),
+  preset("swiss", "Швейцарский плакат", "Чистый белый, чёрный текст, красный герой с белым солнцем, широкие заголовки",
+    ["#ffffff", "#ffffff", "#f1f1f1", "#000000", "#444444", "#dddddd", "#e10600", "#c2410c", "#1d7a35", "#e10600", "#ffffff"],
+    { body: "golos", display: "unbounded", weight: 800, tracking: -40, radius: [0, 0] }),
+  preset("mustard-black", "Горчица и чёрный", "Жёлтый герой, чёрное солнце и чёрные кнопки, тёплый кремовый фон",
+    ["#fbf3d9", "#fffaf0", "#f2e1a8", "#141414", "#4d4636", "#e0cf98", "#141414", "#a35f00", "#3e7b3a", "#f0c330", "#141414"],
+    { body: "onest", display: "montserrat", weight: 900, tracking: -40, radius: [4, 4] }),
+  preset("concrete", "Бетон", "Холодный серый, почти чёрный текст, ярко-оранжевый акцент, без скруглений",
+    ["#eeeeec", "#fafafa", "#dededa", "#161616", "#555555", "#c9c9c5", "#c73600", "#c2410c", "#3a7d44", "#bdbdb8", "#ff7a1a"],
+    { body: "golos", display: "unbounded", weight: 800, tracking: -30, radius: [0, 0], shadow: ["#161616", 20, 8, 12] }),
+  preset("neon-lime", "Лайм и чёрный", "Чёрные кнопки-пилюли, лаймовый герой с чёрным солнцем, без скруглений карточек",
+    ["#f5f5f0", "#ffffff", "#e4f8c4", "#0d0d0d", "#474747", "#d4d4cc", "#0d0d0d", "#4f7f00", "#2b7a3a", "#c6f36b", "#0d0d0d"],
+    { body: "golos", display: "unbounded", weight: 800, tracking: -30, radius: [0, 999] }),
+  preset("ultramarine", "Ультрамарин и жёлтый", "Синие кнопки, жёлтый герой с синим солнцем, тёмно-синий текст",
+    ["#fdfbf1", "#ffffff", "#fff2b8", "#0d1340", "#474d73", "#e8e1b8", "#2433b5", "#a86a00", "#2f7d4e", "#ffd93b", "#2433b5"],
+    { body: "onest", display: "montserrat", weight: 900, tracking: -40, radius: [10, 10] }),
+  preset("cobalt", "Кобальт", "Белый и голубоватый фон, кобальтовые кнопки-пилюли, коралловый второй акцент",
+    ["#f4f6fb", "#ffffff", "#e3e8f5", "#0f1630", "#47506b", "#cdd5ea", "#1d3fd8", "#c2410c", "#2f8a5b", "#b9c6ef", "#ffcc33"],
+    { body: "onest", display: "unbounded", weight: 700, tracking: -30, radius: [14, 999], gradient: ["#eef2fd", "#f7f1e9", 160], shadow: ["#1d3fd8", 26, 10, 14] }),
+  preset("fuchsia", "Фуксия", "Розовый градиент, малиновые кнопки, округлый шрифт, жёлтое солнце",
+    ["#fdf2f6", "#ffffff", "#f9dbe7", "#2a0f1e", "#6b4457", "#efc9d8", "#c2185b", "#c2410c", "#2e7d5b", "#f6b8cf", "#ffd23f"],
+    { body: "rubik", display: "rubik", weight: 800, tracking: -30, radius: [20, 999], gradient: ["#fde7ef", "#fff3e6", 160], shadow: ["#7a1040", 24, 8, 14] }),
+  preset("orange", "Апельсин", "Сочный оранжевый акцент, тёплый фон, широкие заголовки, кнопки-пилюли",
+    ["#fff6ec", "#ffffff", "#ffe3c4", "#1e1208", "#614a37", "#f3d2ad", "#c24400", "#b45309", "#2c7a4b", "#ffc48a", "#ff9f1c"],
+    { body: "rubik", display: "unbounded", weight: 800, tracking: -30, radius: [16, 999], shadow: ["#7a3300", 24, 8, 16] }),
+  preset("cherry", "Вишня и крем", "Глубокий вишнёвый, кремовый фон, классика с засечками",
+    ["#f8f0ea", "#fffaf6", "#efdcd0", "#2a0d14", "#6a4a50", "#e6cfc3", "#8c1c3a", "#b4532a", "#4f7a55", "#e5b9b9", "#f3c969"],
+    { body: "lora", display: "playfair", weight: 800, tracking: -20, radius: [8, 8], shadow: ["#5a1024", 22, 8, 14] }),
+  preset("terracotta", "Терракота", "Обожжённая глина, тёплый беж, заголовки с засечками",
+    ["#f6ece2", "#fffaf5", "#ecd8c6", "#2b1a12", "#6b5244", "#e2cbb6", "#a63d1c", "#b4532a", "#5b7a4a", "#d8a789", "#f2c14e"],
+    { body: "onest", display: "lora", weight: 700, tracking: -10, radius: [6, 6], gradient: ["#f3e3d3", "#f7efe4", 170], shadow: ["#5a2a14", 22, 8, 16] }),
+  preset("emerald", "Изумруд", "Глубокий зелёный акцент, свежий светлый фон, жёлтое солнце",
+    ["#f1f7f3", "#ffffff", "#dcebe2", "#0e2a1f", "#466257", "#c8ddd0", "#0f6e4a", "#b45309", "#2f8f5e", "#a9d3b8", "#f4c542"],
+    { body: "montserrat", display: "montserrat", weight: 800, tracking: -40, radius: [12, 8], shadow: ["#0e2a1f", 24, 8, 14] }),
+  preset("sea", "Морская волна", "Бирюзовые кнопки, градиент море → песок",
+    ["#eef6f8", "#ffffff", "#d6eaef", "#0b2730", "#45616a", "#c3dde4", "#00708a", "#b45309", "#2e8b57", "#9fd0dc", "#ffd166"],
+    { body: "golos", display: "montserrat", weight: 800, tracking: -40, radius: [16, 12], gradient: ["#e4f2f6", "#f6efe4", 165], shadow: ["#0b2730", 24, 8, 14] }),
+  preset("sand-ocean", "Песок и океан", "Тёплый песок, глубокий синий акцент, мягкий градиент",
+    ["#f7f1e6", "#fffcf6", "#ede1cc", "#13232f", "#4f5c66", "#e2d4bd", "#0e5a8a", "#b4532a", "#4c7c5a", "#9cc3d9", "#f2b84b"],
+    { body: "onest", display: "montserrat", weight: 800, tracking: -30, radius: [14, 999], gradient: ["#f3ead9", "#e3eef3", 170], shadow: ["#13232f", 24, 8, 14] }),
+  preset("mint-coral", "Мята и коралл", "Мятный градиент, коралловые кнопки, округлые заголовки",
+    ["#effaf6", "#ffffff", "#d6f1e7", "#10302a", "#4a6660", "#c4e6da", "#c23b2e", "#b4532a", "#1f7a5c", "#9fdcc6", "#ff8a65"],
+    { body: "golos", display: "comfortaa", weight: 700, tracking: -20, radius: [18, 12], gradient: ["#e3f6ef", "#fdf0e6", 160], shadow: ["#10302a", 24, 8, 14] }),
+  preset("lavender", "Лаванда", "Сиреневый градиент, фиолетовые кнопки-пилюли, тёплое солнце",
+    ["#f5f3fb", "#ffffff", "#e6e0f5", "#1f1937", "#5b5577", "#d6cfee", "#5b3fd1", "#b4532a", "#3f8a6c", "#c9bdf0", "#ffc857"],
+    { body: "onest", display: "comfortaa", weight: 700, tracking: -20, radius: [20, 999], gradient: ["#ece8fb", "#fbf0ee", 160], shadow: ["#2a1f5c", 26, 10, 14] }),
+  preset("peach-indigo", "Персик и индиго", "Персиковый фон, индиговые кнопки и индиговое солнце",
+    ["#fff3ec", "#ffffff", "#ffe0d0", "#1f1b3a", "#57536f", "#f2d2c2", "#3b2fa0", "#b4532a", "#2e7d5c", "#ffb59a", "#3b2fa0"],
+    { body: "onest", display: "comfortaa", weight: 700, tracking: -20, radius: [24, 999], gradient: ["#ffe9de", "#f5eefc", 160], shadow: ["#1f1b3a", 26, 10, 14] }),
+  preset("dusty-rose", "Пыльная роза", "Приглушённый розовый, ягодные кнопки, серифные заголовки",
+    ["#f7efed", "#fffaf9", "#ecdcd8", "#2e1f22", "#6a5558", "#e3d0cc", "#a2445a", "#b4532a", "#5f7f63", "#d9b8b5", "#f0c987"],
+    { body: "onest", display: "playfair", weight: 700, tracking: -10, radius: [12, 999], gradient: ["#f3e4e2", "#f1ebe0", 165], shadow: ["#4a2630", 24, 8, 14] }),
+  preset("choco-mint", "Шоколад и мята", "Шоколадные кнопки на мятном фоне, тёплое солнце",
+    ["#f3f8f5", "#ffffff", "#dcefe5", "#2b1a10", "#634c3d", "#c9e2d6", "#5a3420", "#b4532a", "#2f8466", "#a8dcc5", "#f5b971"],
+    { body: "golos", display: "lora", weight: 700, tracking: -10, radius: [14, 10], shadow: ["#2b1a10", 22, 8, 14] }),
+  preset("graphite", "Графит и белый", "Строгая монохромная тема: тёмно-серые кнопки, белые карточки, лёгкая тень",
+    ["#f3f4f1", "#ffffff", "#e1e4dc", "#1b1f1a", "#545a52", "#cfd3ca", "#2d332b", "#4f7f00", "#3d7a3d", "#cfe86a", "#ffffff"],
+    { body: "rubik", display: "rubik", weight: 800, tracking: -30, radius: [12, 12], shadow: ["#1b1f1a", 22, 8, 14] }),
 ];
 
 const HEX = /^#[0-9a-f]{6}$/i;
