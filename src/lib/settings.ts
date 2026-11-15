@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "./db";
 import type { LocalizedText } from "./i18n/localized";
-import { defaultTheme, normalizeTheme, type Theme } from "./theme";
+import { defaultTheme, normalizeTheme, normalizeVariants, type Theme, type ThemeVariant } from "./theme";
 
 /** Site-wide settings editable by the superadmin. */
 export type SiteSettings = {
@@ -32,6 +32,8 @@ export type SiteSettings = {
   contactText: LocalizedText;
   // Colours, fonts, radii and background of the public site («Оформление»).
   theme: Theme;
+  // Themes kept in «Оформление» to try later; `theme` above is the one on the site.
+  themeVariants: ThemeVariant[];
 };
 
 export const defaultSettings: SiteSettings = {
@@ -53,6 +55,7 @@ export const defaultSettings: SiteSettings = {
   contactEmail: "",
   contactText: {},
   theme: defaultTheme,
+  themeVariants: [],
 };
 
 export async function getSettings(): Promise<SiteSettings> {
@@ -64,6 +67,7 @@ export async function getSettings(): Promise<SiteSettings> {
   // The first default pointed at a wrong account; saved copies of it are fixed here.
   if (out.instagramUrl === "https://www.instagram.com/whiskersclub.rs/") out.instagramUrl = defaultSettings.instagramUrl;
   out.theme = normalizeTheme(out.theme);
+  out.themeVariants = normalizeVariants(out.themeVariants);
   return out as SiteSettings;
 }
 
