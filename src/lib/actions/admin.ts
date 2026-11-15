@@ -12,6 +12,7 @@ import { appUrl, sendMail } from "../mailer";
 import { getSettings, setSetting, type SiteSettings } from "../settings";
 import { bool, int, localized, optStr, str } from "../admin/form";
 import { normalizeTheme, normalizeVariants, type ThemeVariant } from "../theme";
+import { normalizeAccount } from "../ips";
 
 const roles: Role[] = ["SUPERADMIN", "EDITOR", "FINANCE"];
 
@@ -228,6 +229,12 @@ export async function saveSettings(fd: FormData) {
     tiktokUrl: str(fd, "tiktokUrl", 300),
     telegramUrl: str(fd, "telegramUrl", 300),
     paypalUrl: str(fd, "paypalUrl", 300),
+    ips: {
+      enabled: bool(fd, "ipsEnabled"),
+      // A mistyped account would send people's money nowhere: keep the old one.
+      account: normalizeAccount(str(fd, "ipsAccount", 40)) ?? previous.ips.account,
+      recipient: str(fd, "ipsRecipient", 200).split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 2).join("\n").slice(0, 70) || previous.ips.recipient,
+    },
     reportsUrl: str(fd, "reportsUrl", 500),
     contactEmail: str(fd, "contactEmail", 200),
   };

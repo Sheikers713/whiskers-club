@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { PaymentMethods } from "@/components/site/PaymentMethods";
+import { IpsDonate } from "@/components/site/IpsDonate";
+import { generalTarget, ipsReady } from "@/lib/ips-donation";
+import { getSettings } from "@/lib/settings";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/help">): Promise<Metadata> {
   const { locale } = await params;
@@ -15,12 +18,18 @@ export default async function HelpPage({ params }: PageProps<"/[locale]/help">) 
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
+  const settings = await getSettings();
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-display text-4xl uppercase md:text-6xl">{dict.help.title}</h1>
       <section id="donate" className="mt-8 scroll-mt-24">
         <h2 className="text-2xl font-bold">{dict.help.donateTitle}</h2>
         <p className="mt-2 max-w-3xl text-ink-soft">{dict.help.donateText}</p>
+        {ipsReady(settings) && (
+          <div className="mt-6 rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow md:max-w-[calc(50%-0.5rem)]">
+            <IpsDonate target={generalTarget} settings={settings} locale={locale} dict={dict} />
+          </div>
+        )}
         <PaymentMethods locale={locale} dict={dict} />
       </section>
       <div className="mt-12 grid gap-4 md:grid-cols-3">

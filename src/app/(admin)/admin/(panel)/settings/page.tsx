@@ -57,6 +57,20 @@ export default async function Settings({ searchParams }: PageProps<"/admin/setti
           <LocalizedField name="aboutText" label="Кто мы и как работаем (главная и страница «О нас»)" value={s.aboutText} multiline rows={6} />
           <LocalizedField name="malaStory" label="История Малы" value={s.malaStory} multiline rows={6} />
         </Card>
+        <Card title="QR-код для перевода из сербского банка (IPS)">
+          <p className="mb-3 text-sm text-ink-soft">
+            Код показывается на странице каждого кота и на «Как помочь». В «poziv na broj» стоит номер кота, поэтому в выписке видно, кому был перевод.
+          </p>
+          <label className="mb-3 flex items-center gap-2"><input type="checkbox" name="ipsEnabled" defaultChecked={s.ips.enabled} /> Показывать QR-код</label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Счёт (18 цифр или 265-7002560-05)" hint="Неверный номер не сохранится">
+              <input name="ipsAccount" defaultValue={s.ips.account} inputMode="numeric" className={inputCls} />
+            </Field>
+            <Field label="Получатель" hint="Имя как в банке; вторая строка, город, по желанию">
+              <textarea name="ipsRecipient" defaultValue={s.ips.recipient} rows={2} className={inputCls} />
+            </Field>
+          </div>
+        </Card>
         <Card title="Контакты">
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Instagram"><input name="instagramUrl" type="url" defaultValue={s.instagramUrl} className={inputCls} /></Field>
