@@ -1,18 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeTheme, themePresets } from "./theme";
-
-// WCAG relative luminance and contrast ratio.
-function lum(hex: string) {
-  const [r, g, b] = [1, 3, 5].map((i) => {
-    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-  });
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-const contrast = (a: string, b: string) => {
-  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
-  return (x + 0.05) / (y + 0.05);
-};
+import { applyScheme, colorSchemes, contrast, normalizeTheme, themePresets } from "./theme";
 
 describe("theme presets", () => {
   it("have unique keys and survive normalisation unchanged", () => {
@@ -34,6 +21,38 @@ describe("theme presets", () => {
       aa(c.orange, c.paper, 3, "second accent");
       aa(c.sage, c.paper, 3, "success");
       aa(c.milk, c.ink, 7, "light text on dark buttons");
+    });
+  }
+});
+
+describe("colour schemes", () => {
+  const cobalt = themePresets.find((p) => p.key === "cobalt")!.theme;
+
+  it("have unique keys and keep the page, gradient and fonts", () => {
+    expect(new Set(colorSchemes.map((s) => s.key)).size).toBe(colorSchemes.length);
+    for (const s of colorSchemes) {
+      const t = applyScheme(cobalt, s);
+      expect(t.colors.milk).toBe(cobalt.colors.milk);
+      expect(t.gradient).toEqual(cobalt.gradient);
+      expect([t.bodyFont, t.displayFont, t.radiusCard]).toEqual([cobalt.bodyFont, cobalt.displayFont, cobalt.radiusCard]);
+    }
+  });
+
+  for (const s of colorSchemes) {
+    it(`${s.label}: readable on the cobalt background`, () => {
+      const c = applyScheme(cobalt, s).colors;
+      const aa = (fg: string, bg: string, min: number, what: string) =>
+        expect(contrast(fg, bg), `${what} ${fg} on ${bg}`).toBeGreaterThanOrEqual(min);
+      for (const bg of [c.milk, c.paper, c.creamDeep, cobalt.gradient.from, cobalt.gradient.to]) {
+        aa(c.ink, bg, 7, "text");
+        aa(c.inkSoft, bg, 4.5, "soft text");
+      }
+      aa("#ffffff", c.brick, 4.5, "white on main button");
+      aa(c.brick, c.paper, 4.5, "accent links");
+      aa(c.orange, c.paper, 3, "second accent");
+      aa(c.sage, c.paper, 3, "success");
+      aa(s.chrome.headerText, s.chrome.headerBg, 7, "header text");
+      aa(s.chrome.footerText, s.chrome.footerBg, 7, "footer text");
     });
   }
 });

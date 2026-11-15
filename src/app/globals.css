@@ -55,6 +55,20 @@
   --page-bg: var(--color-milk);
   /* Card shadow (soft dark olive by default); the theme sets it. */
   --card-shadow: 0 8px 24px -6px rgb(59 74 42 / 0.18);
+  --header-bg: var(--color-milk);
+  --header-text: var(--color-ink);
+  --header-soft: var(--color-ink-soft);
+  --header-line: var(--color-line);
+  --header-panel: var(--color-paper);
+  --header-alpha: 72%;
+  --footer-bg: var(--color-cream-deep);
+  --footer-text: var(--color-ink);
+  --footer-soft: var(--color-ink-soft);
+  --footer-line: var(--color-line);
+  --header-logo-dark: block;
+  --header-logo-light: none;
+  --footer-logo-dark: block;
+  --footer-logo-light: none;
 }
 
 /* Cards: a soft drop shadow under the ring. Through --tw-shadow, so it
@@ -85,10 +99,29 @@ body::before {
   pointer-events: none;
 }
 
-/* Sticky site header: see-through enough to let the gradient show. */
+/* Header and footer carry their own colours (theme «Шапка и подвал»): the page
+   tokens are re-pointed inside them, so every class there follows. */
 .site-header {
-  background-color: color-mix(in oklab, var(--color-milk) 72%, transparent);
+  background-color: color-mix(in oklab, var(--header-bg) var(--header-alpha), transparent);
+  --color-ink: var(--header-text);
+  --color-ink-soft: var(--header-soft);
+  --color-line: var(--header-line);
+  --color-milk: var(--header-bg);
+  --color-paper: var(--header-panel);
+  color: var(--color-ink);
 }
+.site-footer {
+  background-color: var(--footer-bg);
+  --color-ink: var(--footer-text);
+  --color-ink-soft: var(--footer-soft);
+  --color-line: var(--footer-line);
+  color: var(--color-ink);
+}
+/* Black-and-red wordmark on light bars, a light one on dark bars. */
+.site-header .logo-dark { display: var(--header-logo-dark); }
+.site-header .logo-light { display: var(--header-logo-light); }
+.site-footer .logo-dark { display: var(--footer-logo-dark); }
+.site-footer .logo-light { display: var(--footer-logo-light); }
 
 /* Poster headings: dense heavy Manrope with tight tracking. */
 .font-display {

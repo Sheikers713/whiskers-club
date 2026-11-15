@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { saveTheme } from "@/lib/actions/admin";
 import {
+  applyScheme,
   colorLabels,
+  colorSchemes,
+  hasScheme,
   defaultTheme,
   fonts,
   normalizeTheme,
@@ -133,6 +136,32 @@ function PresetChip({ theme }: { theme: Theme }) {
   );
 }
 
+/** A tiny picture of a colour scheme on the current page: header, text, a card with a button, footer. */
+function SchemeChip({ theme }: { theme: Theme }) {
+  const c = theme.colors;
+  const ch = theme.chrome;
+  return (
+    <span aria-hidden className="block overflow-hidden rounded-md ring-1 ring-black/5" style={{ background: themeVars(theme)["--page-bg"] }}>
+      <span className="flex h-3 items-center gap-1 px-1.5" style={{ background: ch.headerBg }}>
+        <span className="h-1 w-4 rounded" style={{ background: ch.headerText }} />
+      </span>
+      <span className="flex items-center gap-1.5 px-1.5 py-1.5">
+        <span className="flex flex-1 flex-col gap-1">
+          <span className="block h-1.5 w-4/5 rounded" style={{ background: c.ink }} />
+          <span className="block h-1 w-3/5 rounded" style={{ background: c.inkSoft }} />
+          <span className="mt-0.5 block h-2.5 w-8 rounded" style={{ background: c.brick }} />
+        </span>
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded" style={{ background: c.olive }}>
+          <span className="h-3.5 w-3.5 rounded-full" style={{ background: c.sun }} />
+        </span>
+      </span>
+      <span className="flex h-3 items-center px-1.5" style={{ background: ch.footerBg }}>
+        <span className="h-1 w-6 rounded" style={{ background: ch.footerText }} />
+      </span>
+    </span>
+  );
+}
+
 /** Live theme editor: every change is applied to the site in the preview frame at once; «Сохранить» publishes it. */
 export function ThemeEditor({ saved }: { saved: Theme }) {
   const [theme, setTheme] = useState<Theme>(saved);
@@ -165,6 +194,7 @@ export function ThemeEditor({ saved }: { saved: Theme }) {
   };
   const setColor = (k: ColorKey, v: string) => set({ colors: { ...theme.colors, [k]: v } });
   const setGradient = (patch: Partial<Theme["gradient"]>) => set({ gradient: { ...theme.gradient, ...patch } });
+  const setChrome = (patch: Partial<Theme["chrome"]>) => set({ chrome: { ...theme.chrome, ...patch } });
   const setShadow = (patch: Partial<Theme["shadow"]>) => set({ shadow: { ...theme.shadow, ...patch } });
 
   const save = () =>
@@ -177,7 +207,27 @@ export function ThemeEditor({ saved }: { saved: Theme }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
       <div className="space-y-4 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2">
-        <Section title={`Готовые варианты · ${themePresets.length}`}>
+        <Section title={`Цветовые схемы · ${colorSchemes.length}`}>
+          <p className="text-xs text-ink-soft">Меняют кнопки, текст, акценты, шапку и подвал. Фон, градиент, шрифты и скругления остаются как есть.</p>
+          <div className="grid grid-cols-2 gap-2">
+            {colorSchemes.map((sc) => {
+              const active = hasScheme(theme, sc);
+              return (
+                <button
+                  key={sc.key}
+                  type="button"
+                  onClick={() => set(applyScheme(theme, sc))}
+                  className={`block rounded-lg p-2 text-left ring-1 transition ${active ? "bg-paper ring-2 ring-ink" : "ring-line hover:bg-paper"}`}
+                >
+                  <SchemeChip theme={applyScheme(theme, sc)} />
+                  <span className="mt-1.5 block text-sm font-semibold leading-tight">{sc.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Section>
+
+        <Section title={`Готовые варианты целиком · ${themePresets.length}`}>
           <div className="grid grid-cols-2 gap-2">
             {themePresets.map((p) => {
               const active = JSON.stringify(normalizeTheme(p.theme)) === JSON.stringify(theme);
@@ -227,6 +277,13 @@ export function ThemeEditor({ saved }: { saved: Theme }) {
             ))}
           </Section>
         ))}
+
+        <Section title="Шапка и подвал">
+          <ColorField label="Фон шапки" value={theme.chrome.headerBg} onChange={(v) => setChrome({ headerBg: v })} />
+          <ColorField label="Текст шапки" value={theme.chrome.headerText} onChange={(v) => setChrome({ headerText: v })} />
+          <ColorField label="Фон подвала" value={theme.chrome.footerBg} onChange={(v) => setChrome({ footerBg: v })} />
+          <ColorField label="Текст подвала" value={theme.chrome.footerText} onChange={(v) => setChrome({ footerText: v })} />
+        </Section>
 
         <Section title="Шрифты">
           <FontSelect label="Заголовки" value={theme.displayFont} onChange={(v) => set({ displayFont: v })} />
