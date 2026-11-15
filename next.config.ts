@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
   // time, so the Docker image builds without a database.
   output: "standalone",
   poweredByHeader: false,
+  // The IPS QR encoder is WebAssembly loaded from node_modules at run time;
+  // bundling it breaks, and the standalone build has to carry the .wasm file.
+  serverExternalPackages: ["zxing-wasm"],
+  outputFileTracingIncludes: {
+    "/api/ips-qr": ["./node_modules/zxing-wasm/dist/writer/zxing_writer.wasm"],
+  },
   experimental: {
     serverActions: {
       // Phone photos and PDF documents.

@@ -194,6 +194,9 @@ enum TestResult {
 model Cat {
   id             String @id @default(uuid()) @db.Uuid
   slug           String @unique
+  // Number in the IPS QR reference ("poziv na broj" 97CC1NNNN), so a bank
+  // transfer made from the cat's QR code can be matched to the cat.
+  donationCode   Int    @unique @default(autoincrement())
   // Localized texts.
   name           Json
   summary        Json   @default("{}")
