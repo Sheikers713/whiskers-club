@@ -18,7 +18,9 @@ export function SiteHeader({ locale, dict }: { locale: Locale; dict: Dictionary 
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/brand/cat-mark.png" alt="" width={44} height={44} className="h-11 w-11" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/wordmark.webp" alt="" width={96} height={48} className="h-12 w-auto" />
+          <img src="/brand/wordmark.webp" alt="" width={96} height={48} className="logo-dark h-12 w-auto" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/wordmark-light.webp" alt="" width={96} height={48} className="logo-light h-12 w-auto" />
         </Link>
         <nav className="hidden items-center gap-6 md:flex" aria-label={dict.nav.menu}>
           {nav.map((n) => (
