@@ -7,7 +7,7 @@ export const metadata = { title: "Оформление" };
 
 export default async function Design() {
   await requireUser(["SUPERADMIN"]);
-  const { theme } = await getSettings();
+  const { theme, themeVariants } = await getSettings();
   return (
     <div className="space-y-4">
       <PageTitle>Оформление сайта</PageTitle>
@@ -15,7 +15,7 @@ export default async function Design() {
         Цвета, шрифты, скругления и фон публичного сайта. Справа живое превью: изменения видны сразу, но на сайт попадают только
         после «Сохранить на сайт». Админка остаётся в стандартных цветах.
       </p>
-      <ThemeEditor saved={theme} />
+      <ThemeEditor saved={theme} savedVariants={themeVariants} />
     </div>
   );
 }

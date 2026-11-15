@@ -1,21 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { saveTheme } from "@/lib/actions/admin";
+import { saveTheme, saveThemeVariants } from "@/lib/actions/admin";
 import {
-  applyScheme,
   colorLabels,
-  colorSchemes,
-  hasScheme,
-  defaultTheme,
   fonts,
   normalizeTheme,
-  themePresets,
   themeCss,
   themeVars,
   type ColorKey,
   type FontKey,
   type Theme,
+  type ThemeVariant,
 } from "@/lib/theme";
 import { btnCls, btnSecondaryCls } from "./ui";
 
@@ -115,8 +111,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-/** A tiny picture of a preset: its page background, a card, a button and the sun. */
-function PresetChip({ theme }: { theme: Theme }) {
+/** A tiny picture of a theme: its page background, the hero sun, a card and a button. */
+function ThemeChip({ theme }: { theme: Theme }) {
   const c = theme.colors;
   return (
     <span
@@ -136,36 +132,15 @@ function PresetChip({ theme }: { theme: Theme }) {
   );
 }
 
-/** A tiny picture of a colour scheme on the current page: header, text, a card with a button, footer. */
-function SchemeChip({ theme }: { theme: Theme }) {
-  const c = theme.colors;
-  const ch = theme.chrome;
-  return (
-    <span aria-hidden className="block overflow-hidden rounded-md ring-1 ring-black/5" style={{ background: themeVars(theme)["--page-bg"] }}>
-      <span className="flex h-3 items-center gap-1 px-1.5" style={{ background: ch.headerBg }}>
-        <span className="h-1 w-4 rounded" style={{ background: ch.headerText }} />
-      </span>
-      <span className="flex items-center gap-1.5 px-1.5 py-1.5">
-        <span className="flex flex-1 flex-col gap-1">
-          <span className="block h-1.5 w-4/5 rounded" style={{ background: c.ink }} />
-          <span className="block h-1 w-3/5 rounded" style={{ background: c.inkSoft }} />
-          <span className="mt-0.5 block h-2.5 w-8 rounded" style={{ background: c.brick }} />
-        </span>
-        <span className="grid h-7 w-7 shrink-0 place-items-center rounded" style={{ background: c.olive }}>
-          <span className="h-3.5 w-3.5 rounded-full" style={{ background: c.sun }} />
-        </span>
-      </span>
-      <span className="flex h-3 items-center px-1.5" style={{ background: ch.footerBg }}>
-        <span className="h-1 w-6 rounded" style={{ background: ch.footerText }} />
-      </span>
-    </span>
-  );
-}
-
 /** Live theme editor: every change is applied to the site in the preview frame at once; «Сохранить» publishes it. */
-export function ThemeEditor({ saved }: { saved: Theme }) {
+export function ThemeEditor({ saved, savedVariants }: { saved: Theme; savedVariants: ThemeVariant[] }) {
   const [theme, setTheme] = useState<Theme>(saved);
   const [published, setPublished] = useState<Theme>(saved);
+  const [variants, setVariants] = useState<ThemeVariant[]>(savedVariants);
+  // Which theme the editor started from: the one on the site, or a saved one.
+  const [source, setSource] = useState<string>("live");
+  const [newName, setNewName] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [page, setPage] = useState(pages[0].path);
   const [mobile, setMobile] = useState(false);
   const [message, setMessage] = useState("");
@@ -187,7 +162,11 @@ export function ThemeEditor({ saved }: { saved: Theme }) {
   }, [theme]);
   useEffect(apply, [apply]);
 
-  const dirty = JSON.stringify(theme) !== JSON.stringify(published);
+  const same = (a: Theme, b: Theme) => JSON.stringify(a) === JSON.stringify(b);
+  const variant = variants.find((v) => v.id === source);
+  const base = variant ? variant.theme : published;
+  const dirty = !same(theme, base);
+  const onSite = same(theme, published);
   const set = (patch: Partial<Theme>) => {
     setMessage("");
     setTheme((t) => normalizeTheme({ ...t, ...patch }));
@@ -203,52 +182,103 @@ export function ThemeEditor({ saved }: { saved: Theme }) {
       setPublished(theme);
       setMessage("Сохранено: сайт уже выглядит так.");
     });
+  const storeVariants = (next: ThemeVariant[], note: string) =>
+    start(async () => {
+      setVariants(await saveThemeVariants(next));
+      setMessage(note);
+    });
+  const open = (id: string) => {
+    const v = variants.find((x) => x.id === id);
+    setSource(id);
+    setConfirmDelete(false);
+    setMessage("");
+    setTheme(v ? v.theme : published);
+  };
+  const create = () => {
+    const name = newName.trim() || `Тема ${variants.length + 1}`;
+    const id = `t${Date.now().toString(36)}`;
+    setNewName("");
+    setSource(id);
+    storeVariants([...variants, { id, name, theme }], `Создана тема «${name}». Меняйте её и сохраняйте: на сайт она попадёт только по кнопке «Сохранить на сайт».`);
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
       <div className="space-y-4 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2">
-        <Section title={`Цветовые схемы · ${colorSchemes.length}`}>
-          <p className="text-xs text-ink-soft">Меняют кнопки, текст, акценты, шапку и подвал. Фон, градиент, шрифты и скругления остаются как есть.</p>
-          <div className="grid grid-cols-2 gap-2">
-            {colorSchemes.map((sc) => {
-              const active = hasScheme(theme, sc);
-              return (
-                <button
-                  key={sc.key}
-                  type="button"
-                  onClick={() => set(applyScheme(theme, sc))}
-                  className={`block rounded-lg p-2 text-left ring-1 transition ${active ? "bg-paper ring-2 ring-ink" : "ring-line hover:bg-paper"}`}
-                >
-                  <SchemeChip theme={applyScheme(theme, sc)} />
-                  <span className="mt-1.5 block text-sm font-semibold leading-tight">{sc.label}</span>
-                </button>
-              );
-            })}
+        <Section title="Темы">
+          <div className="space-y-2">
+            {[{ id: "live", name: "На сайте сейчас", theme: published }, ...variants].map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                onClick={() => open(v.id)}
+                className={`flex w-full items-center gap-3 rounded-lg p-2 text-left ring-1 transition ${source === v.id ? "bg-paper ring-2 ring-ink" : "ring-line hover:bg-paper"}`}
+              >
+                <span className="w-28 shrink-0">
+                  <ThemeChip theme={v.theme} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold">{v.name}</span>
+                  {v.id !== "live" && same(v.theme, published) && <span className="text-xs text-ink-soft">сейчас на сайте</span>}
+                </span>
+              </button>
+            ))}
           </div>
-        </Section>
-
-        <Section title={`Готовые варианты целиком · ${themePresets.length}`}>
-          <div className="grid grid-cols-2 gap-2">
-            {themePresets.map((p) => {
-              const active = JSON.stringify(normalizeTheme(p.theme)) === JSON.stringify(theme);
-              return (
+          {variant && (
+            <div className="space-y-2 rounded-lg bg-paper p-3 ring-1 ring-line">
+              <label className="block text-sm font-medium">
+                Название
+                <input
+                  key={variant.id}
+                  defaultValue={variant.name}
+                  maxLength={60}
+                  onBlur={(e) => {
+                    const name = e.target.value.trim();
+                    if (name && name !== variant.name) storeVariants(variants.map((v) => (v.id === variant.id ? { ...v, name } : v)), "Название сохранено.");
+                  }}
+                  className="mt-1 block w-full rounded-md border border-line bg-paper px-2 py-1.5 text-base"
+                />
+              </label>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={p.key}
                   type="button"
-                  title={p.note}
-                  onClick={() => set(p.theme)}
-                  className={`block rounded-lg p-2 text-left ring-1 transition ${active ? "bg-paper ring-2 ring-ink" : "ring-line hover:bg-paper"}`}
+                  disabled={!dirty || pending}
+                  onClick={() => storeVariants(variants.map((v) => (v.id === variant.id ? { ...v, theme } : v)), `Тема «${variant.name}» сохранена (на сайт не выложена).`)}
+                  className={btnSecondaryCls}
                 >
-                  <PresetChip theme={p.theme} />
-                  <span className="mt-1.5 block text-sm font-semibold leading-tight">{p.label}</span>
+                  Сохранить в тему
                 </button>
-              );
-            })}
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => {
+                    if (!confirmDelete) return setConfirmDelete(true);
+                    const rest = variants.filter((v) => v.id !== variant.id);
+                    setSource("live");
+                    setTheme(published);
+                    setConfirmDelete(false);
+                    storeVariants(rest, `Тема «${variant.name}» удалена.`);
+                  }}
+                  className="text-sm text-brick underline"
+                >
+                  {confirmDelete ? "Точно удалить?" : "Удалить тему"}
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Название новой темы"
+              maxLength={60}
+              className="min-w-0 flex-1 rounded-md border border-line bg-paper px-2 py-1.5 text-sm"
+            />
+            <button type="button" onClick={create} disabled={pending} className={btnSecondaryCls}>
+              + Новая
+            </button>
           </div>
-          {(() => {
-            const current = themePresets.find((p) => JSON.stringify(normalizeTheme(p.theme)) === JSON.stringify(theme));
-            return <p className="text-xs text-ink-soft">{current ? current.note : "Свой вариант: изменён вручную."}</p>;
-          })()}
+          <p className="text-xs text-ink-soft">Новая тема создаётся из того, что сейчас в превью. Её можно менять сколько угодно: сайт не изменится, пока не нажать «Сохранить на сайт».</p>
         </Section>
 
         <Section title="Фон страницы">
@@ -328,18 +358,20 @@ export function ThemeEditor({ saved }: { saved: Theme }) {
 
         <div className="sticky bottom-0 -mx-1 space-y-2 border-t border-line bg-milk px-1 py-3">
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={save} disabled={!dirty || pending} className={btnCls}>
+            <button type="button" onClick={save} disabled={onSite || pending} className={btnCls}>
               {pending ? "Сохраняю…" : "Сохранить на сайт"}
             </button>
-            <button type="button" onClick={() => setTheme(published)} disabled={!dirty || pending} className={btnSecondaryCls}>
+            <button type="button" onClick={() => setTheme(base)} disabled={!dirty || pending} className={btnSecondaryCls}>
               Отменить
             </button>
           </div>
-          <button type="button" onClick={() => set(defaultTheme)} className="text-sm text-ink-soft underline">
-            Вернуть бренд-бук
-          </button>
           <p className="text-sm text-ink-soft" role="status">
-            {message || (dirty ? "Есть несохранённые изменения: их видно только в превью." : "Это то, что сейчас на сайте.")}
+            {message ||
+              (dirty
+                ? "Есть несохранённые изменения: их видно только в превью."
+                : onSite
+                  ? "Это то, что сейчас на сайте."
+                  : `Тема «${variant?.name}»: в превью, на сайте другая.`)}
           </p>
         </div>
       </div>

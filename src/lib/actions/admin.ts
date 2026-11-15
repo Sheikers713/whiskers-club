@@ -11,7 +11,7 @@ import { createResetLink } from "../auth/reset";
 import { appUrl, sendMail } from "../mailer";
 import { getSettings, setSetting, type SiteSettings } from "../settings";
 import { bool, int, localized, optStr, str } from "../admin/form";
-import { normalizeTheme } from "../theme";
+import { normalizeTheme, normalizeVariants, type ThemeVariant } from "../theme";
 
 const roles: Role[] = ["SUPERADMIN", "EDITOR", "FINANCE"];
 
@@ -246,6 +246,15 @@ export async function saveTheme(raw: unknown): Promise<{ ok: true }> {
   await audit({ actorId: me.id, action: "settings.theme", entityType: "SiteSetting", before, after: theme });
   revalidatePath("/", "layout");
   return { ok: true };
+}
+
+/** «Оформление»: the list of saved themes (not on the site until one is published). */
+export async function saveThemeVariants(raw: unknown): Promise<ThemeVariant[]> {
+  const me = await requireUser(["SUPERADMIN"]);
+  const variants = normalizeVariants(raw);
+  await setSetting("themeVariants", variants);
+  await audit({ actorId: me.id, action: "settings.themeVariants", entityType: "SiteSetting", after: variants.map((v) => v.name) });
+  return variants;
 }
 
 export async function savePartner(fd: FormData) {
