@@ -112,13 +112,23 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Swatches({ theme }: { theme: Theme }) {
-  const t = theme;
+/** A tiny picture of a preset: its page background, a card, a button and the sun. */
+function PresetChip({ theme }: { theme: Theme }) {
+  const c = theme.colors;
   return (
-    <span className="flex overflow-hidden rounded-md ring-1 ring-line">
-      {[t.colors.milk, t.colors.paper, t.colors.ink, t.colors.brick, t.colors.orange, t.colors.sage, t.colors.sun].map((c, i) => (
-        <span key={i} className="h-5 w-4" style={{ background: c }} />
-      ))}
+    <span
+      aria-hidden
+      className="relative flex h-12 items-center gap-1.5 overflow-hidden rounded-md px-2 ring-1 ring-black/5"
+      style={{ background: themeVars(theme)["--page-bg"] }}
+    >
+      <span className="h-7 w-7 shrink-0 rounded-full" style={{ background: c.olive }}>
+        <span className="m-1.5 block h-4 w-4 rounded-full" style={{ background: c.sun }} />
+      </span>
+      <span className="flex h-7 flex-1 flex-col justify-center gap-1 px-1.5" style={{ background: c.paper, borderRadius: Math.min(theme.radiusCard, 8) }}>
+        <span className="block h-1 w-3/4 rounded" style={{ background: c.ink }} />
+        <span className="block h-1 w-1/2 rounded" style={{ background: c.inkSoft }} />
+      </span>
+      <span className="h-4 w-6 shrink-0" style={{ background: c.brick, borderRadius: Math.min(theme.radiusControl, 8) }} />
     </span>
   );
 }
@@ -167,26 +177,28 @@ export function ThemeEditor({ saved }: { saved: Theme }) {
   return (
     <div className="grid gap-6 lg:grid-cols-[22rem_minmax(0,1fr)]">
       <div className="space-y-4 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2">
-        <Section title="Готовые варианты">
-          <div className="space-y-2">
+        <Section title={`Готовые варианты · ${themePresets.length}`}>
+          <div className="grid grid-cols-2 gap-2">
             {themePresets.map((p) => {
               const active = JSON.stringify(normalizeTheme(p.theme)) === JSON.stringify(theme);
               return (
                 <button
                   key={p.key}
                   type="button"
+                  title={p.note}
                   onClick={() => set(p.theme)}
-                  className={`block w-full rounded-lg p-3 text-left ring-1 transition ${active ? "bg-paper ring-2 ring-ink" : "ring-line hover:bg-paper"}`}
+                  className={`block rounded-lg p-2 text-left ring-1 transition ${active ? "bg-paper ring-2 ring-ink" : "ring-line hover:bg-paper"}`}
                 >
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="font-semibold">{p.label}</span>
-                    <Swatches theme={p.theme} />
-                  </span>
-                  <span className="mt-1 block text-xs text-ink-soft">{p.note}</span>
+                  <PresetChip theme={p.theme} />
+                  <span className="mt-1.5 block text-sm font-semibold leading-tight">{p.label}</span>
                 </button>
               );
             })}
           </div>
+          {(() => {
+            const current = themePresets.find((p) => JSON.stringify(normalizeTheme(p.theme)) === JSON.stringify(theme));
+            return <p className="text-xs text-ink-soft">{current ? current.note : "Свой вариант: изменён вручную."}</p>;
+          })()}
         </Section>
 
         <Section title="Фон страницы">
