@@ -32,7 +32,7 @@ export const colorLabels: Record<ColorKey, { label: string; hint: string }> = {
   inkSoft: { label: "Текст второстепенный", hint: "Подписи, пояснения" },
   line: { label: "Линии", hint: "Рамки и разделители" },
   brick: { label: "Главный акцент", hint: "Кнопки «Помочь», ссылки" },
-  orange: { label: "Второй акцент", hint: "Обводка фокуса, «Нашёл дом»" },
+  orange: { label: "Второй акцент", hint: "Кнопка PayPal, обводка фокуса, украшения «О нас»" },
   sage: { label: "Успех", hint: "«Собрано», «подтверждено»" },
   olive: { label: "Фон героя", hint: "Подложка с точками за котом" },
   sun: { label: "Солнце", hint: "Первое солнце в герое" },

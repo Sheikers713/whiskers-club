@@ -24,8 +24,9 @@ export async function PaymentMethods({ locale, dict }: { locale: Locale; dict: D
                 <CopyButton value={m.value} label={dict.help.copy} copiedLabel={dict.help.copied} />
               </div>
             )}
+            {/* Link methods (PayPal) use the second accent, so they stand apart from the main «Помочь» buttons. */}
             {m.url && (
-              <a href={m.url} target="_blank" rel="noopener" className="mt-3 inline-block rounded-[var(--radius-control)] bg-brick px-4 py-2 text-sm font-semibold text-white hover:bg-brick-dark">
+              <a href={m.url} target="_blank" rel="noopener" className="mt-3 inline-block rounded-[var(--radius-control)] bg-orange px-4 py-2 text-sm font-semibold text-white hover:bg-[color-mix(in_oklab,var(--color-orange)_80%,black)]">
                 {dict.help.open} →
               </a>
             )}

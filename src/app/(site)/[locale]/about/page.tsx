@@ -23,7 +23,8 @@ const themes = [
     blobB: "text-[#d6a58f]",
     line: "text-paper",
     accent: "text-orange",
-    pill: "bg-orange text-paper",
+    // Nata's label stays green whatever accent colours the theme picks.
+    pill: "bg-[#5f6e5b] text-white",
     icon: ["bg-olive/70", "bg-[#e7c3b3]", "bg-olive/70"],
     mark: "bg-olive/45 text-ink",
     paw: "text-olive",
