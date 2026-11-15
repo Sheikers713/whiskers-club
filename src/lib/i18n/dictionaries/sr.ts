@@ -18,9 +18,10 @@ const sr: Dictionary = {
     menu: "Meni",
   },
   home: {
-    heroTitle: "Svaka mačka zaslužuje topao dom",
+    heroTitle: "Mačke imaju 9 života, ali mi se borimo za svaki",
     heroText:
-      "Spasavamo, lečimo i udomljavamo mačke sa ulice i iz azila u Beogradu, preko privremenih i naših domova. Za svaku donaciju javno polažemo račune.",
+      "Iza svake naše mačke krije se priča koja je mogla da se završi sasvim drugačije. Mi tim pričama dajemo nastavak. Vi možete da nam pomognete da napišemo sledeće poglavlje.",
+    heroCta: "Postani deo spasavanja",
     whoTitle: "Ko smo mi",
     statsTitle: "Naš rad u brojevima",
     statRescued: "spaseno",

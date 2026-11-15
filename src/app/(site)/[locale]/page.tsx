@@ -47,8 +47,8 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">{heroText}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href={`/${locale}/help`} className="rounded-[var(--radius-control)] bg-brick px-6 py-3.5 font-bold text-white hover:bg-brick-dark">
-                {dict.nav.donate}
+              <Link href={`/${locale}/help`} className="rounded-[var(--radius-control)] bg-brick px-6 py-3.5 font-bold uppercase text-white hover:bg-brick-dark">
+                {dict.home.heroCta}
               </Link>
             </div>
           </div>

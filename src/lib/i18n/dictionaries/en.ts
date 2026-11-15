@@ -15,9 +15,10 @@ const en = {
     menu: "Menu",
   },
   home: {
-    heroTitle: "Every cat deserves a warm home",
+    heroTitle: "Cats have 9 lives, but we fight for every one",
     heroText:
-      "We rescue, treat and rehome street and shelter cats in Belgrade through foster homes and our own homes. Every donation is publicly accounted for.",
+      "Behind each of our cats is a story that could have ended very differently. We give these stories a continuation. You can help us write the next chapter.",
+    heroCta: "Become part of the rescue",
     whoTitle: "Who we are",
     statsTitle: "Our work in numbers",
     statRescued: "rescued",
