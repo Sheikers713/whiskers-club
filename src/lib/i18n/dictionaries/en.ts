@@ -137,6 +137,7 @@ const en = {
     eventDonation: "Donation {amount} from {name}",
     eventExpense: "Expense: {text}",
     eventAdopted: "Found a home",
+    eventAdoptedFemale: "Found a home",
     eventUpdate: "Update",
     documents: "Medical documents",
   },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { negotiateLocale } from "./i18n/config";
-import { missingLocales, pickLocalized } from "./i18n/localized";
+import { missingLocales, pickLocalized, untranslatedLocales } from "./i18n/localized";
 import { getDictionary } from "./i18n/dictionary";
 import { ageInMonths, formatAge, rsdToEur } from "./format";
 import { slugify } from "./slug";
@@ -28,6 +28,9 @@ describe("pickLocalized", () => {
     expect(pickLocalized({ en: "  ", ru: "Кот" }, "en").text).toBe("Кот");
     expect(pickLocalized(null, "en").text).toBe("");
     expect(missingLocales({ en: "x", ru: "" })).toEqual(["ru", "sr"]);
+    expect(untranslatedLocales({ ru: "x" })).toEqual(["en", "sr"]);
+    expect(untranslatedLocales({})).toEqual([]);
+    expect(untranslatedLocales({ ru: "  " })).toEqual([]);
   });
 });
 

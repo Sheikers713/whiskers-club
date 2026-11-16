@@ -139,6 +139,7 @@ const ru: Dictionary = {
     eventDonation: "Донат {amount} от {name}",
     eventExpense: "Расход: {text}",
     eventAdopted: "Нашёл дом",
+    eventAdoptedFemale: "Нашла дом",
     eventUpdate: "Новость",
     documents: "Медицинские документы",
   },
