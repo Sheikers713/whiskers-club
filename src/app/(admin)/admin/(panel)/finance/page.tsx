@@ -3,7 +3,7 @@ import { requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { t } from "@/lib/i18n/localized";
 import { formatNumber, formatShortDate } from "@/lib/format";
-import { settlements } from "@/lib/finance/settle";
+import { noCatBalance, settlements } from "@/lib/finance/settle";
 import { getSettings } from "@/lib/settings";
 import { toDateInput } from "@/lib/admin/form";
 import { PageTitle } from "@/components/admin/ui";
@@ -12,29 +12,22 @@ import { DonationSheet, ExpenseSheet } from "./Sheet";
 export const metadata = { title: "Таблица расходов и донатов" };
 
 /**
- * Expenses and donations laid out like the volunteers' Google Sheet: expenses
- * on the left (Дата, Сумма, На что, Чеки), donations on the right (Дата,
- * Сумма, От кого), newest first, a tab per cat, every cell editable (Sheet.tsx). A shared expense shows the
- * cat's equal share in that cat's tab, as on the cat's public page.
+ * Laid out like the volunteers' Google Sheet. On top, the «Итог» sheet: the
+ * total on hand, the free fund (money without a cat) and a block per cat with
+ * its balance, expenses and donations; each block opens that cat's tab. Below,
+ * the tab itself: expenses on the left (Дата, Сумма, На что, Коты, Чеки),
+ * donations on the right (Дата, Сумма, От кого, Кот), side by side, newest
+ * first, every cell editable (Sheet.tsx). A shared expense shows the cat's
+ * equal share in that cat's tab, as on the cat's public page.
  */
 
-const cell = "border border-line px-2 py-1.5 align-top";
-const num = `${cell} text-right tabular-nums whitespace-nowrap`;
 const n = (v: number) => formatNumber(v, "ru");
 
 export default async function FinanceSheet({ searchParams }: PageProps<"/admin/finance">) {
   await requireUser(["FINANCE"]);
   const sp = await searchParams;
   const tab = typeof sp.cat === "string" ? sp.cat : "all";
-  // One table at a time: expenses (default) or donations.
-  const view = sp.view === "donations" ? "donations" : "expenses";
-  const href = (cat: string, v: string = view) => {
-    const q = new URLSearchParams();
-    if (cat !== "all") q.set("cat", cat);
-    if (v === "donations") q.set("view", v);
-    const qs = q.toString();
-    return `/admin/finance${qs ? `?${qs}` : ""}`;
-  };
+  const href = (cat: string) => (cat === "all" ? "/admin/finance" : `/admin/finance?cat=${encodeURIComponent(cat)}`);
 
   const [expensesAll, donationsAll] = await Promise.all([
     db.expense.findMany({
@@ -147,6 +140,37 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const raisedAll = raised + withOpening;
   const balance = raisedAll - spent + settleRows.reduce((sum, r) => sum + r.amount, 0);
 
+  // The «Итог» sheet: every cat's own balance plus the free fund add up to the
+  // total on hand. A cat that left our care is settled to zero from the fund.
+  const settledBy = new Map(settled.map((x) => [x.catId, x.amount]));
+  const catCards = allCats
+    .filter((c) => perCat.has(c.id) || (c.state !== "ARCHIVED" && c.status.group === "ACTIVE"))
+    .map((c) => {
+      const m = perCat.get(c.id) ?? { income: 0, spent: 0 };
+      const closed = c.state === "ARCHIVED" || c.status.group !== "ACTIVE";
+      const settle = settledBy.get(c.id) ?? 0;
+      return {
+        id: c.id,
+        name: t(c.name, "ru"),
+        closed,
+        status: t(c.status.label, "ru").toLowerCase(),
+        income: m.income,
+        spent: m.spent,
+        settle,
+        balance: Math.round(m.income - m.spent + settle),
+      };
+    })
+    .sort((a, b) => Number(a.closed) - Number(b.closed) || a.name.localeCompare(b.name, "ru"));
+  const fundIncome = opening.amountRsd + published(donationsAll).filter((d) => !d.catId).reduce((s, d) => s + d.amountRsd, 0);
+  const fundSpent = published(expensesAll).filter((e) => e.cats.length === 0).reduce((s, e) => s + e.amountRsd, 0);
+  const coveredFromFund = settled.filter((x) => x.amount > 0).reduce((s, x) => s + x.amount, 0);
+  const returnedToFund = -settled.filter((x) => x.amount < 0).reduce((s, x) => s + x.amount, 0);
+  const fund = noCatBalance(fundIncome, fundSpent, settled);
+  const totalIn = opening.amountRsd + published(donationsAll).reduce((s, d) => s + d.amountRsd, 0);
+  const totalOut = published(expensesAll).reduce((s, e) => s + e.amountRsd, 0);
+  const total = fund + catCards.reduce((s, c) => s + c.balance, 0);
+  const tabName = tab === "all" ? "Все записи" : tab === "general" ? "Свободный фонд" : (tabs.get(tab) ?? catOptions.find((c) => c.id === tab)?.name ?? "Кот");
+
   const tabCls = (active: boolean) =>
     `whitespace-nowrap rounded-t-lg border border-b-0 border-line px-3 py-1.5 text-sm ${active ? "bg-paper font-semibold" : "bg-milk text-ink-soft hover:text-ink"}`;
 
@@ -163,102 +187,174 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
         Расходы и донаты
       </PageTitle>
 
-      <table className="mb-6 w-full max-w-md border-collapse text-sm font-semibold">
-        <tbody>
-          <tr>
-            <td className={cell}>
-              Итого донаты
-              {withOpening !== 0 && <span className="block text-xs font-normal text-ink-soft">с начальным остатком {n(withOpening)} (фонд Whiskers Club, {fmtDay(opening.date)})</span>}
-            </td>
-            <td className={num}>{n(raisedAll)}</td>
-          </tr>
-          <tr><td className={cell}>Итого расходы</td><td className={num}>{n(spent)}</td></tr>
-          {settleRows.map((r) => (
-            <tr key={r.label}>
-              <td className={cell}>
-                {r.label}
-                {r.hint && <span className="block text-xs font-normal text-ink-soft">{r.hint}</span>}
-              </td>
-              <td className={num}>{r.amount > 0 ? "+" : ""}{n(r.amount)}</td>
-            </tr>
+      {/* «Итог»: total and free fund, then a block per cat, as in the sheet. */}
+      <section aria-label="Итог" className="mb-8">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Tile
+            href={href("all")}
+            active={tab === "all"}
+            title="ИТОГ"
+            hint="на руках: свободный фонд + остатки котов"
+            balance={total}
+            out={totalOut}
+            inn={totalIn}
+            big
+          />
+          <Tile
+            href={href("general")}
+            active={tab === "general"}
+            title="Свободный фонд"
+            hint={`деньги без кота, с начальным остатком ${n(opening.amountRsd)}`}
+            balance={fund}
+            out={fundSpent + coveredFromFund}
+            inn={fundIncome + returnedToFund}
+            big
+          />
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {catCards.map((c) => (
+            <Tile
+              key={c.id}
+              href={href(c.id)}
+              active={tab === c.id}
+              title={c.name}
+              hint={
+                c.closed
+                  ? `${c.status}${c.settle ? (c.settle > 0 ? `, долг ${n(c.settle)} закрыт из фонда` : `, излишек ${n(-c.settle)} ушёл в фонд`) : ""}`
+                  : undefined
+              }
+              balance={c.balance}
+              out={c.spent}
+              inn={c.income}
+              dim={c.closed}
+            />
           ))}
-          <tr><td className={cell}>Остаток</td><td className={`${num} ${balance < 0 ? "text-brick" : ""}`}>{n(balance)}</td></tr>
-        </tbody>
-      </table>
-      <p className="-mt-4 mb-6 text-xs text-ink-soft">В итогах только опубликованные записи. Переводы между сборами здесь не учитываются.</p>
+        </div>
+        <p className="mt-2 text-xs text-ink-soft">В итогах только опубликованные записи. Переводы между сборами здесь не учитываются. Нажмите на блок, чтобы открыть его записи.</p>
+      </section>
 
       <nav className="-mb-px flex gap-1 overflow-x-auto">
         <Link href={href("all")} className={tabCls(tab === "all")}>Все</Link>
         {catTabs.map(([id, name]) => (
           <Link key={id} href={href(id)} className={tabCls(tab === id)}>{name}</Link>
         ))}
-        <Link href={href("general")} className={tabCls(tab === "general")}>Фонд Whiskers Club</Link>
+        <Link href={href("general")} className={tabCls(tab === "general")}>Свободный фонд</Link>
       </nav>
 
       <div className="rounded-b-[var(--radius-card)] rounded-tr-[var(--radius-card)] bg-paper p-3 ring-1 ring-line">
-        <div className="mb-3 flex justify-center gap-3">
-          <Link
-            href={href(tab, "expenses")}
-            aria-current={view === "expenses" ? "page" : undefined}
-            className={`rounded-lg px-6 py-2 text-lg font-bold text-white shadow-sm transition ${view === "expenses" ? "bg-red-600 ring-4 ring-red-600/30" : "bg-red-600/45 hover:bg-red-600/80"}`}
-          >
-            Расходы · {n(spent)}
-          </Link>
-          <Link
-            href={href(tab, "donations")}
-            aria-current={view === "donations" ? "page" : undefined}
-            className={`rounded-lg px-6 py-2 text-lg font-bold text-white shadow-sm transition ${view === "donations" ? "bg-green-600 ring-4 ring-green-600/30" : "bg-green-600/45 hover:bg-green-600/80"}`}
-          >
-            Донаты · {n(raisedAll)}
-          </Link>
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 px-1">
+          <h2 className="text-lg font-bold">{tabName}</h2>
+          <p className="text-sm tabular-nums">
+            Донаты {n(raisedAll)} − расходы {n(spent)}
+            {settleRows.map((r) => (
+              <span key={r.label} title={r.hint}> {r.amount > 0 ? "+" : "−"} {n(Math.abs(r.amount))} <span className="text-ink-soft">({r.label.toLowerCase()})</span></span>
+            ))}{" "}
+            = <b className={balance < 0 ? "text-brick" : ""}>{n(balance)}</b>
+          </p>
         </div>
 
-        {view === "expenses" ? (
-        <section className="min-w-0">
-          <ExpenseSheet
-            rows={expenses.map((e) => ({
-              id: e.id,
-              date: toDateInput(e.date),
-              amountRsd: e.amountRsd,
-              share: e.share,
-              description: e.description,
-              catIds: e.cats.map((c) => c.cat.id),
-              fileIds: e.files.map((f) => f.fileId),
-              driveUrl: e.files.length ? null : (e.internalComment?.match(/Чек: (https:\/\/\S+)/)?.[1] ?? null),
-              proof: e.proof,
-              noReceiptReason: e.noReceiptReason,
-              state: e.state,
-              addedBy: addedBy(e),
-            }))}
-            cats={catOptions}
-            defaultCatIds={tab !== "all" && tab !== "general" ? [tab] : []}
-          />
-          <p className="mt-1 text-right text-sm font-semibold">Итого: {n(spent)}</p>
-        </section>
-        ) : (
-        <section className="min-w-0">
-          <DonationSheet
-            rows={donations.map((d) => ({
-              id: d.id,
-              date: toDateInput(d.date),
-              amountRsd: d.amountRsd,
-              donorName: d.donorName ?? d.publicName,
-              method: d.method,
-              catId: d.catId,
-              split: splitOf(d),
-              campaign: d.campaign ? t(d.campaign.title, "ru") : null,
-              state: d.state,
-              addedBy: addedBy(d),
-            }))}
-            cats={catOptions}
-            methods={methods}
-            fundRows={withOpening && openingRow ? [openingRow] : []}
-            defaultCatId={tab !== "all" && tab !== "general" ? tab : ""}
-          />
-          <p className="mt-1 text-right text-sm font-semibold">Итого: {n(raisedAll)}</p>
-        </section>
-        )}
+        {/* Two sheets side by side, like the volunteers' Google Sheet. */}
+        <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <section className="min-w-0">
+            <h3 className="mb-0 flex items-baseline justify-between rounded-t-md bg-red-600 px-3 py-1.5 font-bold text-white">
+              <span>Расходы</span>
+              <span className="tabular-nums">−{n(spent)}</span>
+            </h3>
+            <ExpenseSheet
+              rows={expenses.map((e) => ({
+                id: e.id,
+                date: toDateInput(e.date),
+                amountRsd: e.amountRsd,
+                share: e.share,
+                description: e.description,
+                catIds: e.cats.map((c) => c.cat.id),
+                fileIds: e.files.map((f) => f.fileId),
+                driveUrl: e.files.length ? null : (e.internalComment?.match(/Чек: (https:\/\/\S+)/)?.[1] ?? null),
+                proof: e.proof,
+                noReceiptReason: e.noReceiptReason,
+                state: e.state,
+                addedBy: addedBy(e),
+              }))}
+              cats={catOptions}
+              defaultCatIds={tab !== "all" && tab !== "general" ? [tab] : []}
+            />
+            <p className="mt-1 text-right text-sm font-semibold">Итого расходы: {n(spent)}</p>
+          </section>
+          <section className="min-w-0">
+            <h3 className="mb-0 flex items-baseline justify-between rounded-t-md bg-green-600 px-3 py-1.5 font-bold text-white">
+              <span>Донаты</span>
+              <span className="tabular-nums">+{n(raisedAll)}</span>
+            </h3>
+            <DonationSheet
+              rows={donations.map((d) => ({
+                id: d.id,
+                date: toDateInput(d.date),
+                amountRsd: d.amountRsd,
+                donorName: d.donorName ?? d.publicName,
+                method: d.method,
+                catId: d.catId,
+                split: splitOf(d),
+                campaign: d.campaign ? t(d.campaign.title, "ru") : null,
+                state: d.state,
+                addedBy: addedBy(d),
+              }))}
+              cats={catOptions}
+              methods={methods}
+              fundRows={withOpening && openingRow ? [openingRow] : []}
+              defaultCatId={tab !== "all" && tab !== "general" ? tab : ""}
+            />
+            <p className="mt-1 text-right text-sm font-semibold">Итого донаты: {n(raisedAll)}</p>
+          </section>
+        </div>
       </div>
     </div>
+  );
+}
+
+/** One block of the «Итог» sheet: name, balance, then Расход | Донат. */
+function Tile({
+  href,
+  active,
+  title,
+  hint,
+  balance,
+  out,
+  inn,
+  big,
+  dim,
+}: {
+  href: string;
+  active: boolean;
+  title: string;
+  hint?: string;
+  balance: number;
+  out: number;
+  inn: number;
+  big?: boolean;
+  dim?: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={`block rounded-[var(--radius-card)] bg-paper p-3 ring-1 transition hover:ring-ink/50 ${active ? "ring-2 ring-ink" : "ring-line"} ${dim ? "opacity-60" : ""}`}
+    >
+      <div className="flex items-baseline justify-between gap-2">
+        <span className={`truncate font-bold ${big ? "text-base uppercase tracking-wide" : ""}`}>{title}</span>
+        <span className="text-xs text-ink-soft">RSD</span>
+      </div>
+      {hint && <p className="truncate text-xs text-ink-soft" title={hint}>{hint}</p>}
+      <p className={`mt-1 font-bold tabular-nums ${big ? "text-3xl" : "text-2xl"} ${balance < 0 ? "text-brick" : ""}`}>{n(balance)}</p>
+      <div className="mt-2 grid grid-cols-2 border-t border-line pt-1.5 text-sm tabular-nums">
+        <div>
+          <span className="block text-xs text-ink-soft">Расход</span>
+          <span className="text-red-700">−{n(out)}</span>
+        </div>
+        <div className="border-l border-line pl-3">
+          <span className="block text-xs text-ink-soft">Донат</span>
+          <span className="text-green-700">+{n(inn)}</span>
+        </div>
+      </div>
+    </Link>
   );
 }
