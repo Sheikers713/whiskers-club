@@ -1,26 +1,24 @@
 import "server-only";
 import { db } from "./db";
-import { t } from "./i18n/localized";
-import { GENERAL_PURPOSE, GENERAL_REFERENCE, catPurpose, catReference, ipsPayload, isValidAccount, model97 } from "./ips";
+import { GENERAL_REFERENCE, catReference, ipsPayload, isValidAccount, model97 } from "./ips";
 import { publicCatWhere } from "./queries/cats";
 import type { SiteSettings } from "./settings";
 
 /** What the donation box shows and encodes: for one cat, or for the general fund. */
-export type IpsTarget = { slug: string | null; purpose: string; reference: string };
+export type IpsTarget = { slug: string | null; reference: string };
 
-export function catTarget(cat: { slug: string; name: unknown; originalLocale: string; donationCode: number }): IpsTarget {
-  // Serbian name first: the purpose ends up on a Serbian bank statement.
-  return { slug: cat.slug, purpose: catPurpose(t(cat.name, "sr", cat.originalLocale)), reference: catReference(cat.donationCode) };
+export function catTarget(cat: { slug: string; donationCode: number }): IpsTarget {
+  return { slug: cat.slug, reference: catReference(cat.donationCode) };
 }
 
-export const generalTarget: IpsTarget = { slug: null, purpose: GENERAL_PURPOSE, reference: GENERAL_REFERENCE };
+export const generalTarget: IpsTarget = { slug: null, reference: GENERAL_REFERENCE };
 
 /** The cat's target when the cat is public, the general fund for no slug, null otherwise. */
 export async function findTarget(slug: string | null): Promise<IpsTarget | null> {
   if (!slug) return generalTarget;
   const cat = await db.cat.findFirst({
     where: { slug, ...publicCatWhere },
-    select: { slug: true, name: true, originalLocale: true, donationCode: true },
+    select: { slug: true, donationCode: true },
   });
   return cat ? catTarget(cat) : null;
 }
@@ -30,7 +28,7 @@ export function ipsReady(settings: SiteSettings): boolean {
 }
 
 export function payloadFor(settings: SiteSettings, target: IpsTarget, amountRsd: number): string {
-  return ipsPayload({ account: settings.ips.account, recipient: settings.ips.recipient, amountRsd, purpose: target.purpose, reference: target.reference });
+  return ipsPayload({ account: settings.ips.account, recipient: settings.ips.recipient, amountRsd, reference: target.reference });
 }
 
 /** "265-0000007002560-05", as banks print it. */

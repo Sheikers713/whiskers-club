@@ -1,8 +1,9 @@
 /**
  * NBS IPS QR payment codes ("IPS skeniraj") for RSD donations from Serbian
- * banks. The code carries the account, an amount, the purpose and a
- * reference number, so every transfer made from it arrives with a cat code
- * the bot can match later on the bank statement.
+ * banks. The code carries the account, an amount and a reference number,
+ * so every transfer made from it arrives with a cat code the bot can match
+ * later on the bank statement. It has no payment purpose (tag S, optional in
+ * the NBS spec): the transfer carries no "donation" wording.
  *
  * Format: https://ips.nbs.rs/PDF/pdfPreporukeValidacijaLat.pdf
  * Pure: no database, no QR drawing (that is ips-qr.ts).
@@ -57,24 +58,6 @@ export function findReference(text: string): string | null {
   return null;
 }
 
-const CYR: Record<string, string> = {
-  а: "a", б: "b", в: "v", г: "g", д: "d", ђ: "đ", е: "e", ё: "e", ж: "ž", з: "z", и: "i", й: "j", ј: "j", к: "k",
-  л: "l", љ: "lj", м: "m", н: "n", њ: "nj", о: "o", п: "p", р: "r", с: "s", т: "t", ћ: "ć", у: "u", ф: "f",
-  х: "h", ц: "c", ч: "č", џ: "dž", ш: "š", щ: "šč", ъ: "", ы: "i", ь: "", э: "e", ю: "ju", я: "ja",
-};
-
-/** Cyrillic to Serbian Latin, so the purpose reads the same in every bank. */
-export function toLatin(text: string): string {
-  return [...text]
-    .map((ch) => {
-      const low = ch.toLowerCase();
-      const lat = CYR[low];
-      if (lat === undefined) return ch;
-      return ch === low ? lat : lat.charAt(0).toUpperCase() + lat.slice(1);
-    })
-    .join("");
-}
-
 /** Whole dinars as the I tag wants them: "RSD1000,". */
 function amountTag(amountRsd: number): string {
   return `RSD${Math.max(0, Math.round(amountRsd))},`;
@@ -90,7 +73,6 @@ export type IpsPayment = {
   /** Name of the payee; a second line (city) is optional. */
   recipient: string;
   amountRsd: number;
-  purpose: string;
   /** Reference without the model, e.g. catReference(12). */
   reference?: string;
 };
@@ -113,18 +95,10 @@ export function ipsPayload(p: IpsPayment): string {
     `I:${amountTag(p.amountRsd)}`,
     // 289: non-cash transfer ordered by a private person.
     "SF:289",
-    `S:${clean(toLatin(p.purpose), 35)}`,
   ];
   if (p.reference) tags.push(`RO:${model97(p.reference)}`);
   return tags.join("|");
 }
-
-/** "Donacija za Nami" (35 characters at most). */
-export function catPurpose(catName: string): string {
-  return clean(`Donacija za ${toLatin(catName)}`, 35);
-}
-
-export const GENERAL_PURPOSE = "Donacija Whiskers Club";
 
 /** Amounts offered as buttons next to the code. */
 export const IPS_AMOUNTS = [500, 1000, 2000, 5000];

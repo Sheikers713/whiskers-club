@@ -45,7 +45,7 @@ const sr: Dictionary = {
   ips: {
     title: "Uplata iz srpske banke preko QR koda",
     howTo: "Otvorite aplikaciju banke, izaberite „IPS skeniraj“ i usmerite kameru na kod. Iznos izaberite ovde; pre potvrde banka će vam sve prikazati.",
-    forCat: "Kod je već potpisan imenom „{name}“, pa ćemo znati za koga je uplata.",
+    forCat: "Poziv na broj u kodu je vezan za „{name}“, pa ćemo znati za koga je uplata.",
     amount: "Iznos",
     other: "Drugi iznos",
     alt: "IPS QR kod za uplatu od {amount}",
@@ -53,7 +53,6 @@ const sr: Dictionary = {
     save: "Sačuvaj QR kod",
     recipient: "Primalac",
     account: "Račun",
-    purpose: "Svrha uplate",
     reference: "Model i poziv na broj",
   },
   help: {
