@@ -105,7 +105,7 @@ export async function saveDraft(d: Draft, who: Who): Promise<Saved> {
   const saved = await db.$transaction(async (tx) => {
     const e = await tx.expense.create({ data });
     if (d.catIds.length) await tx.expenseCat.createMany({ data: d.catIds.map((catId) => ({ expenseId: e.id, catId })) });
-    if (fileIds.length) await tx.expenseFile.createMany({ data: fileIds.map((fileId) => ({ expenseId: e.id, fileId, isPublic: false })) });
+    if (fileIds.length) await tx.expenseFile.createMany({ data: fileIds.map((fileId) => ({ expenseId: e.id, fileId, isPublic: true })) });
     return e;
   });
   await audit(who, "expense.create", "Expense", saved.id, { ...data, catIds: d.catIds, addedFiles: fileIds });

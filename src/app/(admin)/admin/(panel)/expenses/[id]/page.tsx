@@ -66,7 +66,7 @@ export default async function ExpensePage({ params, searchParams }: PageProps<"/
           </Field>
           <FileInput name="files" label="Фото чека или документ" accept="image/*,application/pdf" multiple />
           <label className="flex items-center gap-2">
-            <input type="checkbox" name="newFilesPublic" defaultChecked /> Показывать новые файлы в публичном отчёте
+            <input type="checkbox" name="newFilesPublic" defaultChecked /> Показывать новые файлы на сайте (чеки видят все посетители)
           </label>
           {e && e.files.length > 0 && (
             <ul className="space-y-1 text-sm">
@@ -76,13 +76,13 @@ export default async function ExpensePage({ params, searchParams }: PageProps<"/
                     {f.file.originalName}
                   </a>
                   <label className="flex items-center gap-1">
-                    <input type="checkbox" name="publicFiles" value={f.fileId} defaultChecked={f.isPublic} /> публично
+                    <input type="checkbox" name="publicFiles" value={f.fileId} defaultChecked={f.isPublic} /> на сайте
                   </label>
                 </li>
               ))}
             </ul>
           )}
-          <p className="text-xs text-ink-soft">Перед публикацией проверьте, что на фото нет телефонов и личных данных.</p>
+          <p className="text-xs text-ink-soft">Чеки видны всем посетителям сайта. Если на фото есть телефон или другие личные данные, снимите галочку «на сайте» у этого файла.</p>
         </Card>
         <Card title="Служебное (не публикуется)">
           <div className="grid gap-4 sm:grid-cols-2">
