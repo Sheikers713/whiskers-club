@@ -211,12 +211,6 @@ export async function saveSettings(fd: FormData) {
       adopted: int(fd, "offsetAdopted") ?? 0,
       sterilized: int(fd, "offsetSterilized") ?? 0,
     },
-    openingBalance: {
-      // Not on the form: keep the per-cat split as it is.
-      ...(previous.openingBalance.cats ? { cats: previous.openingBalance.cats } : {}),
-      amountRsd: int(fd, "openingAmount") ?? 0,
-      date: /^\d{4}-\d{2}-\d{2}$/.test(str(fd, "openingDate", 10)) ? str(fd, "openingDate", 10) : "",
-    },
     showStats: bool(fd, "showStats"),
     heroText: localized(fd, "heroText"),
     aboutText: localized(fd, "aboutText"),

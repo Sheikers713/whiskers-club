@@ -1,5 +1,5 @@
 /**
- * Money without a cat (the 15 000 opening balance, any later donation without
+ * Money without a cat (the opening balance, any later donation without
  * a cat, minus expenses without a cat) is only touched when a cat leaves our
  * care (adopted, died, archived). At that moment the cat's balance is brought
  * to zero: a shortfall is covered from the money without a cat, a surplus goes
