@@ -100,11 +100,11 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const published = <T extends { state: string }>(rows: T[]) => rows.filter((r) => r.state === "PUBLISHED");
   const spent = published(expenses).reduce((s, e) => s + e.share, 0);
   const raised = published(donations).reduce((s, d) => s + d.amountRsd, 0);
-  // The 15 000 opening balance is a donation without a cat, dated in settings.
+  // The fixed opening balance (OPENING_BALANCE) is a donation without a cat.
   // Money without a cat is only used when a cat leaves our care: its balance is
   // then brought to zero from it (or its surplus goes back). See settle.ts.
   const opening = (await getSettings()).openingBalance;
-  const openingRow = opening.amountRsd ? { label: "Начальный остаток", hint: "в фонд Whiskers Club, до учёта на сайте", amount: opening.amountRsd, date: opening.date } : null;
+  const openingRow = opening.amountRsd ? { label: "Начальный остаток", hint: "в фонд Whiskers Club, точка отсчёта, не меняется", amount: opening.amountRsd, date: opening.date } : null;
   const perCat = new Map<string, { income: number; spent: number }>();
   const add = (id: string, k: "income" | "spent", v: number) => {
     const m = perCat.get(id) ?? { income: 0, spent: 0 };
