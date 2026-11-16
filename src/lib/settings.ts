@@ -38,12 +38,12 @@ export type SiteSettings = {
 };
 
 /**
- * The real zero point of the books: 10 918 RSD on 1 September 2026 (Кристина,
- * left after Mala). Nami's earlier history is not complete, so her expenses
- * before it were dropped and this sum is the fixed starting point. It is not
- * editable in the admin and a value saved in the database is ignored.
+ * Money on hand when the books start. It was 10 918 RSD on 1 September 2026
+ * (Кристина, left after Mala); on 1 October 2026 all of it went to Zhuk and is
+ * now an ordinary donation on him, so the fund starts at zero. Fixed in code:
+ * not editable in the admin, and a value saved in the database is ignored.
  */
-export const OPENING_BALANCE: SiteSettings["openingBalance"] = { amountRsd: 10918, date: "2026-09-01" };
+export const OPENING_BALANCE: SiteSettings["openingBalance"] = { amountRsd: 0, date: "2026-09-01" };
 
 export const defaultSettings: SiteSettings = {
   eurRate: 117,

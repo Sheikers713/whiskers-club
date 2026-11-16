@@ -44,8 +44,7 @@ export default async function Settings({ searchParams }: PageProps<"/admin/setti
             <Field label="Стерилизовано до сайта"><input name="offsetSterilized" type="number" defaultValue={s.counterOffsets.sterilized} className={inputCls} /></Field>
           </div>
           <p className="text-sm text-ink-soft">
-            Начальный остаток: <b className="text-ink">{s.openingBalance.amountRsd.toLocaleString("ru-RU")} RSD</b> на{" "}
-            {s.openingBalance.date.split("-").reverse().join(".")}, фонд Whiskers Club. Это точка отсчёта учёта, она зафиксирована и не меняется.
+            Начальный остаток фонда Whiskers Club: <b className="text-ink">{s.openingBalance.amountRsd.toLocaleString("ru-RU")} RSD</b>. Прежние 10 918 (Кристина, после Малы) 1 октября 2026 ушли Жуку и записаны донатом на него. Сумма зафиксирована и не меняется.
           </p>
         </Card>
         <Card title="Тексты главной">
