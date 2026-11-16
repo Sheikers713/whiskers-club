@@ -42,7 +42,7 @@ const en = {
   ips: {
     title: "Transfer from a Serbian bank by QR code",
     howTo: "Open your bank app, tap «IPS skeniraj» and point the camera at the code. Pick the amount here; you can still check everything before confirming.",
-    forCat: "The code is already labelled «{name}», so we will know who the transfer is for.",
+    forCat: "The reference number in the code belongs to «{name}», so we will know who the transfer is for.",
     amount: "Amount",
     other: "Other amount",
     alt: "IPS QR code for a {amount} transfer",
@@ -50,7 +50,6 @@ const en = {
     save: "Save the QR code",
     recipient: "Recipient",
     account: "Account",
-    purpose: "Purpose",
     reference: "Model and reference (poziv na broj)",
   },
   help: {

@@ -20,7 +20,6 @@ export function IpsDonate({ target, catName, settings, locale, dict }: { target:
   const rows: [string, string, string | null][] = [
     [d.recipient, settings.ips.recipient.replace(/\n/g, ", "), null],
     [d.account, account, settings.ips.account],
-    [d.purpose, target.purpose, null],
     [d.reference, `${ref.model} · ${ref.number}`, ref.number],
   ];
   return (
