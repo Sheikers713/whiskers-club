@@ -23,7 +23,7 @@ export function SiteFooter({ locale, dict, settings }: { locale: Locale; dict: D
         </div>
         <div>
           <p className="eyebrow">{dict.footer.contacts}</p>
-          <SocialLinks settings={settings} className="mt-3" />
+          <SocialLinks settings={settings} locale={locale} className="mt-3" />
           <ul className="mt-3 space-y-1 text-sm">
             {settings.contactEmail && (
               <li>

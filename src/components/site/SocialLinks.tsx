@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { Locale } from "@/lib/i18n/config";
 import type { SiteSettings } from "@/lib/settings";
 
 const icon = (children: ReactNode, viewBox = "0 0 24 24") => (
@@ -38,17 +39,20 @@ const brand: Record<keyof typeof icons, string> = {
  */
 export function SocialLinks({
   settings,
+  locale,
   className = "",
   labeled = false,
 }: {
   settings: SiteSettings;
+  locale: Locale;
   className?: string;
   labeled?: boolean;
 }) {
   const links: Array<[keyof typeof icons, string, string]> = [
     ["instagram", "Instagram", settings.instagramUrl],
     ["facebook", "Facebook", settings.facebookUrl],
-    ["youtube", "YouTube", settings.youtubeUrl],
+    // The YouTube channel is in English, so only the English site links to it.
+    ["youtube", "YouTube", locale === "en" ? settings.youtubeUrl : ""],
     ["tiktok", "TikTok", settings.tiktokUrl],
     ["telegram", "Telegram", settings.telegramUrl],
     ["paypal", "PayPal", settings.paypalUrl],
