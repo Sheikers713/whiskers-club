@@ -148,7 +148,7 @@ function ReceiptCell({ e }: { e: SheetExpense }) {
       ))}
       <form ref={ref} className="inline">
         <input type="hidden" name="id" value={e.id} />
-        <label className={`cursor-pointer text-xs text-ink-soft underline decoration-dotted ${pending ? "opacity-50" : ""}`}>
+        <label className={`cursor-pointer whitespace-nowrap text-xs text-ink-soft underline decoration-dotted ${pending ? "opacity-50" : ""}`}>
           {pending ? "загружаю…" : e.fileIds.length || e.driveUrl ? "+ ещё" : "+ чек"}
           <input
             type="file"
@@ -166,6 +166,21 @@ function ReceiptCell({ e }: { e: SheetExpense }) {
   );
 }
 
+const addBtn = "m-1 rounded bg-ink px-3 py-1 text-xs font-semibold text-milk hover:bg-brick";
+
+/** Under the date: link to the full form, who added the row, «удалить». */
+function RowMeta({ href, state, addedBy, del }: { href: string; state: string; addedBy: string; del: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-2 px-2 pb-1 text-xs text-ink-soft">
+      <Link href={href} className="hover:underline">
+        открыть{state !== "PUBLISHED" ? (state === "DRAFT" ? " · черновик" : " · скрыто") : ""}
+      </Link>
+      {del}
+      {addedBy && <span className="basis-full truncate" title={`Внёс: ${addedBy}`}>{addedBy}</span>}
+    </div>
+  );
+}
+
 /** «Удалить» with a confirmation; the audit log keeps what was deleted. */
 function DeleteButton({ what, run }: { what: string; run: () => Promise<SheetResult> }) {
   const { pending, error, run: go } = useSave();
@@ -175,7 +190,7 @@ function DeleteButton({ what, run }: { what: string; run: () => Promise<SheetRes
         type="button"
         disabled={pending}
         onClick={() => window.confirm(`Удалить ${what}? Это нельзя отменить.`) && go(run)}
-        className="block text-xs text-ink-soft underline decoration-dotted hover:text-brick disabled:opacity-50"
+        className="text-xs text-ink-soft underline decoration-dotted hover:text-brick disabled:opacity-50"
       >
         {pending ? "удаляю…" : "удалить"}
       </button>
@@ -223,17 +238,19 @@ export function ExpenseSheet({
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
-            <th className={`${head} w-[9.5rem]`}>Дата</th>
-            <th className={`${head} w-28`}>Сумма (RSD)</th>
+            <th className={`${head} w-[8.25rem]`}>Дата</th>
+            <th className={`${head} w-20`}>Сумма</th>
             <th className={head}>На что</th>
-            <th className={`${head} w-40`}>Коты</th>
-            <th className={`${head} w-40`}>Чеки</th>
-            <th className={`${head} w-28`}>Внёс</th>
+            <th className={`${head} w-28`}>Коты</th>
+            <th className={`${head} w-28`}>Чеки</th>
           </tr>
         </thead>
         <tbody>
           <tr className="bg-milk/60">
-            <td className={cell}><input form="add-expense" name="date" type="date" defaultValue={today()} required className={input} /></td>
+            <td className={cell}>
+              <input form="add-expense" name="date" type="date" defaultValue={today()} required className={input} />
+              <button form="add-expense" className={addBtn}>+ Добавить</button>
+            </td>
             <td className={cell}><input form="add-expense" name="amountRsd" inputMode="numeric" placeholder="сумма" required className={`${input} text-right`} /></td>
             <td className={cell}>
               <input form="add-expense" name="description" placeholder="на что потрачено" required className={input} />
@@ -245,17 +262,17 @@ export function ExpenseSheet({
               <input form="add-expense" name="files" type="file" accept="image/*,application/pdf" multiple className="block w-full px-2 py-1 text-xs" />
               <input form="add-expense" name="noReceiptReason" placeholder="или почему без чека" className={`${input} text-xs`} />
             </td>
-            <td className={cell}>
-              <button form="add-expense" className="m-1 rounded bg-ink px-3 py-1 text-xs font-semibold text-milk hover:bg-brick">+ Добавить</button>
-            </td>
           </tr>
           {rows.map((e) => (
             <tr key={e.id} className="hover:bg-milk/40">
               <td className={cell}>
                 <Cell type="date" value={e.date} save={(v) => updateExpenseField(e.id, "date", v)} />
-                <Link href={`/admin/expenses/${e.id}`} className="block px-2 pb-1 text-xs text-ink-soft hover:underline">
-                  открыть{e.state !== "PUBLISHED" ? (e.state === "DRAFT" ? " · черновик" : " · скрыто") : ""}
-                </Link>
+                <RowMeta
+                  href={`/admin/expenses/${e.id}`}
+                  state={e.state}
+                  addedBy={e.addedBy}
+                  del={<DeleteButton what={`расход ${n(e.amountRsd)} RSD «${e.description}»`} run={() => deleteExpenseRow(e.id)} />}
+                />
               </td>
               <td className={cell}>
                 <Cell align="right" value={String(e.amountRsd)} save={(v) => updateExpenseField(e.id, "amountRsd" as ExpenseField, v)} />
@@ -271,13 +288,9 @@ export function ExpenseSheet({
                   <Cell value={e.noReceiptReason ?? ""} placeholder="почему без чека" save={(v) => updateExpenseField(e.id, "noReceiptReason", v)} />
                 )}
               </td>
-              <td className={`${cell} px-2 py-1.5 text-ink-soft`}>
-                {e.addedBy}
-                <DeleteButton what={`расход ${n(e.amountRsd)} RSD «${e.description}»`} run={() => deleteExpenseRow(e.id)} />
-              </td>
             </tr>
           ))}
-          {rows.length === 0 && <tr><td colSpan={6} className={`${cell} px-2 py-1.5 text-ink-soft`}>Расходов нет.</td></tr>}
+          {rows.length === 0 && <tr><td colSpan={5} className={`${cell} px-2 py-1.5 text-ink-soft`}>Расходов нет.</td></tr>}
         </tbody>
       </table>
       {save.error && <p className="mt-1 text-sm text-brick">{save.error}</p>}
@@ -308,16 +321,18 @@ export function DonationSheet({
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
-            <th className={`${head} w-[9.5rem]`}>Дата</th>
-            <th className={`${head} w-28`}>Сумма (RSD)</th>
+            <th className={`${head} w-[8.25rem]`}>Дата</th>
+            <th className={`${head} w-20`}>Сумма</th>
             <th className={head}>От кого</th>
-            <th className={`${head} w-32`}>Кот</th>
-            <th className={`${head} w-28`}>Внёс</th>
+            <th className={`${head} w-28`}>Кот</th>
           </tr>
         </thead>
         <tbody>
           <tr className="bg-milk/60">
-            <td className={cell}><input form="add-donation" name="date" type="date" defaultValue={today()} required className={input} /></td>
+            <td className={cell}>
+              <input form="add-donation" name="date" type="date" defaultValue={today()} required className={input} />
+              <button form="add-donation" className={addBtn}>+ Добавить</button>
+            </td>
             <td className={cell}><input form="add-donation" name="amountRsd" inputMode="numeric" placeholder="сумма" required className={`${input} text-right`} /></td>
             <td className={cell}>
               <input form="add-donation" name="donorName" placeholder="от кого" className={input} />
@@ -326,17 +341,17 @@ export function DonationSheet({
             <td className={cell}>
               <CatPicker variant="cell" multiple={false} cats={cats} name="catId" form="add-donation" defaultValue={defaultCatId ? [defaultCatId] : []} />
             </td>
-            <td className={cell}>
-              <button form="add-donation" className="m-1 rounded bg-ink px-3 py-1 text-xs font-semibold text-milk hover:bg-brick">+ Добавить</button>
-            </td>
           </tr>
           {rows.map((d) => (
             <tr key={d.id} className="hover:bg-milk/40">
               <td className={cell}>
                 <Cell type="date" value={d.date} save={(v) => updateDonationField(d.id, "date", v)} />
-                <Link href={`/admin/donations/${d.id}`} className="block px-2 pb-1 text-xs text-ink-soft hover:underline">
-                  открыть{d.state !== "PUBLISHED" ? (d.state === "DRAFT" ? " · черновик" : " · скрыто") : ""}
-                </Link>
+                <RowMeta
+                  href={`/admin/donations/${d.id}`}
+                  state={d.state}
+                  addedBy={d.addedBy}
+                  del={<DeleteButton what={`донат ${n(d.amountRsd)} RSD${d.donorName ? ` от ${d.donorName}` : ""}`} run={() => deleteDonationRow(d.id)} />}
+                />
               </td>
               <td className={cell}>
                 <Cell align="right" value={String(d.amountRsd)} save={(v) => updateDonationField(d.id, "amountRsd", v)} />
@@ -362,10 +377,6 @@ export function DonationSheet({
                 )}
                 {d.split && <span className="block px-2 pb-1 text-xs text-ink-soft">донат на: {d.split.cats.join(", ")}</span>}
               </td>
-              <td className={`${cell} px-2 py-1.5 text-ink-soft`}>
-                {d.addedBy}
-                <DeleteButton what={`донат ${n(d.amountRsd)} RSD${d.donorName ? ` от ${d.donorName}` : ""}`} run={() => deleteDonationRow(d.id)} />
-              </td>
             </tr>
           ))}
           {fundRows.map((f) => (
@@ -377,10 +388,9 @@ export function DonationSheet({
                 {f.hint && <span className="block text-xs text-ink-soft">{f.hint}</span>}
               </td>
               <td className={`${cell} px-2 py-1.5 text-ink-soft`}>Фонд Whiskers Club</td>
-              <td className={`${cell} px-2 py-1.5 text-xs text-ink-soft`}>меняется в настройках сайта</td>
             </tr>
           ))}
-          {rows.length === 0 && fundRows.length === 0 && <tr><td colSpan={5} className={`${cell} px-2 py-1.5 text-ink-soft`}>Донатов нет.</td></tr>}
+          {rows.length === 0 && fundRows.length === 0 && <tr><td colSpan={4} className={`${cell} px-2 py-1.5 text-ink-soft`}>Донатов нет.</td></tr>}
         </tbody>
       </table>
       {save.error && <p className="mt-1 text-sm text-brick">{save.error}</p>}
