@@ -107,6 +107,16 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
           {formatDate(e.date, locale)} · {t(e.category.label, locale)}
           {e._count.cats > 1 && ` · ${dict.cat.sharedExpense} · ${dict.cat.shareOf} ${formatRsd(e.amountRsd, locale)}`}
         </p>
+        {e.files.length > 0 && (
+          <p className="mt-1 flex flex-wrap gap-3">
+            {e.files.map((f, i) => (
+              <a key={f.fileId} href={`/files/expenses/${e.id}/${f.fileId}`} target="_blank" className="text-xs underline">
+                {dict.report.receipt}
+                {e.files.length > 1 ? ` ${i + 1}` : ""}
+              </a>
+            ))}
+          </p>
+        )}
       </div>
       <span className="shrink-0 font-semibold">{formatRsd(Math.round(expenseShare(e.amountRsd, e._count.cats)), locale)}</span>
     </li>

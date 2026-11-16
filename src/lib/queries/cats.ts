@@ -165,7 +165,11 @@ export async function getPublicCat(slug: string) {
     db.expense.findMany({
       where: { state: "PUBLISHED", cats: { some: { catId: cat.id } } },
       orderBy: [{ date: "desc" }, { createdAt: "desc" }],
-      include: { category: true, _count: { select: { cats: true } } },
+      include: {
+        category: true,
+        _count: { select: { cats: true } },
+        files: { where: { isPublic: true }, select: { fileId: true } },
+      },
     }),
   ]);
 

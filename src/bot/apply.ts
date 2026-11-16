@@ -285,7 +285,7 @@ export async function applyPlan(plan: Plan, ctx: SiteContext, uploads: Upload[],
         const saved = await db.$transaction(async (tx) => {
           const e = await tx.expense.create({ data });
           if (catIds.length) await tx.expenseCat.createMany({ data: catIds.map((catId) => ({ expenseId: e.id, catId })) });
-          if (fileIds.length) await tx.expenseFile.createMany({ data: fileIds.map((fileId) => ({ expenseId: e.id, fileId, isPublic: false })) });
+          if (fileIds.length) await tx.expenseFile.createMany({ data: fileIds.map((fileId) => ({ expenseId: e.id, fileId, isPublic: true })) });
           return e;
         });
         await audit(actorId, "expense.create", "Expense", saved.id, { ...data, catIds, addedFiles: fileIds });

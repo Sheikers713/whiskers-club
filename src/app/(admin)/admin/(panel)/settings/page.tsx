@@ -70,11 +70,10 @@ export default async function Settings({ searchParams }: PageProps<"/admin/setti
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Instagram"><input name="instagramUrl" type="url" defaultValue={s.instagramUrl} className={inputCls} /></Field>
             <Field label="Facebook"><input name="facebookUrl" type="url" defaultValue={s.facebookUrl} className={inputCls} /></Field>
-            <Field label="YouTube"><input name="youtubeUrl" type="url" defaultValue={s.youtubeUrl} className={inputCls} /></Field>
+            <Field label="YouTube (только на английской версии)"><input name="youtubeUrl" type="url" defaultValue={s.youtubeUrl} className={inputCls} /></Field>
             <Field label="TikTok"><input name="tiktokUrl" type="url" defaultValue={s.tiktokUrl} className={inputCls} /></Field>
             <Field label="Telegram"><input name="telegramUrl" type="url" defaultValue={s.telegramUrl} className={inputCls} /></Field>
             <Field label="PayPal"><input name="paypalUrl" type="url" defaultValue={s.paypalUrl} className={inputCls} /></Field>
-            <Field label="Отчёты о пожертвованиях"><input name="reportsUrl" type="url" defaultValue={s.reportsUrl} className={inputCls} /></Field>
             <Field label="Email"><input name="contactEmail" type="email" defaultValue={s.contactEmail} className={inputCls} /></Field>
           </div>
           <LocalizedField name="contactText" label="Дополнительно в подвале" value={s.contactText} multiline rows={2} />

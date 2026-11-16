@@ -557,7 +557,7 @@ model ExpenseCat {
 model ExpenseFile {
   expenseId String     @db.Uuid
   fileId    String     @db.Uuid
-  isPublic  Boolean    @default(false)
+  isPublic  Boolean    @default(true)
   expense   Expense    @relation(fields: [expenseId], references: [id], onDelete: Cascade)
   file      StoredFile @relation(fields: [fileId], references: [id])
 

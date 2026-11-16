@@ -126,7 +126,7 @@ export async function addExpenseReceipt(fd: FormData): Promise<SheetResult> {
     return { error: `Файл не принят: ${e instanceof Error ? e.message : "ошибка"}` };
   }
   await db.$transaction([
-    db.expenseFile.createMany({ data: fileIds.map((fileId) => ({ expenseId: id, fileId, isPublic: false })) }),
+    db.expenseFile.createMany({ data: fileIds.map((fileId) => ({ expenseId: id, fileId, isPublic: true })) }),
     db.expense.updateMany({ where: { id, proof: "NONE" }, data: { proof: "DOCUMENT", noReceiptReason: null } }),
   ]);
   await audit({ actorId: user.id, action: "expense.update", entityType: "Expense", entityId: id, after: { addedFiles: fileIds, via: "sheet" } });
@@ -168,7 +168,7 @@ export async function addExpenseRow(fd: FormData): Promise<SheetResult> {
   const saved = await db.$transaction(async (tx) => {
     const e = await tx.expense.create({ data });
     if (catIds.length) await tx.expenseCat.createMany({ data: catIds.map((catId) => ({ expenseId: e.id, catId })) });
-    if (fileIds.length) await tx.expenseFile.createMany({ data: fileIds.map((fileId) => ({ expenseId: e.id, fileId, isPublic: false })) });
+    if (fileIds.length) await tx.expenseFile.createMany({ data: fileIds.map((fileId) => ({ expenseId: e.id, fileId, isPublic: true })) });
     return e;
   });
   await audit({ actorId: user.id, action: "expense.create", entityType: "Expense", entityId: saved.id, after: { ...data, catIds, addedFiles: fileIds, via: "sheet" } });

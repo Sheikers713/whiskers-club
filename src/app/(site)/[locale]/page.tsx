@@ -129,7 +129,7 @@ export default async function HomePage({ params }: PageProps<"/[locale]">) {
         <section className="mx-auto max-w-6xl px-4 py-8">
           <div className="rounded-[var(--radius-card)] bg-cream-deep p-6 md:p-8">
             <h2 className="font-display text-3xl md:text-4xl">{dict.home.instagramTitle}</h2>
-            <SocialLinks settings={settings} dict={dict} labeled className="mt-5 gap-3" />
+            <SocialLinks settings={settings} locale={locale} labeled className="mt-5 gap-3" />
           </div>
         </section>
       )}
