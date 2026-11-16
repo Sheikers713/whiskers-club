@@ -229,7 +229,6 @@ export async function saveSettings(fd: FormData) {
       account: normalizeAccount(str(fd, "ipsAccount", 40)) ?? previous.ips.account,
       recipient: str(fd, "ipsRecipient", 200).split(/\r?\n/).map((l) => l.trim()).filter(Boolean).slice(0, 2).join("\n").slice(0, 70) || previous.ips.recipient,
     },
-    reportsUrl: str(fd, "reportsUrl", 500),
     contactEmail: str(fd, "contactEmail", 200),
   };
   for (const [k, v] of Object.entries(values)) await setSetting(k as keyof SiteSettings, v as never);

@@ -27,8 +27,6 @@ export type SiteSettings = {
   // IPS QR code for RSD transfers from Serbian banks («IPS skeniraj»): on every
   // cat page and on «Как помочь». The reference in the code names the cat.
   ips: { enabled: boolean; account: string; recipient: string };
-  // Public spreadsheet with donation reports.
-  reportsUrl: string;
   contactEmail: string;
   contactText: LocalizedText;
   // Colours, fonts, radii and background of the public site («Оформление»).
@@ -62,7 +60,6 @@ export const defaultSettings: SiteSettings = {
   paypalUrl: "https://paypal.me/natashuko",
   // The Raiffeisen account already listed under «RSD перевод из сербского банка».
   ips: { enabled: true, account: "265000000700256005", recipient: "KRISTINA NIKITINA" },
-  reportsUrl: "https://docs.google.com/spreadsheets/d/1VcEOPmK-3-YhS6kpLkc3LMb6lw5ahFy0QA55CFb-AsA/edit?usp=drivesdk",
   contactEmail: "",
   contactText: {},
   theme: defaultTheme,
