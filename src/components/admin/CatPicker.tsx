@@ -12,7 +12,9 @@ export type PickerCat = { id: string; name: string; active: boolean };
  *
  * Sends the choice as hidden inputs named `name` (empty value = general fund).
  * `variant="cell"` is a compact dropdown for the money table; `onClose` fires
- * when its list is closed with a changed choice.
+ * when its list is closed with a changed choice. Below xl the money table
+ * scrolls sideways, which would clip a floating list, so there the list opens
+ * inside the cell.
  */
 export function CatPicker({
   cats,
@@ -89,7 +91,7 @@ export function CatPicker({
     >
       {hidden}
       <summary className={`block cursor-pointer list-none px-2 py-1.5 ${sel.length ? "" : "text-ink-soft"}`}>{label}</summary>
-      <div className="absolute z-20 mt-1 flex w-60 flex-col gap-1 rounded-lg bg-paper p-2 shadow-lg ring-1 ring-line">
+      <div className="absolute z-20 mt-1 flex w-60 flex-col max-xl:static max-xl:m-1 max-xl:w-auto max-xl:min-w-40 max-xl:shadow-none gap-1 rounded-lg bg-paper p-2 shadow-lg ring-1 ring-line">
         {options}
         {onClose && <p className="px-2 pt-1 text-xs text-ink-soft">Сохранится, когда закроете список.</p>}
       </div>

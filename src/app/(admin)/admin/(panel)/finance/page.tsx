@@ -17,7 +17,9 @@ export const metadata = { title: "Таблица расходов и донат�
  * its balance, expenses and donations; each block opens that cat's tab. Below,
  * the tab itself: expenses on the left (Дата, Сумма, На что, Коты, Чеки),
  * donations on the right (Дата, Сумма, От кого, Кот), side by side, newest
- * first, every cell editable (Sheet.tsx). A shared expense shows the cat's
+ * first, every cell editable (Sheet.tsx). On narrower screens the blocks are
+ * the only category picker and the two sheets become tabs «Расходы» and
+ * «Донаты» (?view=donations); each table scrolls sideways inside its box. A shared expense shows the cat's
  * equal share in that cat's tab, as on the cat's public page.
  */
 
@@ -27,7 +29,14 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   await requireUser(["FINANCE"]);
   const sp = await searchParams;
   const tab = typeof sp.cat === "string" ? sp.cat : "all";
-  const href = (cat: string) => (cat === "all" ? "/admin/finance" : `/admin/finance?cat=${encodeURIComponent(cat)}`);
+  const view = sp.view === "donations" ? "donations" : "expenses";
+  const href = (cat: string, v: string = view) => {
+    const q = new URLSearchParams();
+    if (cat !== "all") q.set("cat", cat);
+    if (v === "donations") q.set("view", v);
+    const qs = q.toString();
+    return qs ? `/admin/finance?${qs}` : "/admin/finance";
+  };
 
   const [expensesAll, donationsAll] = await Promise.all([
     db.expense.findMany({
@@ -51,11 +60,10 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const addedBy = (r: { createdById: string | null; internalComment: string | null }) =>
     (r.createdById && users.get(r.createdById)) || r.internalComment?.match(/^Внесено через Telegram: ([^.]+)/)?.[1] || "";
 
-  // Tabs: every cat that has money records, like the sheet's tabs per cat group.
+  // Names of cats that have money records (a cat without a block still opens by link).
   const tabs = new Map<string, string>();
   for (const e of expensesAll) for (const c of e.cats) tabs.set(c.cat.id, t(c.cat.name, "ru"));
   for (const d of donationsAll) if (d.cat) tabs.set(d.cat.id, t(d.cat.name, "ru"));
-  const catTabs = [...tabs].sort((a, b) => a[1].localeCompare(b[1], "ru"));
 
   const expenses = expensesAll
     .filter((e) => (tab === "all" ? true : tab === "general" ? e.cats.length === 0 : e.cats.some((c) => c.cat.id === tab)))
@@ -171,8 +179,8 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
   const total = fund + catCards.reduce((s, c) => s + c.balance, 0);
   const tabName = tab === "all" ? "Все записи" : tab === "general" ? "Свободный фонд" : (tabs.get(tab) ?? catOptions.find((c) => c.id === tab)?.name ?? "Кот");
 
-  const tabCls = (active: boolean) =>
-    `whitespace-nowrap rounded-t-lg border border-b-0 border-line px-3 py-1.5 text-sm ${active ? "bg-paper font-semibold" : "bg-milk text-ink-soft hover:text-ink"}`;
+  const viewCls = (active: boolean, color: string) =>
+    `flex flex-1 items-baseline justify-between gap-2 rounded-t-lg px-3 py-2 font-bold ${active ? `${color} text-white` : "bg-milk text-ink-soft ring-1 ring-inset ring-line hover:text-ink"}`;
 
   return (
     <div className="max-w-[120rem]">
@@ -233,15 +241,7 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
         <p className="mt-2 text-xs text-ink-soft">В итогах только опубликованные записи. Переводы между сборами здесь не учитываются. Нажмите на блок, чтобы открыть его записи.</p>
       </section>
 
-      <nav className="-mb-px flex gap-1 overflow-x-auto">
-        <Link href={href("all")} className={tabCls(tab === "all")}>Все</Link>
-        {catTabs.map(([id, name]) => (
-          <Link key={id} href={href(id)} className={tabCls(tab === id)}>{name}</Link>
-        ))}
-        <Link href={href("general")} className={tabCls(tab === "general")}>Свободный фонд</Link>
-      </nav>
-
-      <div className="rounded-b-[var(--radius-card)] rounded-tr-[var(--radius-card)] bg-paper p-3 ring-1 ring-line">
+      <div className="rounded-[var(--radius-card)] bg-paper p-2 ring-1 ring-line sm:p-3">
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 px-1">
           <h2 className="text-lg font-bold">{tabName}</h2>
           <p className="text-sm tabular-nums">
@@ -253,10 +253,22 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
           </p>
         </div>
 
-        {/* Two sheets side by side, like the volunteers' Google Sheet. */}
+        {/* Narrow screens: one sheet at a time, picked by these tabs. */}
+        <nav aria-label="Расходы или донаты" className="flex gap-1 xl:hidden">
+          <Link scroll={false} href={href(tab, "expenses")} aria-current={view === "expenses" ? "page" : undefined} className={viewCls(view === "expenses", "bg-red-600")}>
+            <span>Расходы</span>
+            <span className="text-sm tabular-nums">−{n(spent)}</span>
+          </Link>
+          <Link scroll={false} href={href(tab, "donations")} aria-current={view === "donations" ? "page" : undefined} className={viewCls(view === "donations", "bg-green-600")}>
+            <span>Донаты</span>
+            <span className="text-sm tabular-nums">+{n(raisedAll)}</span>
+          </Link>
+        </nav>
+
+        {/* Wide screens: two sheets side by side, like the volunteers' Google Sheet. */}
         <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-          <section className="min-w-0">
-            <h3 className="mb-0 flex items-baseline justify-between rounded-t-md bg-red-600 px-3 py-1.5 font-bold text-white">
+          <section className={`min-w-0 ${view === "expenses" ? "" : "hidden xl:block"}`}>
+            <h3 className="mb-0 hidden items-baseline justify-between rounded-t-md bg-red-600 px-3 py-1.5 font-bold text-white xl:flex">
               <span>Расходы</span>
               <span className="tabular-nums">−{n(spent)}</span>
             </h3>
@@ -280,8 +292,8 @@ export default async function FinanceSheet({ searchParams }: PageProps<"/admin/f
             />
             <p className="mt-1 text-right text-sm font-semibold">Итого расходы: {n(spent)}</p>
           </section>
-          <section className="min-w-0">
-            <h3 className="mb-0 flex items-baseline justify-between rounded-t-md bg-green-600 px-3 py-1.5 font-bold text-white">
+          <section className={`min-w-0 ${view === "donations" ? "" : "hidden xl:block"}`}>
+            <h3 className="mb-0 hidden items-baseline justify-between rounded-t-md bg-green-600 px-3 py-1.5 font-bold text-white xl:flex">
               <span>Донаты</span>
               <span className="tabular-nums">+{n(raisedAll)}</span>
             </h3>
@@ -336,6 +348,7 @@ function Tile({
   return (
     <Link
       href={href}
+      scroll={false}
       aria-current={active ? "page" : undefined}
       className={`block rounded-[var(--radius-card)] bg-paper p-3 ring-1 transition hover:ring-ink/50 ${active ? "ring-2 ring-ink" : "ring-line"} ${dim ? "opacity-60" : ""}`}
     >
