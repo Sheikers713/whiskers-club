@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useTransition, type ReactNode } from "react";
+import { ACTION_FAILED, isNextControlFlow } from "@/lib/action-error";
 
 export type ActionResult = { error?: string } | void;
 
@@ -30,7 +31,14 @@ export function ActionForm({
         e.preventDefault();
         const fd = new FormData(e.currentTarget);
         start(async () => {
-          const res = await action(fd);
+          let res: ActionResult;
+          try {
+            res = await action(fd);
+          } catch (e) {
+            if (isNextControlFlow(e)) throw e;
+            console.error(e);
+            res = { error: ACTION_FAILED };
+          }
           if (res && res.error) {
             setError(res.error);
             ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
