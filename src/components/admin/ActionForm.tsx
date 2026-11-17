@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState, useTransition, type ReactNode } from "react";
-import { ACTION_FAILED, isNextControlFlow } from "@/lib/action-error";
+import { actionFailed, isNextControlFlow } from "@/lib/action-error";
+import { reportClientError, shrinkFormFiles } from "@/lib/upload-shrink";
 
 export type ActionResult = { error?: string } | void;
 
@@ -29,15 +30,17 @@ export function ActionForm({
       aria-busy={pending}
       onSubmit={(e) => {
         e.preventDefault();
-        const fd = new FormData(e.currentTarget);
+        const form = new FormData(e.currentTarget);
         start(async () => {
+          const fd = await shrinkFormFiles(form);
           let res: ActionResult;
           try {
             res = await action(fd);
           } catch (e) {
             if (isNextControlFlow(e)) throw e;
             console.error(e);
-            res = { error: ACTION_FAILED };
+            reportClientError("action-form", e, fd);
+            res = { error: actionFailed(e) };
           }
           if (res && res.error) {
             setError(res.error);

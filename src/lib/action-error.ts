@@ -14,5 +14,8 @@ export function isNextControlFlow(e: unknown): boolean {
   return typeof digest === "string" && digest.startsWith("NEXT_");
 }
 
-export const ACTION_FAILED =
-  "Не получилось отправить: связь прервалась или страница устарела. Проверьте интернет, обновите страницу и попробуйте ещё раз.";
+/** The message shown next to the form, with the browser's reason in brackets for diagnosis. */
+export function actionFailed(e: unknown): string {
+  const reason = e instanceof Error ? e.message : String(e);
+  return `Не получилось отправить. Проверьте интернет, обновите страницу и попробуйте ещё раз. (${reason.slice(0, 120)})`;
+}
