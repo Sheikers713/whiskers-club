@@ -23,7 +23,6 @@ export type SiteSettings = {
   youtubeUrl: string;
   tiktokUrl: string;
   telegramUrl: string;
-  paypalUrl: string;
   // IPS QR code for RSD transfers from Serbian banks («IPS skeniraj»): on every
   // cat page and on «Как помочь». The reference in the code names the cat.
   ips: { enabled: boolean; account: string; recipient: string };
@@ -57,7 +56,6 @@ export const defaultSettings: SiteSettings = {
   youtubeUrl: "https://www.youtube.com/@whiskers_club",
   tiktokUrl: "https://www.tiktok.com/@whiskers_club.rs",
   telegramUrl: "",
-  paypalUrl: "https://paypal.me/natashuko",
   // The Raiffeisen account already listed under «RSD перевод из сербского банка».
   ips: { enabled: true, account: "265000000700256005", recipient: "KRISTINA NIKITINA" },
   contactEmail: "",
