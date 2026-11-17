@@ -17,7 +17,8 @@ import {
   type ExpenseField,
   type SheetResult,
 } from "@/lib/actions/sheet";
-import { ACTION_FAILED, isNextControlFlow } from "@/lib/action-error";
+import { actionFailed, isNextControlFlow } from "@/lib/action-error";
+import { reportClientError, shrinkFormFiles } from "@/lib/upload-shrink";
 
 /**
  * The money table as an editable sheet: click a cell, change it, press Enter
@@ -69,7 +70,7 @@ function useSave() {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const run = (job: () => Promise<SheetResult>, after?: () => void) =>
+  const run = (job: () => Promise<SheetResult>, after?: () => void, sent?: FormData) =>
     start(async () => {
       let res: SheetResult;
       try {
@@ -77,7 +78,8 @@ function useSave() {
       } catch (e) {
         if (isNextControlFlow(e)) throw e;
         console.error(e);
-        setError(ACTION_FAILED);
+        reportClientError("finance-sheet", e, sent);
+        setError(actionFailed(e));
         return;
       }
       if ("error" in res) setError(res.error);
@@ -166,7 +168,11 @@ function ReceiptCell({ e }: { e: SheetExpense }) {
             multiple
             className="sr-only"
             disabled={pending}
-            onChange={() => ref.current && run(() => addExpenseReceipt(new FormData(ref.current!)))}
+            onChange={async () => {
+              if (!ref.current) return;
+              const fd = await shrinkFormFiles(new FormData(ref.current));
+              run(() => addExpenseReceipt(fd), undefined, fd);
+            }}
           />
         </label>
       </form>
