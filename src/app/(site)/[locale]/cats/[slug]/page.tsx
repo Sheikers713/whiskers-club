@@ -14,7 +14,6 @@ import { Gallery } from "@/components/site/Gallery";
 import { Money } from "@/components/site/Money";
 import { Progress } from "@/components/site/Progress";
 import { SexIcon } from "@/components/site/SexIcon";
-import { ShareButton } from "@/components/site/ShareButton";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { CuratorCard } from "@/components/site/CuratorCard";
 import { IpsQrPicker } from "@/components/site/IpsQrPicker";
@@ -74,8 +73,6 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
     }));
   const instagram = cat.media.filter((m) => m.kind === "INSTAGRAM" && m.url);
   const canApply = cat.status.group === "ACTIVE";
-  // Memorial and adopted cats need no money; a running fundraiser always does.
-  const canHelp = cat.status.group === "ACTIVE" || !!activeCampaign;
   // The help page opens with this cat's bank QR and payment details.
   const helpHref = `/${locale}/help?cat=${encodeURIComponent(cat.slug)}#donate`;
   // Cats still looking for a home get a short QR right here; the rest only link to the help page.
@@ -151,13 +148,8 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
 
         <div className="space-y-8">
           <div>
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <StatusBadge status={cat.status} sex={cat.sex} locale={locale} />
-                <h1 className="mt-3 font-display text-5xl uppercase md:text-7xl">{name}</h1>
-              </div>
-              <ShareButton title={name} label={dict.cat.share} copiedLabel={dict.cat.linkCopied} />
-            </div>
+            <StatusBadge status={cat.status} sex={cat.sex} locale={locale} />
+            <h1 className="mt-3 font-display text-5xl uppercase md:text-7xl">{name}</h1>
             <ul className="mt-4 flex flex-wrap gap-2 text-sm">
               <li className="flex items-center rounded-md bg-paper px-3 py-1.5 ring-1 ring-line">
                 {cat.sex === "FEMALE" || cat.sex === "MALE" ? (
@@ -175,19 +167,10 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                 ))}
             </ul>
             {L(cat.summary) && <p className="mt-4 text-lg">{L(cat.summary)}</p>}
-            {(canApply || canHelp) && (
-              <div className="mt-5 flex flex-wrap gap-3">
-                {canApply && (
-                  <Link href={`/${locale}/cats/${cat.slug}/adopt`} className="inline-block rounded-[var(--radius-control)] bg-brick px-6 py-3 font-semibold text-white hover:bg-brick-dark">
-                    {dict.cat.applyAdopt}
-                  </Link>
-                )}
-                {canHelp && (
-                  <Link href={donateHref} className="inline-block rounded-[var(--radius-control)] bg-paper px-6 py-3 font-semibold text-ink ring-1 ring-line hover:ring-brick">
-                    {dict.cat.wantHelp}
-                  </Link>
-                )}
-              </div>
+            {canApply && (
+              <Link href={`/${locale}/cats/${cat.slug}/adopt`} className="mt-5 inline-block rounded-[var(--radius-control)] bg-brick px-6 py-3 font-semibold text-white hover:bg-brick-dark">
+                {dict.cat.applyAdopt}
+              </Link>
             )}
           </div>
 
