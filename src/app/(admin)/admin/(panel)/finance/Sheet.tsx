@@ -17,6 +17,7 @@ import {
   type ExpenseField,
   type SheetResult,
 } from "@/lib/actions/sheet";
+import { ACTION_FAILED, isNextControlFlow } from "@/lib/action-error";
 
 /**
  * The money table as an editable sheet: click a cell, change it, press Enter
@@ -70,7 +71,15 @@ function useSave() {
   const [error, setError] = useState<string | null>(null);
   const run = (job: () => Promise<SheetResult>, after?: () => void) =>
     start(async () => {
-      const res = await job();
+      let res: SheetResult;
+      try {
+        res = await job();
+      } catch (e) {
+        if (isNextControlFlow(e)) throw e;
+        console.error(e);
+        setError(ACTION_FAILED);
+        return;
+      }
       if ("error" in res) setError(res.error);
       else {
         setError(null);
