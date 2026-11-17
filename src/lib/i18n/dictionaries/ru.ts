@@ -119,6 +119,8 @@ const ru: Dictionary = {
     curators: "Кураторы",
     applyAdopt: "Хочу забрать",
     wantHelp: "Хочу помочь",
+    qrTitle: "Перевод по QR-коду из сербского банка",
+    otherPayments: "Другие способы",
     share: "Поделиться",
     linkCopied: "Ссылка скопирована",
     fundraiser: "Сбор",

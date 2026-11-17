@@ -117,6 +117,8 @@ const en = {
     curators: "Curators",
     applyAdopt: "I want to adopt",
     wantHelp: "I want to help",
+    qrTitle: "Donate by QR code from a Serbian bank",
+    otherPayments: "Other ways to pay",
     share: "Share",
     linkCopied: "Link copied",
     fundraiser: "Fundraiser",
