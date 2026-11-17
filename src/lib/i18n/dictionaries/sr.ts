@@ -119,6 +119,7 @@ const sr: Dictionary = {
     color: "Boja",
     curators: "Kustosi",
     applyAdopt: "Želim da udomim",
+    wantHelp: "Želim da pomognem",
     share: "Podeli",
     linkCopied: "Link je kopiran",
     fundraiser: "Akcija",

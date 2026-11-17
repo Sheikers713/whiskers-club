@@ -116,6 +116,7 @@ const en = {
     color: "Color",
     curators: "Curators",
     applyAdopt: "I want to adopt",
+    wantHelp: "I want to help",
     share: "Share",
     linkCopied: "Link copied",
     fundraiser: "Fundraiser",

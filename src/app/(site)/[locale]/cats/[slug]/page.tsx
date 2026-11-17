@@ -17,8 +17,6 @@ import { SexIcon } from "@/components/site/SexIcon";
 import { ShareButton } from "@/components/site/ShareButton";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { CuratorCard } from "@/components/site/CuratorCard";
-import { IpsDonate } from "@/components/site/IpsDonate";
-import { catTarget, ipsReady } from "@/lib/ips-donation";
 
 // The cat page lists only the latest expenses; the rest open on demand.
 const EXPENSES_SHOWN = 5;
@@ -74,7 +72,9 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
   const instagram = cat.media.filter((m) => m.kind === "INSTAGRAM" && m.url);
   const canApply = cat.status.group === "ACTIVE";
   // Memorial and adopted cats need no money; a running fundraiser always does.
-  const showIps = ipsReady(settings) && (cat.status.group === "ACTIVE" || !!activeCampaign);
+  const canHelp = cat.status.group === "ACTIVE" || !!activeCampaign;
+  // The help page opens with this cat's bank QR and payment details.
+  const helpHref = `/${locale}/help?cat=${encodeURIComponent(cat.slug)}#donate`;
   const bonded = [...cat.bondedWith, ...cat.bondedOf];
 
   const sections = [
@@ -169,10 +169,19 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                 ))}
             </ul>
             {L(cat.summary) && <p className="mt-4 text-lg">{L(cat.summary)}</p>}
-            {canApply && (
-              <Link href={`/${locale}/cats/${cat.slug}/adopt`} className="mt-5 inline-block rounded-[var(--radius-control)] bg-brick px-6 py-3 font-semibold text-white hover:bg-brick-dark">
-                {dict.cat.applyAdopt}
-              </Link>
+            {(canApply || canHelp) && (
+              <div className="mt-5 flex flex-wrap gap-3">
+                {canApply && (
+                  <Link href={`/${locale}/cats/${cat.slug}/adopt`} className="inline-block rounded-[var(--radius-control)] bg-brick px-6 py-3 font-semibold text-white hover:bg-brick-dark">
+                    {dict.cat.applyAdopt}
+                  </Link>
+                )}
+                {canHelp && (
+                  <Link href={helpHref} className="inline-block rounded-[var(--radius-control)] bg-paper px-6 py-3 font-semibold text-ink ring-1 ring-line hover:ring-brick">
+                    {dict.cat.wantHelp}
+                  </Link>
+                )}
+              </div>
             )}
           </div>
 
@@ -218,17 +227,8 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                   </ul>
                 </>
               )}
-              <Link href={showIps ? "#donate" : `/${locale}/help#donate`} className="mt-5 block rounded-[var(--radius-control)] bg-brick px-6 py-3 text-center font-semibold text-white hover:bg-brick-dark">
+              <Link href={helpHref} className="mt-5 block rounded-[var(--radius-control)] bg-brick px-6 py-3 text-center font-semibold text-white hover:bg-brick-dark">
                 {dict.cat.donate}
-              </Link>
-            </section>
-          )}
-
-          {showIps && (
-            <section id="donate" className="scroll-mt-24 rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow">
-              <IpsDonate target={catTarget(cat)} catName={name} settings={settings} locale={locale} dict={dict} />
-              <Link href={`/${locale}/help#donate`} className="mt-4 inline-block text-sm font-semibold text-brick underline underline-offset-2">
-                {dict.cat.otherWays} →
               </Link>
             </section>
           )}

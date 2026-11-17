@@ -118,6 +118,7 @@ const ru: Dictionary = {
     color: "Окрас",
     curators: "Кураторы",
     applyAdopt: "Хочу забрать",
+    wantHelp: "Хочу помочь",
     share: "Поделиться",
     linkCopied: "Ссылка скопирована",
     fundraiser: "Сбор",
