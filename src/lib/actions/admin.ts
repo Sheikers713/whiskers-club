@@ -222,7 +222,6 @@ export async function saveSettings(fd: FormData) {
     youtubeUrl: str(fd, "youtubeUrl", 300),
     tiktokUrl: str(fd, "tiktokUrl", 300),
     telegramUrl: str(fd, "telegramUrl", 300),
-    paypalUrl: str(fd, "paypalUrl", 300),
     ips: {
       enabled: bool(fd, "ipsEnabled"),
       // A mistyped account would send people's money nowhere: keep the old one.

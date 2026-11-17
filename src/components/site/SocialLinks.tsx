@@ -20,7 +20,6 @@ const icons = {
   youtube: icon(<path fillRule="evenodd" d="M6 5h12a4 4 0 0 1 4 4v6a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V9a4 4 0 0 1 4-4zm4 4v6l5.2-3z" />),
   tiktok: icon(<path d="M16.6 3c.3 2.2 1.6 3.6 3.9 3.8v3a7 7 0 0 1-3.9-1.2v6.1a5.8 5.8 0 1 1-5.8-5.8c.3 0 .6 0 .9.1v3.1a2.7 2.7 0 1 0 1.9 2.6V3z" />),
   telegram: icon(<path d="M21.4 3.6 2.9 10.8c-1.2.5-1.2 1.2 0 1.6l4.7 1.5 1.8 5.6c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.8-1.6-1.3zM9 13.9l9.3-5.9c.4-.3.8-.1.5.2l-7.7 7-.3 3.2z" />),
-  paypal: icon(<path d="M8.3 21H5.1a.5.5 0 0 1-.5-.6L7.2 3.6c.1-.4.4-.6.8-.6h6c3.3 0 5.3 1.7 4.8 4.8-.6 3.6-3 5.2-6.4 5.2H10c-.4 0-.7.3-.8.7zm11.5-12c.9.8 1.3 2.1 1 3.8-.6 3.5-3 5-6.3 5h-.9c-.4 0-.7.3-.8.7l-.6 3.9c-.1.4-.4.6-.8.6H9.8l.4-2.7.6-3.4h1.6c4.1 0 7-2 7.4-6.4z" />),
 };
 
 // Each platform in its own colour so it is recognisable at a glance.
@@ -30,7 +29,6 @@ const brand: Record<keyof typeof icons, string> = {
   youtube: "bg-[#ff0000] text-white",
   tiktok: "bg-[#111] text-white",
   telegram: "bg-[#229ed9] text-white",
-  paypal: "bg-[#003087] text-white",
 };
 
 /**
@@ -55,7 +53,6 @@ export function SocialLinks({
     ["youtube", "YouTube", locale === "en" ? settings.youtubeUrl : ""],
     ["tiktok", "TikTok", settings.tiktokUrl],
     ["telegram", "Telegram", settings.telegramUrl],
-    ["paypal", "PayPal", settings.paypalUrl],
   ];
   return (
     <ul className={`flex flex-wrap gap-2 ${className}`}>
