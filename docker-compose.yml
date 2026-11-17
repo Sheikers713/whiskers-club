@@ -115,6 +115,8 @@ services:
       TZ: Europe/Belgrade
     volumes:
       - uploads:/data/uploads:ro
+      # For a restic repository on the Mac itself: RESTIC_REPOSITORY=/backups/<name>.
+      - ${BACKUP_LOCAL_DIR:-./backups-local}:/backups
     depends_on:
       db: { condition: service_healthy }
 
@@ -126,6 +128,7 @@ services:
     environment: *backup-env
     volumes:
       - uploads:/data/uploads
+      - ${BACKUP_LOCAL_DIR:-./backups-local}:/backups:ro
     depends_on:
       db: { condition: service_healthy }
 

@@ -123,6 +123,7 @@ docker compose --env-file .env.staging -p whiskers-staging up -d --build
   BACKUP_ACCESS_KEY_ID=<keyID>
   BACKUP_SECRET_ACCESS_KEY=<applicationKey>
   ```
+- Без облака можно хранить копии на самом Mac (или на внешнем диске): `BACKUP_LOCAL_DIR=/Users/<user>/whiskers-backups/restic` и `RESTIC_REPOSITORY=/backups/production`. Это защищает от ошибок в данных, но не от поломки самого Mac, поэтому облако лучше добавить.
 - **Сохраните `RESTIC_PASSWORD` в менеджере паролей.** Без него бэкапы не прочитать.
 
 Сделать бэкап прямо сейчас и посмотреть список копий:
