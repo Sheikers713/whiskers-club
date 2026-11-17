@@ -17,6 +17,9 @@ import { SexIcon } from "@/components/site/SexIcon";
 import { ShareButton } from "@/components/site/ShareButton";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { CuratorCard } from "@/components/site/CuratorCard";
+import { IpsQrPicker } from "@/components/site/IpsQrPicker";
+import { IPS_AMOUNTS } from "@/lib/ips";
+import { ipsReady } from "@/lib/ips-donation";
 
 // The cat page lists only the latest expenses; the rest open on demand.
 const EXPENSES_SHOWN = 5;
@@ -75,6 +78,9 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
   const canHelp = cat.status.group === "ACTIVE" || !!activeCampaign;
   // The help page opens with this cat's bank QR and payment details.
   const helpHref = `/${locale}/help?cat=${encodeURIComponent(cat.slug)}#donate`;
+  // Cats still looking for a home get a short QR right here; the rest only link to the help page.
+  const showQr = canApply && ipsReady(settings);
+  const donateHref = showQr ? "#donate" : helpHref;
   const bonded = [...cat.bondedWith, ...cat.bondedOf];
 
   const sections = [
@@ -177,7 +183,7 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                   </Link>
                 )}
                 {canHelp && (
-                  <Link href={helpHref} className="inline-block rounded-[var(--radius-control)] bg-paper px-6 py-3 font-semibold text-ink ring-1 ring-line hover:ring-brick">
+                  <Link href={donateHref} className="inline-block rounded-[var(--radius-control)] bg-paper px-6 py-3 font-semibold text-ink ring-1 ring-line hover:ring-brick">
                     {dict.cat.wantHelp}
                   </Link>
                 )}
@@ -227,8 +233,24 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                   </ul>
                 </>
               )}
-              <Link href={helpHref} className="mt-5 block rounded-[var(--radius-control)] bg-brick px-6 py-3 text-center font-semibold text-white hover:bg-brick-dark">
+              <Link href={donateHref} className="mt-5 block rounded-[var(--radius-control)] bg-brick px-6 py-3 text-center font-semibold text-white hover:bg-brick-dark">
                 {dict.cat.donate}
+              </Link>
+            </section>
+          )}
+
+          {showQr && (
+            <section id="donate" className="scroll-mt-24 rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow">
+              <h2 className="mb-4 text-lg font-bold">{dict.cat.qrTitle}</h2>
+              <IpsQrPicker
+                slug={cat.slug}
+                amounts={IPS_AMOUNTS}
+                locale={locale}
+                compact
+                labels={{ amount: dict.ips.amount, other: dict.ips.other, alt: dict.ips.alt, save: dict.ips.save }}
+              />
+              <Link href={helpHref} className="mt-4 inline-block rounded-[var(--radius-control)] bg-ink px-5 py-2.5 font-semibold text-milk hover:bg-brick">
+                {dict.cat.otherPayments} →
               </Link>
             </section>
           )}

@@ -120,6 +120,8 @@ const sr: Dictionary = {
     curators: "Kustosi",
     applyAdopt: "Želim da udomim",
     wantHelp: "Želim da pomognem",
+    qrTitle: "Uplata QR kodom iz srpske banke",
+    otherPayments: "Drugi načini plaćanja",
     share: "Podeli",
     linkCopied: "Link je kopiran",
     fundraiser: "Akcija",

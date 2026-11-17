@@ -4,8 +4,11 @@ import { useState } from "react";
 
 type Labels = { amount: string; other: string; alt: string; save: string };
 
-/** Amount buttons and the QR code that follows them (drawn by /api/ips-qr). */
-export function IpsQrPicker({ slug, amounts, labels, locale }: { slug: string | null; amounts: number[]; labels: Labels; locale: string }) {
+/**
+ * Amount buttons and the QR code that follows them (drawn by /api/ips-qr).
+ * `compact` (the cat page) leaves out the custom amount field.
+ */
+export function IpsQrPicker({ slug, amounts, labels, locale, compact = false }: { slug: string | null; amounts: number[]; labels: Labels; locale: string; compact?: boolean }) {
   const [amount, setAmount] = useState(amounts[1] ?? amounts[0]);
   const [custom, setCustom] = useState("");
   const query = new URLSearchParams({ ...(slug ? { cat: slug } : {}), amount: String(amount) }).toString();
@@ -32,23 +35,25 @@ export function IpsQrPicker({ slug, amounts, labels, locale }: { slug: string | 
             </button>
           ))}
         </div>
-        <label className="mt-3 block text-sm">
-          <span className="text-ink-soft">{labels.other}</span>
-          <input
-            type="number"
-            inputMode="numeric"
-            min={50}
-            max={1000000}
-            step={50}
-            value={custom}
-            onChange={(e) => {
-              setCustom(e.target.value);
-              const n = Math.round(Number(e.target.value));
-              if (n >= 50 && n <= 1_000_000) setAmount(n);
-            }}
-            className="mt-1 block w-40 rounded-[var(--radius-control)] border border-ink/15 bg-paper px-3 py-1.5"
-          />
-        </label>
+        {!compact && (
+          <label className="mt-3 block text-sm">
+            <span className="text-ink-soft">{labels.other}</span>
+            <input
+              type="number"
+              inputMode="numeric"
+              min={50}
+              max={1000000}
+              step={50}
+              value={custom}
+              onChange={(e) => {
+                setCustom(e.target.value);
+                const n = Math.round(Number(e.target.value));
+                if (n >= 50 && n <= 1_000_000) setAmount(n);
+              }}
+              className="mt-1 block w-40 rounded-[var(--radius-control)] border border-ink/15 bg-paper px-3 py-1.5"
+            />
+          </label>
+        )}
         <a href={`/api/ips-qr?${query}&download=1`} download className="mt-3 inline-block text-sm font-semibold text-brick underline underline-offset-2">
           {labels.save} ↓
         </a>
