@@ -84,6 +84,10 @@ export default async function ExpensePage({ params, searchParams }: PageProps<"/
           )}
           <p className="text-xs text-ink-soft">Чеки видны всем посетителям сайта. Если на фото есть телефон или другие личные данные, снимите галочку «на сайте» у этого файла.</p>
         </Card>
+        {/* A new expense is published right away, like rows added in the money table;
+            the internal fields are only shown when editing an existing one. */}
+        {!e && <input type="hidden" name="state" value="PUBLISHED" />}
+        {e && (
         <Card title="Служебное (не публикуется)">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Кто платил">
@@ -103,6 +107,7 @@ export default async function ExpensePage({ params, searchParams }: PageProps<"/
             <textarea name="internalComment" defaultValue={e?.internalComment ?? ""} rows={2} className={inputCls} />
           </Field>
         </Card>
+        )}
         <button className={btnCls}>{e ? "Сохранить" : "Внести"}</button>
       </ActionForm>
       {e && <DeleteRecord what={`расход ${e.amountRsd} RSD «${e.description}»`} action={deleteExpenseRow.bind(null, e.id)} back="/admin/expenses" />}

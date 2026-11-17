@@ -34,15 +34,6 @@ async function uniqueSlug(base: string, exceptId?: string): Promise<string> {
   return `${root}-${Date.now()}`;
 }
 
-/** Birth date from "X years Y months"; both empty means unknown. */
-function approxBirthDate(fd: FormData): Date | null {
-  const y = int(fd, "ageYears");
-  const m = int(fd, "ageMonths");
-  if (y === null && m === null) return null;
-  const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear() - (y ?? 0), now.getUTCMonth() - (m ?? 0), 1));
-}
-
 export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
   const user = await requireUser(["EDITOR"]);
   const id = optStr(fd, "id");
@@ -96,7 +87,6 @@ export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
     }
   }
 
-  const exact = bool(fd, "birthDateExact");
   const requestedSlug = str(fd, "slug", 60);
   const slug = await uniqueSlug(requestedSlug || texts.name.en || texts.name.ru, id ?? undefined);
 
@@ -112,8 +102,8 @@ export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
     originalLocale: "ru",
     autoTranslated: [...autoTranslated],
     sex: pick(str(fd, "sex"), sexes, "UNKNOWN"),
-    birthDate: exact ? date(fd, "birthDate") : approxBirthDate(fd),
-    birthDateExact: exact,
+    // The form always sends a date; when only the age is known it is today minus that age.
+    birthDate: date(fd, "birthDate") ?? before?.birthDate ?? null,
     color: optStr(fd, "color", 80),
     sterilized: pick(str(fd, "sterilized"), tri, "UNKNOWN"),
     vaccinated: pick(str(fd, "vaccinated"), tri, "UNKNOWN"),
@@ -251,4 +241,22 @@ export async function saveCatUpdate(fd: FormData) {
   await audit({ actorId: user.id, action: id ? "cat_update.update" : "cat_update.create", entityType: "CatUpdate", entityId: saved.id, before: before ?? undefined, after: data });
   revalidatePath("/", "layout");
   redirect(`/admin/cats/${catId}?saved=1#updates`);
+}
+
+/** Quick status switch from the cat list; same side effects as the full form. */
+export async function setCatStatus(fd: FormData) {
+  const user = await requireUser(["EDITOR"]);
+  const id = str(fd, "id");
+  const [cat, status] = await Promise.all([
+    db.cat.findUnique({ where: { id }, select: { id: true, statusId: true, adoptedAt: true } }),
+    db.catStatus.findUnique({ where: { id: str(fd, "statusId") } }),
+  ]);
+  if (!cat || !status || cat.statusId === status.id) return;
+  const data = {
+    statusId: status.id,
+    ...(status.group === "ADOPTED" && !cat.adoptedAt ? { adoptedAt: new Date() } : {}),
+  };
+  await db.cat.update({ where: { id }, data });
+  await audit({ actorId: user.id, action: "cat.status", entityType: "Cat", entityId: id, before: { statusId: cat.statusId }, after: data });
+  revalidatePath("/", "layout");
 }

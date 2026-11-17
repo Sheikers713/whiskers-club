@@ -48,7 +48,7 @@ export function filterWhere(filter: FilterDef | null): Prisma.CatWhereInput {
  * Automatic catalog order (TZ 5.2): pinned first, then manual priority, then
  * the status priority (urgent, ready, treatment, ..., adopted), then newest.
  */
-function sortCats<T extends { isPinned: boolean; manualPriority: number; status: { priority: number }; publishedAt: Date | null; createdAt: Date }>(cats: T[]): T[] {
+export function sortCats<T extends { isPinned: boolean; manualPriority: number; status: { priority: number }; publishedAt: Date | null; createdAt: Date }>(cats: T[]): T[] {
   return [...cats].sort(
     (a, b) =>
       Number(b.isPinned) - Number(a.isPinned) ||

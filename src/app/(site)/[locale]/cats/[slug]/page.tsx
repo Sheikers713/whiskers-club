@@ -175,14 +175,15 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                 ))}
             </ul>
             {L(cat.summary) && <p className="mt-4 text-lg">{L(cat.summary)}</p>}
-            {(canApply || canHelp) && (
+            {(canApply || (canHelp && !showQr)) && (
               <div className="mt-5 flex flex-wrap gap-3">
                 {canApply && (
                   <Link href={`/${locale}/cats/${cat.slug}/adopt`} className="inline-block rounded-[var(--radius-control)] bg-brick px-6 py-3 font-semibold text-white hover:bg-brick-dark">
                     {dict.cat.applyAdopt}
                   </Link>
                 )}
-                {canHelp && (
+                {/* With the QR block right below, a separate "help" button is redundant. */}
+                {canHelp && !showQr && (
                   <Link href={donateHref} className="inline-block rounded-[var(--radius-control)] bg-paper px-6 py-3 font-semibold text-ink ring-1 ring-line hover:ring-brick">
                     {dict.cat.wantHelp}
                   </Link>

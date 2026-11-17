@@ -10,31 +10,56 @@ import { ActionForm } from "@/components/admin/ActionForm";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { AgeField } from "@/components/admin/AgeField";
 import { FileInput } from "@/components/admin/FileInput";
+import { BondedPicker } from "@/components/admin/BondedPicker";
+import { StatusPill } from "@/components/admin/StatusPill";
+import { loadPickerCats } from "@/lib/queries/picker-cats";
 import { BackLink, Card, Field, Flash, LocalizedField, PageTitle, StateBadge, StateSelect, btnCls, btnSecondaryCls, inputCls } from "@/components/admin/ui";
 
 export const metadata = { title: "Кот" };
 
-const triOptions = [
-  ["UNKNOWN", "Неизвестно"],
-  ["YES", "Да"],
-  ["NO", "Нет"],
-];
-const testOptions = [
-  ["NOT_TESTED", "Не проверяли"],
-  ["PENDING", "Ждём результат"],
-  ["NEGATIVE", "Отрицательно"],
-  ["POSITIVE", "Положительно"],
-];
+type HealthRow = { name: string; label: string; value: string; yes: string; no: string; unknown: string };
 
-function Select({ name, value, options }: { name: string; value: string; options: string[][] }) {
+/** FIV/FeLV: «да» = positive, «нет» = negative; «ждём результат» stays as it is under «неизвестно». */
+function testRow(name: string, label: string, value: string | undefined): HealthRow {
+  const v = value ?? "NOT_TESTED";
+  return { name, label, value: v, yes: "POSITIVE", no: "NEGATIVE", unknown: v === "PENDING" ? "PENDING" : "NOT_TESTED" };
+}
+
+/** Health facts as a compact grid: one row per fact, Да / Нет / Неизвестно radios. */
+function HealthTable({ rows }: { rows: HealthRow[] }) {
+  const cols = [
+    ["yes", "Да"],
+    ["no", "Нет"],
+    ["unknown", "Неизвестно"],
+  ] as const;
   return (
-    <select name={name} defaultValue={value} className={inputCls}>
-      {options.map(([v, l]) => (
-        <option key={v} value={v}>
-          {l}
-        </option>
-      ))}
-    </select>
+    <table className="mt-4 w-full max-w-md text-sm">
+      <thead>
+        <tr className="text-ink-soft">
+          <th className="py-1 text-left font-medium">Здоровье</th>
+          {cols.map(([, l]) => (
+            <th key={l} className="w-24 py-1 text-center font-medium">
+              {l}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-line">
+        {rows.map((r) => (
+          <tr key={r.name}>
+            <th scope="row" className="py-2 text-left font-medium">
+              {r.label}
+              {r.value === "PENDING" && <span className="ml-1 text-xs font-normal text-ink-soft">(ждём результат)</span>}
+            </th>
+            {cols.map(([k, l]) => (
+              <td key={k} className="py-2 text-center">
+                <input type="radio" name={r.name} value={r[k]} defaultChecked={r.value === r[k]} aria-label={`${r.label}: ${l}`} className="h-4 w-4 cursor-pointer" />
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -57,12 +82,13 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
       });
   if (!isNew && !cat) notFound();
 
-  const [statuses, flags, users, otherCats] = await Promise.all([
+  const [statuses, flags, users, pickerCats] = await Promise.all([
     db.catStatus.findMany({ orderBy: { sortOrder: "asc" } }),
     db.catFlag.findMany({ orderBy: { sortOrder: "asc" } }),
     db.user.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    db.cat.findMany({ where: { id: { not: cat?.id } }, select: { id: true, name: true }, orderBy: { createdAt: "desc" } }),
+    loadPickerCats(),
   ]);
+  const otherCats = pickerCats.filter((c) => c.id !== cat?.id);
   const flagIds = new Set(cat?.flags.map((f) => f.flagId));
   const curatorIds = new Set(cat?.curators.map((c) => c.userId));
   const bondedIds = new Set(cat?.bondedWith.map((b) => b.id));
@@ -94,17 +120,30 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
         {cat && <input type="hidden" name="id" value={cat.id} />}
         <Card title="Основное">
           <LocalizedField name="name" label="Имя" value={cat?.name} required locales={textLocales} auto={auto} />
+          <fieldset>
+            <legend className="text-sm font-medium">Статус</legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {statuses.map((s) => (
+                <label key={s.id} className="relative">
+                  <input
+                    type="radio"
+                    name="statusId"
+                    value={s.id}
+                    required
+                    defaultChecked={(cat?.statusId ?? statuses.find((x) => x.key === "ready")?.id) === s.id}
+                    className="peer sr-only"
+                  />
+                  <StatusPill
+                    status={s}
+                    sex={cat?.sex}
+                    big
+                    className="cursor-pointer opacity-60 hover:opacity-100 peer-checked:opacity-100 peer-checked:ring-2 peer-checked:ring-ink peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-orange"
+                  />
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Статус">
-              <select name="statusId" defaultValue={cat?.statusId ?? statuses.find((s) => s.key === "ready")?.id} className={inputCls} required>
-                {statuses.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {t(s.label, "ru")}
-                    {s.isPublic ? "" : " (не публичный)"}
-                  </option>
-                ))}
-              </select>
-            </Field>
             <Field label="Публикация">
               <StateSelect value={cat?.state} />
             </Field>
@@ -145,24 +184,9 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
                 ))}
               </div>
             </fieldset>
-            <AgeField birthDate={toDateInput(cat?.birthDate)} exact={cat?.birthDateExact ?? false} />
+            <AgeField birthDate={toDateInput(cat?.birthDate)} />
             <Field label="Окрас">
               <input name="color" defaultValue={cat?.color ?? ""} className={inputCls} />
-            </Field>
-            <Field label="Стерилизация">
-              <Select name="sterilized" value={cat?.sterilized ?? "UNKNOWN"} options={triOptions} />
-            </Field>
-            <Field label="Вакцинация">
-              <Select name="vaccinated" value={cat?.vaccinated ?? "UNKNOWN"} options={triOptions} />
-            </Field>
-            <Field label="Чип">
-              <Select name="chipped" value={cat?.chipped ?? "UNKNOWN"} options={triOptions} />
-            </Field>
-            <Field label="FIV">
-              <Select name="fiv" value={cat?.fiv ?? "NOT_TESTED"} options={testOptions} />
-            </Field>
-            <Field label="FeLV">
-              <Select name="felv" value={cat?.felv ?? "NOT_TESTED"} options={testOptions} />
             </Field>
             <Field label="Дата, когда попал к нам">
               <input type="date" name="intakeDate" defaultValue={toDateInput(cat?.intakeDate ?? new Date())} className={inputCls} />
@@ -171,6 +195,15 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
               <input type="date" name="adoptedAt" defaultValue={toDateInput(cat?.adoptedAt)} className={inputCls} />
             </Field>
           </div>
+          <HealthTable
+            rows={[
+              { name: "sterilized", label: "Стерилизация", value: cat?.sterilized ?? "UNKNOWN", yes: "YES", no: "NO", unknown: "UNKNOWN" },
+              { name: "vaccinated", label: "Вакцинация", value: cat?.vaccinated ?? "UNKNOWN", yes: "YES", no: "NO", unknown: "UNKNOWN" },
+              { name: "chipped", label: "Чип", value: cat?.chipped ?? "UNKNOWN", yes: "YES", no: "NO", unknown: "UNKNOWN" },
+              testRow("fiv", "FIV", cat?.fiv),
+              testRow("felv", "FeLV", cat?.felv),
+            ]}
+          />
         </Card>
 
         <Card title="Тексты">
@@ -207,14 +240,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
           {otherCats.length > 0 && (
             <fieldset>
               <legend className="text-sm font-medium">Пристраивается вместе с</legend>
-              <div className="mt-2 flex max-h-48 flex-wrap gap-3 overflow-y-auto">
-                {otherCats.map((c) => (
-                  <label key={c.id} className="flex items-center gap-2 rounded-md bg-milk px-3 py-1.5">
-                    <input type="checkbox" name="bonded" value={c.id} defaultChecked={bondedIds.has(c.id)} />
-                    {t(c.name, "ru")}
-                  </label>
-                ))}
-              </div>
+              <BondedPicker cats={otherCats} defaultValue={[...bondedIds]} />
             </fieldset>
           )}
         </Card>
