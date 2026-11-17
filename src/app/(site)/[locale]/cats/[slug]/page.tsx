@@ -246,7 +246,6 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
                 slug={cat.slug}
                 amounts={IPS_AMOUNTS}
                 locale={locale}
-                compact
                 labels={{ amount: dict.ips.amount, other: dict.ips.other, alt: dict.ips.alt, save: dict.ips.save }}
               />
               <Link href={helpHref} className="mt-4 inline-block rounded-[var(--radius-control)] bg-ink px-5 py-2.5 font-semibold text-milk hover:bg-brick">
