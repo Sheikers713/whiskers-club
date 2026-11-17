@@ -169,8 +169,12 @@ function ReceiptCell({ e }: { e: SheetExpense }) {
 /**
  * Below xl only one sheet is shown and it is wider than a phone: the table
  * scrolls sideways inside its own box instead of pushing the page wider.
+ * `relative` matters: the hidden (sr-only) file and checkbox inputs are
+ * absolutely positioned, and without a positioned ancestor here they sit
+ * outside the scroll box, past the screen edge, and iOS Safari zooms the
+ * whole page out to fit them.
  */
-const scroller = "max-xl:overflow-x-auto max-xl:overscroll-x-contain";
+const scroller = "relative max-xl:overflow-x-auto max-xl:overscroll-x-contain";
 
 const addBtn = "m-1 rounded bg-ink px-3 py-1 text-xs font-semibold text-milk hover:bg-brick";
 
