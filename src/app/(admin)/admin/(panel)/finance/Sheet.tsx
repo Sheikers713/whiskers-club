@@ -166,6 +166,12 @@ function ReceiptCell({ e }: { e: SheetExpense }) {
   );
 }
 
+/**
+ * Below xl only one sheet is shown and it is wider than a phone: the table
+ * scrolls sideways inside its own box instead of pushing the page wider.
+ */
+const scroller = "max-xl:overflow-x-auto max-xl:overscroll-x-contain";
+
 const addBtn = "m-1 rounded bg-ink px-3 py-1 text-xs font-semibold text-milk hover:bg-brick";
 
 /** Under the date: link to the full form, who added the row, «удалить». */
@@ -235,7 +241,8 @@ export function ExpenseSheet({
   const save = useSave();
   return (
     <AddForm id="add-expense" action={addExpenseRow}>
-      <table className="w-full border-collapse text-sm">
+      <div className={scroller}>
+      <table className="w-full min-w-[40rem] border-collapse text-sm xl:min-w-0">
         <thead>
           <tr>
             <th className={`${head} w-[8.25rem]`}>Дата</th>
@@ -293,6 +300,7 @@ export function ExpenseSheet({
           {rows.length === 0 && <tr><td colSpan={5} className={`${cell} px-2 py-1.5 text-ink-soft`}>Расходов нет.</td></tr>}
         </tbody>
       </table>
+      </div>
       {save.error && <p className="mt-1 text-sm text-brick">{save.error}</p>}
     </AddForm>
   );
@@ -318,7 +326,8 @@ export function DonationSheet({
       <datalist id="donation-methods">
         {methods.map((m) => <option key={m} value={m} />)}
       </datalist>
-      <table className="w-full border-collapse text-sm">
+      <div className={scroller}>
+      <table className="w-full min-w-[32rem] border-collapse text-sm xl:min-w-0">
         <thead>
           <tr>
             <th className={`${head} w-[8.25rem]`}>Дата</th>
@@ -393,6 +402,7 @@ export function DonationSheet({
           {rows.length === 0 && fundRows.length === 0 && <tr><td colSpan={4} className={`${cell} px-2 py-1.5 text-ink-soft`}>Донатов нет.</td></tr>}
         </tbody>
       </table>
+      </div>
       {save.error && <p className="mt-1 text-sm text-brick">{save.error}</p>}
     </AddForm>
   );
