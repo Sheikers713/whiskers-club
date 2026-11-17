@@ -141,6 +141,9 @@ export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
     await tx.catCurator.deleteMany({ where: { catId: saved.id } });
     if (curatorIds.length)
       await tx.catCurator.createMany({ data: curatorIds.map((userId, i) => ({ catId: saved.id, userId, sortOrder: i })) });
+    // Pairs are mutual and stored once: drop links set from the other cat's
+    // card, then store this cat's ticks as the single source of truth.
+    await tx.cat.update({ where: { id: saved.id }, data: { bondedOf: { set: [] } } });
     await tx.cat.update({
       where: { id: saved.id },
       data: { bondedWith: { set: bondedIds.map((b) => ({ id: b })) } },

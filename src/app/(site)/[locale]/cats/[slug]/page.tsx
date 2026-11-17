@@ -75,7 +75,8 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
   const canHelp = cat.status.group === "ACTIVE" || !!activeCampaign;
   // The help page opens with this cat's bank QR and payment details.
   const helpHref = `/${locale}/help?cat=${encodeURIComponent(cat.slug)}#donate`;
-  const bonded = [...cat.bondedWith, ...cat.bondedOf];
+  // A pair may be stored from either cat's side; show each partner once.
+  const bonded = [...cat.bondedWith, ...cat.bondedOf].filter((b, i, all) => all.findIndex((x) => x.slug === b.slug) === i);
 
   const sections = [
     { title: dict.cat.story, body: L(cat.story) },

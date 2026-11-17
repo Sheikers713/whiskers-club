@@ -51,6 +51,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
           flags: true,
           curators: { orderBy: { sortOrder: "asc" } },
           bondedWith: { select: { id: true } },
+          bondedOf: { select: { id: true } },
           media: { orderBy: { sortOrder: "asc" } },
           updates: { orderBy: { date: "desc" } },
         },
@@ -65,7 +66,8 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
   ]);
   const flagIds = new Set(cat?.flags.map((f) => f.flagId));
   const curatorIds = new Set(cat?.curators.map((c) => c.userId));
-  const bondedIds = new Set(cat?.bondedWith.map((b) => b.id));
+  // A pair is mutual: it shows ticked on both cats, whichever side it was set from.
+  const bondedIds = new Set([...(cat?.bondedWith ?? []), ...(cat?.bondedOf ?? [])].map((b) => b.id));
   // New cats are written in Russian only; English and Serbian are machine drafts.
   const textLocales = isNew ? (["ru"] as const) : undefined;
   const auto = cat?.autoTranslated;
