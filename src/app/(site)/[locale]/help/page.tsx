@@ -5,7 +5,7 @@ import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { PaymentMethods } from "@/components/site/PaymentMethods";
 import { IpsDonate } from "@/components/site/IpsDonate";
-import { generalTarget, ipsReady } from "@/lib/ips-donation";
+import { findCatTarget, generalTarget, ipsReady } from "@/lib/ips-donation";
 import { getSettings } from "@/lib/settings";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/help">): Promise<Metadata> {
@@ -14,11 +14,16 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/help">):
   return { title: getDictionary(locale).help.title };
 }
 
-export default async function HelpPage({ params }: PageProps<"/[locale]/help">) {
+export default async function HelpPage({ params, searchParams }: PageProps<"/[locale]/help">) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
-  const settings = await getSettings();
+  // «I want to help» on a cat page links here with ?cat=<slug>: the QR and the
+  // payment reference are then for that cat. An unknown slug falls back to the fund.
+  const sp = await searchParams;
+  const slug = typeof sp.cat === "string" && sp.cat ? sp.cat : null;
+  const [settings, forCat] = await Promise.all([getSettings(), slug ? findCatTarget(slug, locale) : null]);
+  const target = forCat?.target ?? generalTarget;
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-display text-4xl uppercase md:text-6xl">{dict.help.title}</h1>
@@ -27,7 +32,7 @@ export default async function HelpPage({ params }: PageProps<"/[locale]/help">) 
         <p className="mt-2 max-w-3xl text-ink-soft">{dict.help.donateText}</p>
         {ipsReady(settings) && (
           <div className="mt-6 rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow md:max-w-[calc(50%-0.5rem)]">
-            <IpsDonate target={generalTarget} settings={settings} locale={locale} dict={dict} />
+            <IpsDonate target={target} catName={forCat?.name} settings={settings} locale={locale} dict={dict} />
           </div>
         )}
         <PaymentMethods locale={locale} dict={dict} />

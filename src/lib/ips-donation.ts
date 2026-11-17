@@ -1,4 +1,5 @@
 import "server-only";
+import type { Locale } from "./i18n/config";
 import { db } from "./db";
 import { t } from "./i18n/localized";
 import { GENERAL_PURPOSE, GENERAL_REFERENCE, catPurpose, catReference, ipsPayload, isValidAccount, model97 } from "./ips";
@@ -11,6 +12,15 @@ export type IpsTarget = { slug: string | null; purpose: string; reference: strin
 export function catTarget(cat: { slug: string; name: unknown; originalLocale: string; donationCode: number }): IpsTarget {
   // Serbian name first: the purpose ends up on a Serbian bank statement.
   return { slug: cat.slug, purpose: catPurpose(t(cat.name, "sr", cat.originalLocale)), reference: catReference(cat.donationCode) };
+}
+
+/** A public cat's donation target together with its localized name, or null. */
+export async function findCatTarget(slug: string, locale: Locale): Promise<{ target: IpsTarget; name: string } | null> {
+  const cat = await db.cat.findFirst({
+    where: { slug, ...publicCatWhere },
+    select: { slug: true, name: true, originalLocale: true, donationCode: true },
+  });
+  return cat ? { target: catTarget(cat), name: t(cat.name, locale, cat.originalLocale) } : null;
 }
 
 export const generalTarget: IpsTarget = { slug: null, purpose: GENERAL_PURPOSE, reference: GENERAL_REFERENCE };
