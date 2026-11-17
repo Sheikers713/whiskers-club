@@ -118,8 +118,6 @@ const en = {
     applyAdopt: "I want to adopt",
     qrTitle: "Donate by QR code from a Serbian bank",
     otherPayments: "Other ways to donate",
-    share: "Share",
-    linkCopied: "Link copied",
     fundraiser: "Fundraiser",
     collected: "collected",
     left: "left",

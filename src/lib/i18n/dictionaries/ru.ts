@@ -120,8 +120,6 @@ const ru: Dictionary = {
     applyAdopt: "Хочу забрать",
     qrTitle: "Перевод по QR-коду из сербского банка",
     otherPayments: "Другие способы помочь",
-    share: "Поделиться",
-    linkCopied: "Ссылка скопирована",
     fundraiser: "Сбор",
     collected: "собрано",
     left: "осталось",

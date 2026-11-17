@@ -14,7 +14,6 @@ import { Gallery } from "@/components/site/Gallery";
 import { Money } from "@/components/site/Money";
 import { Progress } from "@/components/site/Progress";
 import { SexIcon } from "@/components/site/SexIcon";
-import { ShareButton } from "@/components/site/ShareButton";
 import { StatusBadge } from "@/components/site/StatusBadge";
 import { CuratorCard } from "@/components/site/CuratorCard";
 import { IpsQrPicker } from "@/components/site/IpsQrPicker";
@@ -149,13 +148,8 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
 
         <div className="space-y-8">
           <div>
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <StatusBadge status={cat.status} sex={cat.sex} locale={locale} />
-                <h1 className="mt-3 font-display text-5xl uppercase md:text-7xl">{name}</h1>
-              </div>
-              <ShareButton title={name} label={dict.cat.share} copiedLabel={dict.cat.linkCopied} />
-            </div>
+            <StatusBadge status={cat.status} sex={cat.sex} locale={locale} />
+            <h1 className="mt-3 font-display text-5xl uppercase md:text-7xl">{name}</h1>
             <ul className="mt-4 flex flex-wrap gap-2 text-sm">
               <li className="flex items-center rounded-md bg-paper px-3 py-1.5 ring-1 ring-line">
                 {cat.sex === "FEMALE" || cat.sex === "MALE" ? (

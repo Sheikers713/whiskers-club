@@ -121,8 +121,6 @@ const sr: Dictionary = {
     applyAdopt: "Želim da udomim",
     qrTitle: "Uplata QR kodom iz srpske banke",
     otherPayments: "Drugi načini pomoći",
-    share: "Podeli",
-    linkCopied: "Link je kopiran",
     fundraiser: "Akcija",
     collected: "prikupljeno",
     left: "preostalo",
