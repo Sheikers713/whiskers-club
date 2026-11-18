@@ -102,15 +102,19 @@ export default async function TransparencyPage({ params, searchParams }: PagePro
 
       <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {[
+          // Balance first (green or red by sign), then what was spent, and only
+          // then what came in: the page leads with the result, not the total raised.
+          ...(catId
+            ? []
+            : [{ label: dict.report.balance, value: report.balanceRsd, tone: report.balanceRsd < 0 ? "text-red-700" : "text-green-700" }]),
+          { label: dict.report.expenses, value: report.expenseRsd, tone: "" },
           // The opening balance was donations too (before the books were kept here).
-          { label: dict.report.income, value: report.incomeRsd + (showOpening ? report.openingRsd : 0) },
-          { label: dict.report.expenses, value: report.expenseRsd },
-          ...(catId ? [] : [{ label: dict.report.balance, value: report.balanceRsd }]),
+          { label: dict.report.income, value: report.incomeRsd + (showOpening ? report.openingRsd : 0), tone: "" },
         ].map((s) => (
           <div key={s.label} className="rounded-[var(--radius-card)] bg-paper p-5 ring-1 ring-line card-shadow">
             <dt className="text-sm text-ink-soft">{s.label}</dt>
             <dd className="mt-1 text-2xl font-bold">
-              <Money amount={s.value} locale={locale} eurRate={rate} />
+              <Money amount={s.value} locale={locale} eurRate={rate} className={s.tone} />
             </dd>
           </div>
         ))}

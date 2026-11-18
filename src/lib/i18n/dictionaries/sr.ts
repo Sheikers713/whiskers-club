@@ -194,7 +194,7 @@ const sr: Dictionary = {
     intro:
       "Svi iznosi su u dinarima (RSD). Donacije u drugim valutama preračunavaju se ručno prilikom unosa. Iznosi u evrima su približni.",
     income: "Prihodi",
-    expenses: "Troškovi",
+    expenses: "Potrošeno na mačke",
     opening: "Početno stanje na",
     balance: "Stanje",
     period: "Period",
