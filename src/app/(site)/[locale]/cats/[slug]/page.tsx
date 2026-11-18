@@ -89,11 +89,10 @@ export default async function CatPage({ params }: PageProps<"/[locale]/cats/[slu
     { title: dict.cat.health, body: L(mergeTexts(cat.health, cat.hasSpecialNeeds ? cat.specialNeeds : undefined)) },
   ].filter((s) => s.body);
 
-  // Public timeline: meaningful events only; "card edited" stays in the audit log.
+  // Public timeline: news written in the admin (editable there) and donations.
+  // Nothing is added here automatically, e.g. on a status change.
   type Ev = { date: Date; icon: string; text: string };
   const events: Ev[] = [
-    ...(cat.publishedAt ? [{ date: cat.publishedAt, icon: "🐾", text: dict.cat.eventPublished }] : []),
-    ...(cat.adoptedAt ? [{ date: cat.adoptedAt, icon: "🏠", text: cat.sex === "FEMALE" ? dict.cat.eventAdoptedFemale : dict.cat.eventAdopted }] : []),
     ...cat.updates.map((u) => ({ date: u.date, icon: "📝", text: L(u.text) })),
     ...donations.map((d) => ({
       date: d.date,

@@ -205,7 +205,10 @@ export async function applyPlan(plan: Plan, ctx: SiteContext, uploads: Upload[],
         const status = await statusFor(ch.changes.statusKey);
         if (status) {
           data.statusId = status.id;
-          if (status.group === "ADOPTED" && !before.adoptedAt) data.adoptedAt = day(ctx.today);
+          // The adoption date follows the status: set on adoption, cleared when undone.
+          if (status.group === "ADOPTED") {
+            if (!before.adoptedAt) data.adoptedAt = day(ctx.today);
+          } else if (before.adoptedAt) data.adoptedAt = null;
         }
         if (ch.changes.visibility) {
           data.state = ch.changes.visibility;

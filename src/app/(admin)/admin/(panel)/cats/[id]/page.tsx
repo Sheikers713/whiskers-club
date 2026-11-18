@@ -5,7 +5,7 @@ import { mergeTexts, t } from "@/lib/i18n/localized";
 import { toDateInput } from "@/lib/admin/form";
 import { photoUrl } from "@/lib/media-url";
 import { aiEnabled } from "@/lib/ai/translate";
-import { addInstagramLink, saveCat, saveCatUpdate, updatePhoto, uploadPhotos } from "@/lib/actions/cats";
+import { addInstagramLink, deleteCatUpdate, saveCat, saveCatUpdate, updatePhoto, uploadPhotos } from "@/lib/actions/cats";
 import { ActionForm } from "@/components/admin/ActionForm";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
 import { AgeField } from "@/components/admin/AgeField";
@@ -191,7 +191,7 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
             <Field label="Дата, когда попал к нам">
               <input type="date" name="intakeDate" defaultValue={toDateInput(cat?.intakeDate ?? new Date())} className={inputCls} />
             </Field>
-            <Field label="Дата пристройства" hint="Ставится сама при статусе «Нашёл дом»">
+            <Field label="Дата пристройства" hint="Только для статуса «Нашёл дом»; на сайте не показывается, для хроники добавьте новость">
               <input type="date" name="adoptedAt" defaultValue={toDateInput(cat?.adoptedAt)} className={inputCls} />
             </Field>
           </div>
@@ -380,7 +380,12 @@ export default async function EditCat({ params, searchParams }: PageProps<"/admi
                         </Field>
                       </div>
                       <LocalizedField name="text" label="Текст" value={u.text} multiline rows={3} />
-                      <button className={btnSecondaryCls}>Сохранить</button>
+                      <div className="flex flex-wrap gap-3">
+                        <button className={btnSecondaryCls}>Сохранить</button>
+                        <button formAction={deleteCatUpdate} className={`${btnSecondaryCls} text-brick`}>
+                          Удалить новость
+                        </button>
+                      </div>
                     </form>
                   </details>
                 </li>

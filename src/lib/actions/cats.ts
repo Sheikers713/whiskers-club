@@ -118,8 +118,8 @@ export async function saveCat(fd: FormData): Promise<{ error: string } | void> {
     countInStats: bool(fd, "countInStats"),
     intakeDate: date(fd, "intakeDate") ?? before?.intakeDate ?? new Date(),
     publishedAt: state === "PUBLISHED" ? (before?.publishedAt ?? new Date()) : (before?.publishedAt ?? null),
-    adoptedAt:
-      status.group === "ADOPTED" ? (date(fd, "adoptedAt") ?? before?.adoptedAt ?? new Date()) : (date(fd, "adoptedAt") ?? null),
+    // Only an adopted cat has an adoption date: leaving the status clears it.
+    adoptedAt: status.group === "ADOPTED" ? (date(fd, "adoptedAt") ?? before?.adoptedAt ?? new Date()) : null,
   };
 
   const cat = await db.$transaction(async (tx) => {
@@ -243,6 +243,19 @@ export async function saveCatUpdate(fd: FormData) {
   redirect(`/admin/cats/${catId}?saved=1#updates`);
 }
 
+export async function deleteCatUpdate(fd: FormData) {
+  const user = await requireUser(["EDITOR"]);
+  const catId = str(fd, "catId");
+  const id = str(fd, "id");
+  const before = await db.catUpdate.findUnique({ where: { id } });
+  if (before && before.catId === catId) {
+    await db.catUpdate.delete({ where: { id } });
+    await audit({ actorId: user.id, action: "cat_update.delete", entityType: "CatUpdate", entityId: id, before });
+    revalidatePath("/", "layout");
+  }
+  redirect(`/admin/cats/${catId}?saved=1#updates`);
+}
+
 /** Quick status switch from the cat list; same side effects as the full form. */
 export async function setCatStatus(fd: FormData) {
   const user = await requireUser(["EDITOR"]);
@@ -254,7 +267,8 @@ export async function setCatStatus(fd: FormData) {
   if (!cat || !status || cat.statusId === status.id) return;
   const data = {
     statusId: status.id,
-    ...(status.group === "ADOPTED" && !cat.adoptedAt ? { adoptedAt: new Date() } : {}),
+    // Undone together with the status: a cat leaving "adopted" loses its adoption date.
+    adoptedAt: status.group === "ADOPTED" ? (cat.adoptedAt ?? new Date()) : null,
   };
   await db.cat.update({ where: { id }, data });
   await audit({ actorId: user.id, action: "cat.status", entityType: "Cat", entityId: id, before: { statusId: cat.statusId }, after: data });
