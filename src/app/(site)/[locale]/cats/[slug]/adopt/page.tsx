@@ -9,7 +9,14 @@ import { publicCatWhere } from "@/lib/queries/cats";
 import { formFields, formLabels } from "@/lib/forms/labels";
 import { ApplicationForm } from "@/components/site/ApplicationForm";
 
-export const metadata: Metadata = { robots: { index: false } };
+// The application form stays out of search results; it points to the cat's page instead.
+export async function generateMetadata({ params }: PageProps<"/[locale]/cats/[slug]/adopt">): Promise<Metadata> {
+  const { locale, slug } = await params;
+  return {
+    robots: { index: false, follow: true },
+    alternates: { canonical: isLocale(locale) ? `/${locale}/cats/${slug}` : undefined },
+  };
+}
 
 export default async function AdoptPage({ params }: PageProps<"/[locale]/cats/[slug]/adopt">) {
   const { locale, slug } = await params;

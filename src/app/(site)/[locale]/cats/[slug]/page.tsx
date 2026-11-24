@@ -20,6 +20,7 @@ import { CuratorCard } from "@/components/site/CuratorCard";
 import { IpsQrPicker } from "@/components/site/IpsQrPicker";
 import { IPS_AMOUNTS } from "@/lib/ips";
 import { ipsReady } from "@/lib/ips-donation";
+import { pageMeta } from "@/lib/seo";
 
 // The cat page lists only the latest expenses; the rest open on demand.
 const EXPENSES_SHOWN = 5;
@@ -30,18 +31,17 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/cats/[sl
   const data = await getPublicCat(slug);
   if (!data) return {};
   const { cat } = data;
+  const dict = getDictionary(locale);
   const name = t(cat.name, locale, cat.originalLocale);
-  const description = t(cat.summary, locale, cat.originalLocale);
-  return {
-    title: name,
+  const summary = t(cat.summary, locale, cat.originalLocale).replace(/\s+/g, " ").trim();
+  const description = summary
+    ? summary.length > 160 ? `${summary.slice(0, 157).replace(/\s+\S*$/, "")}…` : summary
+    : fmt(dict.seo.catDescription, { name });
+  return pageMeta(locale, `/cats/${slug}`, {
+    title: fmt(dict.seo.catTitle, { name }),
     description,
-    alternates: { languages: { en: `/en/cats/${slug}`, ru: `/ru/cats/${slug}`, sr: `/sr/cats/${slug}` } },
-    openGraph: {
-      title: name,
-      description,
-      images: cat.cover?.storageKey ? [{ url: photoUrl(cat.cover.storageKey, 1200) }] : undefined,
-    },
-  };
+    images: cat.cover?.storageKey ? [photoUrl(cat.cover.storageKey, 1200)] : undefined,
+  });
 }
 
 function tri(v: TriState, d: Dictionary) {

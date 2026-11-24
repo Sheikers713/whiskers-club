@@ -6,6 +6,27 @@ const sr: Dictionary = {
     siteName: "Whiskers Club",
     tagline: "Volonterska pomoć mačkama sa ulice i iz azila u Beogradu",
   },
+  seo: {
+    homeTitle: "Whiskers Club — spasavanje i udomljavanje mačaka u Beogradu",
+    homeDescription:
+      "Volontersko spasavanje mačaka u Beogradu: uzimamo mačke sa ulice i iz azila, lečimo ih, nalazimo privremene domove i porodice. Udomi mačku, postani hranitelj ili doniraj.",
+    catsTitle: "Mačke za udomljavanje u Beogradu",
+    catsDescription:
+      "Mačke i mačići traže dom u Beogradu: njihove priče, fotografije, zdravlje i kako udomiti mačku.",
+    catTitle: "{name} traži dom u Beogradu",
+    catDescription: "{name} traži dom. Priča, fotografije, zdravlje i kako udomiti ili pomoći ovoj mački u Beogradu.",
+    helpDescription:
+      "Kako pomoći mačkama sa ulice i iz azila u Beogradu: donacija karticom, IPS QR kodom ili PayPal-om, volontiranje, privremeni smeštaj, partnerstvo.",
+    transparencyDescription:
+      "Sve donacije i svi troškovi Whiskers Club-a, objavljeni sa računima: gde ide novac za mačke.",
+    aboutDescription:
+      "Ko smo mi: Whiskers Club je volonterski projekat u Beogradu koji spasava, leči i udomljava mačke sa ulice i iz azila.",
+    volunteerDescription: "Postani volonter Whiskers Club-a u Beogradu i pomozi mačkama: prevoz, nega, fotografije i još mnogo toga.",
+    fosterDescription: "Postani privremeni dom za mačku u Beogradu: hranu i veterinara plaćamo mi dok mačka čeka porodicu.",
+    partnerDescription: "Partnerstvo sa Whiskers Club-om: veterinarske klinike, pet šopovi i firme koje pomažu mačkama Beograda.",
+    privacyDescription: "Kako Whiskers Club postupa sa ličnim podacima donatora, udomitelja i volontera.",
+    orgDescription: "Volontersko spasavanje mačaka u Beogradu, Srbija.",
+  },
   nav: {
     home: "Početna",
     cats: "Mačke",
@@ -18,7 +39,7 @@ const sr: Dictionary = {
     menu: "Meni",
   },
   home: {
-    heroTitle: "Mačke imaju 9 života, ali mi se borimo za svaki",
+    heroTitle: "Ne deveti život, već druga šansa.",
     heroText:
       "Iza svake naše mačke krije se priča koja je mogla da se završi sasvim drugačije. Mi tim pričama dajemo nastavak. Vi možete da nam pomognete da napišemo sledeće poglavlje.",
     heroCta: "Postani deo spasavanja",

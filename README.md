@@ -59,7 +59,8 @@ docker compose --env-file .env.staging -p whiskers-staging up -d --build
 | --- | --- | --- |
 | `APP_URL` | да | Адрес сайта без `/` на конце, нужен для ссылок в письмах |
 | `APP_PORT` | нет | Порт на самом Mac (по умолчанию 3000), снаружи не виден |
-| `ALLOW_INDEXING` | нет | `true` только на постоянном домене. Пока `false`, сайт закрыт от поисковиков |
+| `ALLOW_INDEXING` | нет | По умолчанию сайт открыт для поисковиков (`robots.txt`, `sitemap.xml`). `false` на стейджинге и временных доменах: noindex и запрет в `robots.txt` |
+| `GOOGLE_SITE_VERIFICATION`, `YANDEX_VERIFICATION` | нет | Код подтверждения из Google Search Console и Яндекс Вебмастера (только значение `content` из их `<meta>`-тега) |
 | `POSTGRES_PASSWORD` | да | Пароль базы, любая длинная случайная строка (`openssl rand -hex 24`) |
 | `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | при первом запуске | Первый суперадмин. Создаётся, только если такого email ещё нет |
 | `RESEND_API_KEY`, `MAIL_FROM` | нет | Отправка писем с приглашениями и сбросом пароля через [Resend](https://resend.com). Без них ссылка пишется в лог `app`, а приглашение всё равно можно скопировать в админке |

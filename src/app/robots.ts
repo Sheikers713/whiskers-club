@@ -1,9 +1,14 @@
 import type { MetadataRoute } from "next";
+import { indexingAllowed, siteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
 
-// Temporary domains stay out of search engines until ALLOW_INDEXING=true (decision 2.4).
+// Open to search engines unless ALLOW_INDEXING=false (keep that on temporary domains).
 export default function robots(): MetadataRoute.Robots {
-  if (process.env.ALLOW_INDEXING !== "true") return { rules: { userAgent: "*", disallow: "/" } };
-  return { rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/files", "/api"] } };
+  if (!indexingAllowed()) return { rules: { userAgent: "*", disallow: "/" } };
+  return {
+    rules: { userAgent: "*", allow: "/", disallow: ["/admin", "/api", "/files", "/*/cats/*/adopt"] },
+    sitemap: `${siteUrl()}/sitemap.xml`,
+    host: siteUrl(),
+  };
 }

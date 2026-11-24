@@ -4,11 +4,13 @@ import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { t } from "@/lib/i18n/localized";
 import { getSettings } from "@/lib/settings";
+import { pageMeta } from "@/lib/seo";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/privacy">): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: getDictionary(locale).privacy.title };
+  const dict = getDictionary(locale);
+  return pageMeta(locale, "/privacy", { title: dict.privacy.title, description: dict.seo.privacyDescription });
 }
 
 export default async function Page({ params }: PageProps<"/[locale]/privacy">) {

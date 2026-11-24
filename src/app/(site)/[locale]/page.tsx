@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/lib/i18n/config";
@@ -13,6 +14,14 @@ import { HeroArt } from "@/components/site/HeroArt";
 import { SocialLinks } from "@/components/site/SocialLinks";
 import { Money } from "@/components/site/Money";
 import { PaymentMethods } from "@/components/site/PaymentMethods";
+import { pageMeta } from "@/lib/seo";
+
+export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) return {};
+  const dict = getDictionary(locale);
+  return pageMeta(locale, "", { title: dict.seo.homeTitle, description: dict.seo.homeDescription, absoluteTitle: true });
+}
 
 export default async function HomePage({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
