@@ -7,11 +7,13 @@ import { PaymentMethods } from "@/components/site/PaymentMethods";
 import { IpsDonate } from "@/components/site/IpsDonate";
 import { findCatTarget, generalTarget, ipsReady } from "@/lib/ips-donation";
 import { getSettings } from "@/lib/settings";
+import { pageMeta } from "@/lib/seo";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/help">): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: getDictionary(locale).help.title };
+  const dict = getDictionary(locale);
+  return pageMeta(locale, "/help", { title: dict.help.title, description: dict.seo.helpDescription });
 }
 
 export default async function HelpPage({ params, searchParams }: PageProps<"/[locale]/help">) {

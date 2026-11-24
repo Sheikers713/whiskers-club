@@ -3,6 +3,27 @@ const en = {
     siteName: "Whiskers Club",
     tagline: "Volunteer help for street and shelter cats in Belgrade",
   },
+  seo: {
+    homeTitle: "Whiskers Club — cat rescue and adoption in Belgrade",
+    homeDescription:
+      "Volunteer cat rescue in Belgrade, Serbia: we take cats off the street and out of shelters, treat them, find foster homes and families. Adopt a cat, become a foster or donate.",
+    catsTitle: "Cats for adoption in Belgrade",
+    catsDescription:
+      "Cats and kittens looking for a home in Belgrade: their stories, photos and health, and how to adopt one.",
+    catTitle: "{name} is looking for a home in Belgrade",
+    catDescription: "{name} is looking for a home. Story, photos, health and how to adopt or help this cat in Belgrade.",
+    helpDescription:
+      "How to help street and shelter cats in Belgrade: donate by card, IPS QR or PayPal, become a volunteer or a foster, or partner with Whiskers Club.",
+    transparencyDescription:
+      "Every donation and every expense of Whiskers Club, published with receipts: where the money for the cats goes.",
+    aboutDescription:
+      "Who we are: Whiskers Club is a volunteer project in Belgrade that rescues, treats and rehomes street and shelter cats.",
+    volunteerDescription: "Become a Whiskers Club volunteer in Belgrade and help cats with transport, care, photos and more.",
+    fosterDescription: "Become a foster home for a cat in Belgrade: we cover food and vet costs while the cat waits for a family.",
+    partnerDescription: "Partner with Whiskers Club: vet clinics, pet shops and businesses helping cats in Belgrade.",
+    privacyDescription: "How Whiskers Club handles personal data of donors, adopters and volunteers.",
+    orgDescription: "Volunteer cat rescue in Belgrade, Serbia.",
+  },
   nav: {
     home: "Home",
     cats: "Cats",
@@ -15,7 +36,7 @@ const en = {
     menu: "Menu",
   },
   home: {
-    heroTitle: "Cats have 9 lives, but we fight for every one",
+    heroTitle: "Not a ninth life, a second chance.",
     heroText:
       "Behind each of our cats is a story that could have ended very differently. We give these stories a continuation. You can help us write the next chapter.",
     heroCta: "Become part of the rescue",

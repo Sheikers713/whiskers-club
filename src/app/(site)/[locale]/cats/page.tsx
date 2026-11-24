@@ -6,11 +6,13 @@ import { fmt, getDictionary } from "@/lib/i18n/dictionary";
 import { t } from "@/lib/i18n/localized";
 import { getCatalog } from "@/lib/queries/cats";
 import { CatCard } from "@/components/site/CatCard";
+import { pageMeta } from "@/lib/seo";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/cats">): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: getDictionary(locale).cats.title };
+  const dict = getDictionary(locale);
+  return pageMeta(locale, "/cats", { title: dict.seo.catsTitle, description: dict.seo.catsDescription });
 }
 
 export default async function CatsPage({ params, searchParams }: PageProps<"/[locale]/cats">) {

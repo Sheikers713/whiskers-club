@@ -4,11 +4,13 @@ import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { formFields, formLabels } from "@/lib/forms/labels";
 import { ApplicationForm } from "@/components/site/ApplicationForm";
+import { pageMeta } from "@/lib/seo";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/partnership">): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: getDictionary(locale).help.partnerTitle };
+  const dict = getDictionary(locale);
+  return pageMeta(locale, "/partnership", { title: dict.help.partnerTitle, description: dict.seo.partnerDescription });
 }
 
 export default async function Page({ params }: PageProps<"/[locale]/partnership">) {

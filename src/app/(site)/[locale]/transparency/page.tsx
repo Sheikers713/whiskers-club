@@ -12,11 +12,13 @@ import { publicCatWhere } from "@/lib/queries/cats";
 import { formatRsd, formatShortDate } from "@/lib/format";
 import { Money } from "@/components/site/Money";
 import { Progress } from "@/components/site/Progress";
+import { pageMeta } from "@/lib/seo";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/transparency">): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  return { title: getDictionary(locale).report.title };
+  const dict = getDictionary(locale);
+  return pageMeta(locale, "/transparency", { title: dict.report.title, description: dict.seo.transparencyDescription });
 }
 
 function parseDate(v: unknown): Date | undefined {
